@@ -7,7 +7,6 @@ namespace BudgetAppBackend.Domain.UserAggregate
     {
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
-        public string Username { get; private set; }
         public string Email { get; private set; }
         public byte[] PasswordHash { get; private set; }
         public byte[] PasswordSalt { get; private set; }
@@ -20,21 +19,20 @@ namespace BudgetAppBackend.Domain.UserAggregate
             // It's mainly used for ORM frameworks that require a parameterless constructor.
         }
 
-        private User(UserId id = null!, string firstName = null!, string lastName = null!, string username = null!, string email = null!, byte[] passwordHash = null!, byte[] passwordSalt = null!) : base(id)
+        private User(UserId id = null!, string firstName = null!, string lastName = null!, string email = null!, byte[] passwordHash = null!, byte[] passwordSalt = null!) : base(id)
         {
             FirstName = ValidateString(firstName, nameof(FirstName));
             LastName = ValidateString(lastName, nameof(LastName));
-            Username = ValidateString(username, nameof(Username));
             Email = ValidateEmail(email);
             PasswordHash = passwordHash ?? throw new ArgumentNullException(nameof(passwordHash));
             PasswordSalt = passwordSalt ?? throw new ArgumentNullException(nameof(passwordSalt));
             IsEmailVerified = false;
         }
 
-        public static User CreateNewUser(string firstName, string lastName, string username, string email, byte[] passwordHash, byte[] passwordSalt)
+        public static User CreateNewUser(string firstName, string lastName, string email, byte[] passwordHash, byte[] passwordSalt)
         {
             var id = UserId.CreateId();
-            return new User(id, firstName, lastName, username, email, passwordHash, passwordSalt);
+            return new User(id, firstName, lastName, email, passwordHash, passwordSalt);
         }
 
         public void ChangePassword(byte[] newPasswordHash, byte[] newPasswordSalt)
@@ -75,17 +73,18 @@ namespace BudgetAppBackend.Domain.UserAggregate
             EmailVerificationCodeExpiry = expiry;
         }
 
-        public void VerifyEmail(string code)
+        public bool VerifyEmail(string code)
         {
             if (code == EmailVerificationCode && EmailVerificationCodeExpiry > DateTime.UtcNow)
             {
                 IsEmailVerified = true;
                 EmailVerificationCode = null;
                 EmailVerificationCodeExpiry = null;
+                return true;
             }
             else
             {
-                throw new ArgumentException("Invalid or expired verification code.");
+                return false;
             }
         }
     }
