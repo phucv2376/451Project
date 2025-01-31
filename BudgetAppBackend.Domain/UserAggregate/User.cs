@@ -1,5 +1,8 @@
-﻿using BudgetAppBackend.Domain.Commons;
+﻿using System.Text;
+using BudgetAppBackend.Domain.Commons;
+using BudgetAppBackend.Domain.DomainEvents;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
+using Konscious.Security.Cryptography;
 
 namespace BudgetAppBackend.Domain.UserAggregate
 {
@@ -29,22 +32,27 @@ namespace BudgetAppBackend.Domain.UserAggregate
             IsEmailVerified = false;
         }
 
-        public static User CreateNewUser(string firstName, string lastName, string email, byte[] passwordHash, byte[] passwordSalt)
+        public static User CreateNewUser(string firstName, string lastName, string email, string password)
         {
-            var id = UserId.CreateId();
-            return new User(id, firstName, lastName, email, passwordHash, passwordSalt);
+            var passwordData = GeneratePasswordHash(password);
+
+            return new User(
+                UserId.CreateId(),
+                firstName,
+                lastName,
+                email,
+                passwordData.PasswordHash,
+                passwordData.PasswordSalt
+            );
         }
 
-        public void ChangePassword(byte[] newPasswordHash, byte[] newPasswordSalt)
+        public void ChangePassword(string newPassword)
         {
-            if (newPasswordHash == null || newPasswordHash.Length == 0)
-                throw new ArgumentException("Password hash cannot be null or empty.", nameof(newPasswordHash));
-
-            if (newPasswordSalt == null || newPasswordSalt.Length == 0)
-                throw new ArgumentException("Password salt cannot be null or empty.", nameof(newPasswordSalt));
-
+            var (newPasswordHash, newPasswordSalt) = GeneratePasswordHash(newPassword);
             PasswordHash = newPasswordHash;
             PasswordSalt = newPasswordSalt;
+
+            RaiseDomainEvent(new PasswordChangedEvent(Id.Id, LastName, Email));
         }
 
 
@@ -67,10 +75,12 @@ namespace BudgetAppBackend.Domain.UserAggregate
             return new Random().Next(100000, 999999).ToString();
         }
 
-        public void SetEmailVerificationCode(string code, DateTime expiry)
+        public void SetEmailVerificationCode(string code, DateTime expiry, string firstName,string lastName, string email)
         {
             EmailVerificationCode = code;
             EmailVerificationCodeExpiry = expiry;
+
+            RaiseDomainEvent(new EmailVerificationCodeGeneratedEvent(code, expiry, firstName, lastName, email));
         }
 
         public bool VerifyEmail(string code)
@@ -87,5 +97,52 @@ namespace BudgetAppBackend.Domain.UserAggregate
                 return false;
             }
         }
+
+        private static (byte[] PasswordHash, byte[] PasswordSalt) GeneratePasswordHash(string password)
+        {
+            byte[] passwordSalt = new byte[16];
+            using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
+            {
+                rng.GetBytes(passwordSalt);
+            }
+
+            using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
+            argon2.Salt = passwordSalt;
+            argon2.DegreeOfParallelism = 8;
+            argon2.MemorySize = 65536;
+            argon2.Iterations = 4;
+
+            byte[] passwordHash = argon2.GetBytes(64);
+
+            return (passwordHash, passwordSalt);
+        }
+
+        public bool VerifyPassword(string password)
+        {
+            using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
+            {
+                Salt = PasswordSalt,
+                DegreeOfParallelism = 8,
+                MemorySize = 65536,
+                Iterations = 4
+            };
+
+            var computedHash = argon2.GetBytes(64);
+            return AreHashesEqual(computedHash, PasswordHash);
+        }
+
+        private static bool AreHashesEqual(byte[] computedHash, byte[] storedHash)
+        {
+            if (computedHash.Length != storedHash.Length) return false;
+
+            bool areEqual = true;
+            for (int i = 0; i < computedHash.Length; i++)
+            {
+                areEqual &= (computedHash[i] == storedHash[i]);
+            }
+
+            return areEqual;
+        }
+
     }
 }

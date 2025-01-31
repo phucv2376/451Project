@@ -1,17 +1,18 @@
 ﻿using BudgetAppBackend.Application.Contracts;
-using Konscious.Security.Cryptography;
+using BudgetAppBackend.Application.Extensions;
 using MediatR;
-using System.Text;
 
 namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
 {
     public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, Unit>
     {
         private readonly IAuthRepository _authRepository;
+        private readonly IMediator _mediator;
 
-        public ResetPasswordCommandHandler(IAuthRepository authRepository)
+        public ResetPasswordCommandHandler(IAuthRepository authRepository, IMediator mediator)
         {
             _authRepository = authRepository;
+            _mediator = mediator;
         }
 
         public async Task<Unit> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
@@ -22,30 +23,13 @@ namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
                 throw new ArgumentException("Invalid email address.");
             }
 
-            var (passwordHash, passwordSalt) = CreatePasswordHash(request.resetPassword.NewPassword);
-            user.ChangePassword(passwordHash, passwordSalt);
+            user.ChangePassword(request.resetPassword.NewPassword);
 
             await _authRepository.UpdateUserAsync(user);
 
+            await _mediator.PublishDomainEventsAsync(new[] { user }, cancellationToken);
+
             return Unit.Value;
-        }
-
-        private static (byte[] passwordHash, byte[] passwordSalt) CreatePasswordHash(string password)
-        {
-            var passwordSalt = new byte[16];
-            using var rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
-            rng.GetBytes(passwordSalt);
-
-            using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
-            {
-                Salt = passwordSalt,
-                DegreeOfParallelism = 8,
-                MemorySize = 65536,
-                Iterations = 4
-            };
-
-            var passwordHash = argon2.GetBytes(64);
-            return (passwordHash, passwordSalt);
         }
     }
 }
