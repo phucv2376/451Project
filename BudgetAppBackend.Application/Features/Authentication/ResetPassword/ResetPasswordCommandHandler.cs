@@ -1,5 +1,4 @@
 ﻿using BudgetAppBackend.Application.Contracts;
-using BudgetAppBackend.Application.Extensions;
 using MediatR;
 
 namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
@@ -26,8 +25,6 @@ namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
             user.ChangePassword(request.resetPassword.NewPassword);
 
             await _authRepository.UpdateUserAsync(user);
-
-            await _mediator.PublishDomainEventsAsync(new[] { user }, cancellationToken);
 
             return Unit.Value;
         }
