@@ -58,16 +58,6 @@ namespace BudgetAppBackend.Application.Features.Authentication.Events
                         font-size: 12px;
                         color: #888888;
                     }}
-                    .email-button {{
-                        display: inline-block;
-                        margin: 20px 0;
-                        padding: 10px 20px;
-                        background-color: #007BFF;
-                        color: #ffffff;
-                        text-decoration: none;
-                        border-radius: 5px;
-                        font-weight: bold;
-                    }}
                 </style>
             </head>
             <body>
@@ -77,10 +67,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.Events
                         <p>Dear User,</p>
                         <p>Your password has been successfully changed. If you did not request this change, please contact support immediately.</p>
                         <p>Time of change: <strong>{DateTime.UtcNow:dddd, MMMM d, yyyy h:mm tt UTC}</strong></p>
-                        <p>If you have any concerns, you can reach our support team using the button below:</p>
-                        <p>
-                            <a href='https://support.budgetapp.com' class='email-button'>Contact Support</a>
-                        </p>
+                        <p>If you have any concerns, please contact our support team.</p>
                     </div>
                     <div class='email-footer'>
                         &copy; {DateTime.UtcNow.Year} BudgetApp. All rights reserved.
@@ -105,6 +92,5 @@ namespace BudgetAppBackend.Application.Features.Authentication.Events
                 Console.WriteLine($"Failed to send password change email: {ex.Message}");
             }
         }
-
     }
 }
