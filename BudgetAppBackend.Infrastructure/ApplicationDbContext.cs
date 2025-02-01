@@ -1,4 +1,5 @@
 ﻿using BudgetAppBackend.Domain.UserAggregate;
+using BudgetAppBackend.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 
 namespace BudgetAppBackend.Infrastructure
@@ -15,6 +16,7 @@ namespace BudgetAppBackend.Infrastructure
             base.OnModelCreating(modelBuilder);
         }
         public DbSet<User> Users { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     }
 }
