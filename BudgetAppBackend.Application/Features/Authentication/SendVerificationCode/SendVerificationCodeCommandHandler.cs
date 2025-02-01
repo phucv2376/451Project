@@ -7,12 +7,10 @@ namespace BudgetAppBackend.Application.Features.Authentication.SendVerificationC
     public class SendVerificationCodeCommandHandler : IRequestHandler<SendVerificationCodeCommand, bool>
     {
         private readonly IAuthRepository _authRepository;
-        private readonly IMediator _mediator;
-
-        public SendVerificationCodeCommandHandler(IAuthRepository authRepository, IMediator mediator)
+        
+        public SendVerificationCodeCommandHandler(IAuthRepository authRepository)
         {
             _authRepository = authRepository;
-            _mediator = mediator;
         }
 
         public async Task<bool> Handle(SendVerificationCodeCommand request, CancellationToken cancellationToken)
