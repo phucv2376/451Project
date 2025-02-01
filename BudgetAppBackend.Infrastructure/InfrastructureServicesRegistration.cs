@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
+using Npgsql;
 
 namespace BudgetAppBackend.Infrastructure
 {
@@ -20,9 +21,9 @@ namespace BudgetAppBackend.Infrastructure
             services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
             {
                 var interceptor = serviceProvider.GetRequiredService<DomainEventInterceptor>();
-                options.UseSqlServer(connectionString!,
-                    builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
-                    .AddInterceptors(interceptor);
+                options.UseNpgsql(connectionString,
+                                  builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
+                       .AddInterceptors(interceptor);
             });
             services.AddQuartz(q =>
             {
