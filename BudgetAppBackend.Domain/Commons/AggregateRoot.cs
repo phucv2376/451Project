@@ -1,21 +1,10 @@
 ﻿namespace BudgetAppBackend.Domain.Commons
 {
-    public abstract class AggregateRoot<TId> : Entity<TId> where TId : notnull
+    public abstract class AggregateRoot : Entity
     {
-
-        private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
+        private readonly List<IDomainEvent> _domainEvents = new();
 
         public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
-
-        protected AggregateRoot(TId id) : base(id)
-        {
-        }
-
-        private AggregateRoot() : base(default)
-        {
-
-            // It's mainly used for ORM frameworks that require a parameterless constructor.
-        }
 
         protected void RaiseDomainEvent(IDomainEvent domainEvent)
         {
@@ -26,6 +15,13 @@
         {
             _domainEvents.Clear();
         }
+    }
 
+    // Keep your generic version as well, inheriting from the base class
+    public abstract class AggregateRoot<TId> : AggregateRoot
+        where TId : notnull
+    {
+        public TId Id { get; protected set; } = default!;
+        protected AggregateRoot() { }
     }
 }
