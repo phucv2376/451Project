@@ -6,12 +6,10 @@ namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
     public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, Unit>
     {
         private readonly IAuthRepository _authRepository;
-        private readonly IMediator _mediator;
 
-        public ResetPasswordCommandHandler(IAuthRepository authRepository, IMediator mediator)
+        public ResetPasswordCommandHandler(IAuthRepository authRepository)
         {
             _authRepository = authRepository;
-            _mediator = mediator;
         }
 
         public async Task<Unit> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
