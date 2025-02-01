@@ -1,5 +1,10 @@
 ﻿namespace BudgetAppBackend.Domain.Commons
 {
+
+    public abstract class Entity
+    {
+        // Base non-generic entity functionality, if needed
+    }
     public abstract class Entity<TId> : IEquatable<Entity<TId>>
         where TId : notnull
     {
