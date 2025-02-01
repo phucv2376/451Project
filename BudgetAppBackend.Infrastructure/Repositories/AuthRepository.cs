@@ -1,6 +1,6 @@
 ﻿using BudgetAppBackend.Application.Contracts;
-using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
 using BudgetAppBackend.Domain.UserAggregate;
+using Microsoft.EntityFrameworkCore;
 
 namespace BudgetAppBackend.Infrastructure.Repositories
 {
@@ -14,10 +14,9 @@ namespace BudgetAppBackend.Infrastructure.Repositories
         }
 
        
-        public Task<User> GetUserByEmailAsync(string Email)
+        public async Task<User> GetUserByEmailAsync(string Email)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == Email);
-            return Task.FromResult(user!);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == Email);
         }
 
         public async Task UpdateUserAsync(User user)
@@ -29,10 +28,10 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
         public async Task Register(User addNewUser)
         {
-            _context.Users.Add(addNewUser);
+            await _context.Users.AddAsync(addNewUser);
             await _context.SaveChangesAsync();
         }
 
-       
+
     }
 }
