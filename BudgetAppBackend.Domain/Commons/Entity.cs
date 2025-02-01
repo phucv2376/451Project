@@ -3,10 +3,10 @@
 
     public abstract class Entity
     {
-        // Base non-generic entity functionality, if needed
+        // Base non-generic entity functionality
     }
     public abstract class Entity<TId> : IEquatable<Entity<TId>>
-        where TId : notnull
+         where TId : notnull
     {
 
         public TId? Id { get; private set; }
