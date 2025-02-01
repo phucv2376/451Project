@@ -17,12 +17,12 @@ namespace BudgetAppBackend.Domain.UserAggregate
         public string? EmailVerificationCode { get; private set; }
         public DateTime? EmailVerificationCodeExpiry { get; private set; }
 
-        private User() : base()
+        private User() : base(default!)
         {
             // It's mainly used for ORM frameworks that require a parameterless constructor.
         }
 
-        private User(UserId id, string firstName, string lastName, string email, byte[] passwordHash, byte[] passwordSalt) : base()
+        private User(UserId id, string firstName, string lastName, string email, byte[] passwordHash, byte[] passwordSalt) : base(id)
         {
             FirstName = ValidateString(firstName, nameof(FirstName));
             LastName = ValidateString(lastName, nameof(LastName));
