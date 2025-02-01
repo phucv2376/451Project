@@ -1,5 +1,6 @@
 ﻿namespace BudgetAppBackend.Domain.Commons
 {
+    // Non-generic base class for domain events
     public abstract class AggregateRoot : Entity
     {
         private readonly List<IDomainEvent> _domainEvents = new();
@@ -17,11 +18,18 @@
         }
     }
 
-    // Keep your generic version as well, inheriting from the base class
-    public abstract class AggregateRoot<TId> : AggregateRoot
-        where TId : notnull
+    public abstract class AggregateRoot<TId> : AggregateRoot where TId : notnull
     {
-        public TId Id { get; protected set; } = default!;
-        protected AggregateRoot() { }
+        public TId Id { get; protected set; }
+
+        protected AggregateRoot(TId id)
+        {
+            Id = id;
+        }
+
+        protected AggregateRoot() // For ORM frameworks
+        {
+            Id = default!;
+        }
     }
 }
