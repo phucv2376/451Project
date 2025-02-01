@@ -1,13 +1,12 @@
 ﻿using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.Models;
 using BudgetAppBackend.Application.Service;
+using BudgetAppBackend.Infrastructure.Interceptors;
 using BudgetAppBackend.Infrastructure.Repositories;
 using BudgetAppBackend.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
-
 
 namespace BudgetAppBackend.Infrastructure
 {
@@ -16,9 +15,14 @@ namespace BudgetAppBackend.Infrastructure
         public static IServiceCollection RegisterInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("dbConnectionString");
-            services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlServer(connectionString!,
-                    builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+            services.AddSingleton<DomainEventInterceptor>();
+            services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+            {
+                var interceptor = serviceProvider.GetRequiredService<DomainEventInterceptor>();
+                options.UseSqlServer(connectionString!,
+                    builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
+                    .AddInterceptors(interceptor);
+            });
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings").Bind);
 
@@ -33,7 +37,6 @@ namespace BudgetAppBackend.Infrastructure
                 options.EmailPassword = configuration.GetSection("EmailSettings")["EmailPassword"];
                 options.SenderName = configuration.GetSection("EmailSettings")["SenderName"];
             });
-
 
             services.AddTransient<IEmailService, EmailService>();
 
