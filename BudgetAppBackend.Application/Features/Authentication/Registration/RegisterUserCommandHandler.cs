@@ -9,14 +9,12 @@ namespace BudgetAppBackend.Application.Features.Authentication.Registration
     public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, AuthResult>
     {
         public readonly IMapper _mapper;
-        private readonly IMediator _mediator;
         private readonly IAuthRepository? _authRepository;
 
-        public RegisterUserCommandHandler(IMapper mapper, IAuthRepository? authRepository, IMediator mediator)
+        public RegisterUserCommandHandler(IMapper mapper, IAuthRepository? authRepository)
         {
             _mapper = mapper;
             _authRepository = authRepository;
-            _mediator = mediator;
         }
 
         public async Task<AuthResult> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
