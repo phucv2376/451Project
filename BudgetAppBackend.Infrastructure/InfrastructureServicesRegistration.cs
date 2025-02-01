@@ -1,12 +1,13 @@
 ﻿using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.Models;
 using BudgetAppBackend.Application.Service;
-using BudgetAppBackend.Infrastructure.Interceptors;
+using BudgetAppBackend.Infrastructure.Outbox;
 using BudgetAppBackend.Infrastructure.Repositories;
 using BudgetAppBackend.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Quartz;
 
 namespace BudgetAppBackend.Infrastructure
 {
@@ -23,6 +24,18 @@ namespace BudgetAppBackend.Infrastructure
                     builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
                     .AddInterceptors(interceptor);
             });
+            services.AddQuartz(q =>
+            {
+                var jobKey = new JobKey("OutboxProcessor");
+                q.AddJob<OutboxProcessor>(jobKey)
+                 .AddTrigger(
+                    trigger =>
+                    trigger.ForJob(jobKey)
+                        .WithSimpleSchedule(s =>
+                            s.WithIntervalInSeconds(1)
+                                .RepeatForever()));
+            });
+            services.AddQuartzHostedService();
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings").Bind);
 
