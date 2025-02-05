@@ -20,6 +20,12 @@ namespace BudgetAppBackend.Application.Features.Authentication.Registration
         public async Task<AuthResult> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
             var currentUser = _mapper.Map<User>(request.AddUser);
+            var IsEmailExist = await _authRepository!.GetUserByEmailAsync(currentUser.Email);
+            if (IsEmailExist != null)
+            {
+                return new AuthResult { Success = false, Message = "Email already exist" };
+            }
+
             var newUser = User.CreateNewUser(
                 currentUser.FirstName,
                 currentUser.LastName,
