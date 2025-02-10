@@ -8,10 +8,20 @@ namespace BudgetAppBackend.Domain.Tests
         public void CreateNewUser_ShouldCreateUser_WithValidInputs()
         {
             // Arrange
+            string firstName = "John";
+            string lastName = "Doe";
+            string email = "john.doe@example.com";
+            string password = "Password123!";
 
             // Act
+            var user = User.CreateNewUser(firstName, lastName, email, password);
 
             // Assert
+            Assert.NotNull(user);
+            Assert.Equal(firstName, user.FirstName);
+            Assert.Equal(lastName, user.LastName);
+            Assert.Equal(email, user.Email);
+            Assert.False(user.IsEmailVerified);
         }
 
 
