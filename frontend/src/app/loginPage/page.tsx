@@ -1,6 +1,7 @@
 "use client";
 import Link from 'next/link';
 import React from "react";
+import InputField from '../component/InputField';
 import { useState } from 'react';
 import { loginUser } from '../services/authService';
 
@@ -9,35 +10,39 @@ const Login = () => {
       const [email, setEmail] = useState("");
       const [password, setPassword] = useState("");
       const [message, setMessage] = useState("");
-  
+      const [passwordError, setPasswordError] = useState("");
+      const [error, setError] = useState("");
+
       const handleSubmit = async () =>{  
-          try {
-              const userData : UserData = { 
-                email, 
-                password 
-              };
-              const result = await loginUser(userData);
-              setMessage("Login successful!"); 
-              console.log("User logged in:", result);
-          } catch (error) {
-              setMessage("Login failed.");
-          }
+        try {
+            const userData : UserData = { 
+              email, 
+              password 
+            };
+            const result = await loginUser(userData);
+            setMessage("Login successful!"); 
+            console.log("User logged in:", result);
+        } catch (error) {
+            setMessage("Login failed.");
+        }
       }
 
   return (
     <div className="flex justify-center items-center h-dvh w-full bg-gray-200">
-      <div className="p-12 w-1/3 h-3/4 bg-white rounded-lg shadow-md">
+      <div className="p-12 w-1/3 h-1/22 bg-white rounded-lg shadow-md">
         <p className="text-left text-4xl text-gray-800 font-serif font-bold mb-4">Sign in</p>
         <p className="display: inline text-left text-gray-800 text-md">Need an account? </p>
         <Link href="/registerPage" className="text-blue-500 underline">Create an account</Link>
         <div className="flex flex-col mt-6">
-          <p className="text-black font-sans font-semibold">Email</p>
-          <input 
-            type="email" 
-            id="emailInput" 
-            onChange={(e)=> setEmail(e.target.value)}
-            className="mt-1 mb-7 w-full block h-11 rounded-sm py-1.5 px-2 ring-1 ring-inset ring-gray-300 focus:text-gray-600"
-          />
+          <div className='mb-3'>
+            <InputField
+              label="Email"
+              type="email"
+              id="emailInput"
+              onChange={(e)=> setEmail(e.target.value)}
+              error={error}
+            />
+          </div>
           <div className="flex justify-between items-center">
             <p className="text-left text-black font-sans font-semibold">Password</p>
             <Link href="/forgotPassword" className="text-right text-blue-500 text-sm underline">Forgot your password?</Link>

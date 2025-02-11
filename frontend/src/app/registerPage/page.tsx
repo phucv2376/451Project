@@ -2,7 +2,9 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { registerUser } from '../services/authService';
+//import { sendVerificationCode } from '../services/authService';
 import { useRouter } from "next/navigation"; 
+import InputField from '../component/InputField';
 
 
 const Register = () => {
@@ -11,11 +13,31 @@ const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [message, setMessage] = useState("");
-    
+
+    const [error, setError] = useState("");
+    const [firstNameError, setFirstNameError] = useState("");
+    const [lastNameError, setLastNameError] = useState("");
+    const [emailError, setEmailError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const [confirmPasswordError, setConfirmPasswordError] = useState("");  
+
     const router = useRouter();
 
-    const handleSubmit = async () =>{  
+    const handleSubmit = async () =>{ 
+        validateField(firstName, setFirstNameError);
+        validateField(lastName, setLastNameError);
+        validateField(email, setEmailError);
+
+        if (password.length < 8) {
+            setPasswordError('Password must be at least 8 characters long');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setConfirmPasswordError('Passwords do not match');
+            return;
+        }
+        
         try {
             const userData : UserData = { 
                 firstName, 
@@ -25,13 +47,73 @@ const Register = () => {
                 confirmPassword,
             };
             const result = await registerUser(userData);
-            setMessage("Registration successful!");
-            router.push("/verifyEmail"); //still redirecting even if not successful
-            console.log("User registered:", result);
+            
+            if (result.success) {
+                // Send verification code after successful registration
+                //const verificationSent = await sendVerificationCode(email);
+          
+                //if (verificationSent.success) {
+                    router.push('/verifyEmailPage'); // Redirect to verification page
+                    //router.push(`/verifyEmailPage?email`);
+                    console.log("User registered:", result);
+                /* } else {
+                    setError('Failed to send verification code. Please try again.');
+                    //redirect to error page?
+                } */
+            } else {
+                setError('Registration failed. Please try again.');
+            }
         } catch (error) {
-            setMessage("Registration failed.");
+            setError("Registration failed.");
         }
     }
+
+    const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setPassword(event.target.value);
+        if (event.target.value.length < 8) {
+            setPasswordError('Password must be at least 8 characters long');
+        } else {
+            setPasswordError('');
+        }
+    };
+
+    const handleConfirmPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setConfirmPassword(event.target.value); 
+        if (confirmPasswordError) {
+            setConfirmPasswordError('');
+        }
+    };
+
+    const handleFirstNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setFirstName(event.target.value);
+        if (firstNameError) {
+            setFirstNameError('');
+        }
+    
+    };
+
+    const handleLastNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setLastName(event.target.value);
+        if(lastNameError){
+            setLastNameError('');
+        }
+    };
+
+    const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setEmailError(event.target.value);
+        if(emailError){
+            setEmailError('');
+        }
+    };
+
+    const validateField = (value: string, setError: (message: string) => void) => {
+        if (value === '') {
+          setError('This field is required');
+          
+        } else {
+          setError('');
+        }
+    };
 
     return (
         <div className="flex justify-center items-center h-dvh w-full bg-gray-200">
@@ -40,47 +122,47 @@ const Register = () => {
                 <p className="display: inline text-left text-gray-800 text-md">Have an account? </p>
                 <Link href="/loginPage" className="text-blue-500 underline">Sign in</Link>
                 <div className="flex flex-col mt-4">
-                    <div className='flex mb-3'>
+                    <div className='flex'>
                         <div className="flex-1 mr-1">
-                            <span className="text-black font-sans font-semibold">First Name</span>
-                            <input 
-                                type="text" 
-                                id="firstNameInput" 
-                                onChange={(e)=> setFirstName(e.target.value)}
-                                className="mt-1 w-full block h-11 rounded-sm py-1.5 px-2 ring-1 ring-inset ring-gray-300 focus:text-gray-600"
+                            <InputField
+                                label="First Name"
+                                type="text"
+                                id="firstNameInput"
+                                onChange={handleFirstNameChange}
+                                error={firstNameError}
                             />
                         </div>
                         <div className="flex-1 ml-1">
-                            <span className="text-black font-sans font-semibold">Last Name</span>
-                            <input 
-                                type="text" 
-                                id="lastNameInput" 
-                                onChange={(e)=> setLastName(e.target.value)}
-                                className=" mt-1 w-full block h-11 rounded-sm py-1.5 px-2 ring-1 ring-inset ring-gray-300 focus:text-gray-600"
+                            <InputField
+                                label="Last Name"
+                                type="text"
+                                id="lastNameInput"
+                                onChange={handleLastNameChange}
+                                error={lastNameError}
                             />
                         </div>
                     </div>
-                    <p className="text-black font-sans font-semibold">Email</p>
-                    <input 
-                        type="email" 
-                        id="emailInput" 
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="mt-1 mb-3 w-full block h-11 rounded-sm py-1.5 px-2 ring-1 ring-inset ring-gray-300 focus:text-gray-600"
+                    <InputField
+                        label="Email"
+                        type="email"
+                        id="emailInput"
+                        onChange={handleEmailChange}
+                        error={emailError}
                     />
-                    <p className="text-left text-black font-sans font-semibold">Password</p>
-                    <input 
+                    <InputField 
+                        label="Password"
                         type="password" 
                         id="passwordInput" 
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="mt-1 mb-3 block w-full h-11 rounded-sm py-1.5 px-2 ring-1 ring-inset ring-gray-300 focus:text-gray-600"
-                    />
-                    <p className="text-left text-black font-sans font-semibold">Confirm Password</p>
-                    <input 
+                        onChange={handlePasswordChange} 
+                        error={passwordError}
+                    />  
+                    <InputField 
+                        label="Confirm Password"
                         type="password" 
                         id="confirmPasswordInput" 
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="mt-1 mb-4 block w-full h-11 rounded-sm py-1.5 px-2 ring-1 ring-inset ring-gray-300 focus:text-gray-600"
-                    />
+                        onChange={handleConfirmPasswordChange} 
+                        error={confirmPasswordError}
+                     />
                     <label className="flex items-center cursor-pointer relative">
                         <input
                             type="checkbox"
