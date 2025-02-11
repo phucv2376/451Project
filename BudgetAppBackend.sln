@@ -21,6 +21,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.Applicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.API", "BudgetAppBackend.API\BudgetAppBackend.API.csproj", "{B2238C2F-3418-4916-89B9-946E3774CCCC}"
 EndProject
+<<<<<<< HEAD
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.Domain.Tests", "BudgetAppBackend.Domain.Tests\BudgetAppBackend.Domain.Tests.csproj", "{5222A3F8-1EF0-498A-AA68-90BBDEFFC5BC}"
+EndProject
+=======
+>>>>>>> a3a2fe745a6bde35c436c9988b30e68069f394b6
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
