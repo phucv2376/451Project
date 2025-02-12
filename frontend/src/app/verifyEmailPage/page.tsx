@@ -3,33 +3,35 @@ import Link from 'next/link';
 import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from 'next/navigation';
+import { verifyEmail } from '../services/authService';
 import { useSearchParams } from 'next/navigation';
-import { usePathname } from 'next/navigation';
-//import { verifyEmail } from '../services/authService';
 
 
 const verifyEmailPage = () =>{
     const [email, setEmail] = useState("");
-    const [userCode, setUserCode] = useState('');
+    const [code, setUserCode] = useState('');
     const [error, setError] = useState('');
+    const searchParams = useSearchParams(); 
     const router = useRouter();
-
-    // const searchParams = useSearchParams();
-   /*  const email = usePathname();
-    console.log(email); */
    
     const [codes, setCodes] = useState<string[]>(Array(6).fill("")); // Array to store the verification codes
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]); // Refs for each input box
 
-    // console.log(myState);
+    useEffect(() => {
+        const emailParam = searchParams.get('email');
+        if (emailParam) {
+          setEmail(decodeURIComponent(emailParam));
+        }
+      }, [searchParams]);
+
     const handleChange = (index: number, value: string) => {
         if (/^\d$/.test(value)) { // Allow only single digits
             const newCodes = [...codes];
             newCodes[index] = value;
             setCodes(newCodes);
-
-            // Move focus to the next input box
-            if (index < 5 && inputRefs.current[index + 1]) {
+            setUserCode(newCodes.join("")); 
+            
+            if (index < 5 && inputRefs.current[index + 1]) {// Move focus to the next input box
                 inputRefs.current[index + 1]?.focus();
             }
         }
@@ -43,11 +45,15 @@ const verifyEmailPage = () =>{
                 // If the current box is empty, clear the previous box
                 newCodes[index - 1] = "";
                 setCodes(newCodes);
+                setUserCode(newCodes.join("")); 
+
                 inputRefs.current[index - 1]?.focus(); // Move focus to the previous box
             } else if (codes[index]) {
                 // If the current box is not empty, clear it
                 newCodes[index] = "";
                 setCodes(newCodes);
+                setUserCode(newCodes.join("")); 
+
             }
         }
     };
@@ -62,16 +68,16 @@ const verifyEmailPage = () =>{
     const handleSubmit = async() =>{
         const userData : UserData = { 
             email, 
-            userCode 
+            code 
         };
         
-        /* const result = await verifyEmail(userData);
+        const result = await verifyEmail(userData);
     
         if (result.success) {
-            router.push('/dashboard');
+            router.push('/loginPage');
         } else {
             setError(result.message);
-        } */
+        }
     
     };
 
@@ -109,7 +115,6 @@ const verifyEmailPage = () =>{
                         >
                             Submit
                         </button>
-
                     </div>
                 </div>
             </div>

@@ -24,10 +24,6 @@ const Register = () => {
     const router = useRouter();
 
     const handleSubmit = async () =>{ 
-        validateField(firstName, setFirstNameError);
-        validateField(lastName, setLastNameError);
-        validateField(email, setEmailError);
-
         if (password.length < 8) {
             setPasswordError('Password must be at least 8 characters long');
             return;
@@ -53,7 +49,8 @@ const Register = () => {
                 //const verificationSent = await sendVerificationCode(email);
           
                 //if (verificationSent.success) {
-                    router.push('/verifyEmailPage'); // Redirect to verification page
+                    //router.push('/verifyEmailPage'); // Redirect to verification page
+                    router.push(`/verifyEmailPage?email=${encodeURIComponent(email)}`);
                     //router.push(`/verifyEmailPage?email`);
                     console.log("User registered:", result);
                 /* } else {
@@ -61,6 +58,9 @@ const Register = () => {
                     //redirect to error page?
                 } */
             } else {
+                validateField(firstNameError, setFirstNameError);
+                validateField(lastNameError, setLastNameError);
+                validateField(emailError, setEmailError);
                 setError('Registration failed. Please try again.');
             }
         } catch (error) {
@@ -100,7 +100,7 @@ const Register = () => {
     };
 
     const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setEmailError(event.target.value);
+        setEmail(event.target.value);
         if(emailError){
             setEmailError('');
         }
@@ -117,7 +117,7 @@ const Register = () => {
 
     return (
         <div className="flex justify-center items-center h-dvh w-full bg-gray-200">
-            <div className="p-12 w-1/3 h-9/10 bg-white rounded-lg shadow-md">
+            <div className="p-12 w-2/5 h-9/10 bg-white rounded-lg shadow-md">
                 <p className="text-left text-4xl text-gray-800 font-serif font-bold mb-4">Create an account</p>
                 <p className="display: inline text-left text-gray-800 text-md">Have an account? </p>
                 <Link href="/loginPage" className="text-blue-500 underline">Sign in</Link>

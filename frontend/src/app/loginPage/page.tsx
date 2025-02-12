@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import React from "react";
 import InputField from '../component/InputField';
+import { useRouter } from "next/navigation"; 
 import { useState } from 'react';
 import { loginUser } from '../services/authService';
 
@@ -10,8 +11,8 @@ const Login = () => {
       const [email, setEmail] = useState("");
       const [password, setPassword] = useState("");
       const [message, setMessage] = useState("");
-      const [passwordError, setPasswordError] = useState("");
       const [error, setError] = useState("");
+      const router = useRouter();
 
       const handleSubmit = async () =>{  
         try {
@@ -19,13 +20,18 @@ const Login = () => {
               email, 
               password 
             };
+            
             const result = await loginUser(userData);
-            setMessage("Login successful!"); 
-            console.log("User logged in:", result);
+            if(result.success){
+              setMessage("Login successful!"); 
+              router.push("/dashboard");
+              console.log("User logged in:", result);
+            }
+
         } catch (error) {
             setMessage("Login failed.");
         }
-      }
+      } 
 
   return (
     <div className="flex justify-center items-center h-dvh w-full bg-gray-200">
@@ -78,9 +84,10 @@ const Login = () => {
           <div className="flex justify-center">
             <button 
               className="mt-12 bg-blue-500 w-1/2 text-white px-6 py-2 rounded-3xl"
-              onChange={handleSubmit}
+              onClick={handleSubmit}
               > 
                 Log in
+                
             </button>
           </div>
         </div>
