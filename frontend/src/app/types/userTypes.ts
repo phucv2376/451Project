@@ -4,5 +4,5 @@ interface UserData{
     email: string;
     password?: string;
     confirmPassword?: string;
-    userCode?: string;
+    code?: string;
 }

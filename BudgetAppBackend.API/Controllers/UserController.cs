@@ -56,6 +56,5 @@ namespace BudgetAppBackend.API.Controllers
             var result = await Sender.Send(new SendVerificationCodeCommand { SendVerificationCodeDto = sendVerificationCodeDto });
             return result ? Ok() : BadRequest();
         }
-
     }
 }
