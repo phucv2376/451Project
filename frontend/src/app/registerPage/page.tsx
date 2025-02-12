@@ -23,9 +23,48 @@ const Register = () => {
 
     const router = useRouter();
 
-    const handleSubmit = async () =>{ 
+    const validatePassword = (password: string): string | null => {
         if (password.length < 8) {
-            setPasswordError('Password must be at least 8 characters long');
+          return 'Password must be at least 8 characters long';
+        }
+      
+        if (!/[0-9]/.test(password)) {
+          return 'Password must include at least one number';
+        }
+      
+        if (!/[!@#$%^&*]/.test(password)) {
+          return 'Password must include at least one special character (!@#$%^&*)';
+        }
+      
+        if (!/[A-Z]/.test(password)) {
+          return 'Password must include at least one uppercase letter';
+        }
+      
+        if (!/[a-z]/.test(password)) {
+          return 'Password must include at least one lowercase letter';
+        }
+      
+        // If all checks pass, return null (no error)
+        return null;
+      };
+
+      const validateField = (value: string, setError: (message: string) => void) => {
+        if (value === '') {
+          setError('This field is required');
+          
+        } else {
+          setError('');
+        }
+    };
+
+    const handleSubmit = async () =>{ 
+        validateField(firstName, setFirstNameError);
+        validateField(lastName, setLastNameError);
+        validateField(email, setEmailError);
+
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+            setPasswordError(passwordError);
             return;
         }
 
@@ -58,9 +97,7 @@ const Register = () => {
                     //redirect to error page?
                 } */
             } else {
-                validateField(firstNameError, setFirstNameError);
-                validateField(lastNameError, setLastNameError);
-                validateField(emailError, setEmailError);
+                
                 setError('Registration failed. Please try again.');
             }
         } catch (error) {
@@ -103,15 +140,6 @@ const Register = () => {
         setEmail(event.target.value);
         if(emailError){
             setEmailError('');
-        }
-    };
-
-    const validateField = (value: string, setError: (message: string) => void) => {
-        if (value === '') {
-          setError('This field is required');
-          
-        } else {
-          setError('');
         }
     };
 

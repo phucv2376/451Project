@@ -5,6 +5,7 @@ import InputField from '../component/InputField';
 import { useRouter } from "next/navigation"; 
 import { useState } from 'react';
 import { loginUser } from '../services/authService';
+import Image from 'next/image';
 
 
 const Login = () => {
@@ -35,6 +36,7 @@ const Login = () => {
 
   return (
     <div className="flex justify-center items-center h-dvh w-full bg-gray-200">
+      
       <div className="p-12 w-1/3 h-1/22 bg-white rounded-lg shadow-md">
         <p className="text-left text-4xl text-gray-800 font-serif font-bold mb-4">Sign in</p>
         <p className="display: inline text-left text-gray-800 text-md">Need an account? </p>
