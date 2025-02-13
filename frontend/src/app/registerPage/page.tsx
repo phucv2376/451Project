@@ -215,7 +215,8 @@ const Register = () => {
                     </label>
                     <div className="flex justify-center">
                         <button 
-                            className="mt-5 bg-blue-500 w-1/2 text-white px-6 py-2 rounded-3xl"
+                            className="mt-5 bg-[#8996da] w-1/2 text-white px-6 py-2 
+                            rounded-3xl hover:bg-[#6a7fcb] hover:shadow-lg transition-all duration-300"
                             onClick={handleSubmit}
                         >
                             Register
