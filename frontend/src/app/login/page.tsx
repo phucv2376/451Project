@@ -56,7 +56,7 @@ const Login = () => {
         <div className="p-12 w-3/4 h-3/4 bg-white ml-10">
           <p className="text-left text-4xl text-gray-800 font-serif font-bold mb-4">Sign in</p>
           <p className="display: inline text-left text-gray-800 text-md">Need an account? </p>
-          <Link href="/registerPage" className="text-blue-500 underline">Create an account</Link>
+          <Link href="/register" className="text-blue-500 underline">Create an account</Link>
           <div className="flex flex-col mt-6">
             <div className='mb-3'>
               <InputField
