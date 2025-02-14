@@ -230,7 +230,6 @@ const Register = () => {
                                     />
                                 </svg>
                             </span>
-                            <span className="ml-3 text-slate-600 text-sm">Keep me logged in</span>
                         </label>
                         <div className="flex justify-center">
                             <button

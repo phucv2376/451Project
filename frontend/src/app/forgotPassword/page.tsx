@@ -31,7 +31,7 @@ const forgotPassword = () => {
             {/* Middle Section: divider */}
             <div className="w-[4px] h-1/2 my-auto bg-gray-200" />
 
-            {/* Right Section: login */}
+            {/* Right Section: forgot password */}
             <div className="flex justify-start items-center h-dvh w-full">
                 <div className="p-12 w-3/4 h-3/4 bg-white ml-10">
                     <p className="text-left text-4xl text-gray-800 font-serif font-bold mb-4">Reset Your Password</p>
