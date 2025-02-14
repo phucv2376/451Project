@@ -1,26 +1,76 @@
 "use client";
 import Link from 'next/link';
+import InputField from '../component/InputField';
+import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import Image from 'next/image';
 
-const forgotPassword = () =>{
-    return(
-        <div className="flex justify-center items-center h-dvh w-full bg-gray-200">
-            <div className="p-12 w-1/3 h-1/2 bg-white rounded-lg shadow-md">
-                <p>Reset your password</p>
-                <p>Enter your email</p>
-                <input 
-                    type="email" 
-                    id="forgotPasswordInput" 
-                    className="mt-1 w-full block h-11 rounded-sm py-1.5 px-2 ring-1 ring-inset ring-gray-300 focus:text-gray-600"
-                />
-                <button 
-                    className="mt-5 bg-blue-500 w-1/3 text-white px-6 py-2 rounded-3xl"
-                >
-                    Send link
-                </button>
+const forgotPassword = () => {
+    const [email, setEmail] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [newConfirmPassword, setNewConfirmPassword] = useState("");
+
+    const handleSubmit = async () => {
+
+    }
+
+    return (
+        <div className="flex h-screen">
+            {/* Left Section: Image */}
+            <div className="w-full h-full flex justify-center items-end">
+                <div className="w-full h-3/4 relative">
+                    <Image
+                        src="/images/loginImage.jpg" // Path to your image in the public folder
+                        alt="Login Background"
+                        fill // Makes the image fill the container
+                        className="object-contain" // Ensures the image covers the area without distortion
+                    />
+                </div>
+            </div>
+
+            {/* Middle Section: divider */}
+            <div className="w-[4px] h-1/2 my-auto bg-gray-200" />
+
+            {/* Right Section: login */}
+            <div className="flex justify-start items-center h-dvh w-full">
+                <div className="p-12 w-3/4 h-3/4 bg-white ml-10">
+                    <p className="text-left text-4xl text-gray-800 font-serif font-bold mb-4">Reset Your Password</p>
+                    <p className="display: inline text-left text-gray-800 text-md">Found your password? </p>
+                    <Link href="/login" className="text-blue-500 underline">Sign in</Link>
+                    <div className="flex flex-col mt-10">
+                        <InputField
+                            label='Email'
+                            type="email"
+                            id="emailInput"
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <InputField
+                            label="New Password"
+                            type="password"
+                            id="newPasswordInput"
+                            onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                        <InputField
+                            label="Confirm New Password"
+                            type="password"
+                            id="confirmNewPasswordInput"
+                            onChange={(e) => setNewConfirmPassword(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-center">
+                        <button
+                            className="mt-8 bg-[#8996da] w-1/2 text-white px-6 py-2 
+                    rounded-3xl hover:bg-[#6a7fcb] hover:shadow-lg transition-all duration-300"
+                            onClick={handleSubmit}
+                        >
+                            Send link
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    )
 
+    )
 };
 
 export default forgotPassword;
