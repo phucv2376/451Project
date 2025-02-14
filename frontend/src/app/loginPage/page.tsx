@@ -49,7 +49,7 @@ const Login = () => {
       </div>
 
       {/* Middle Section: divider */}
-      <div className="w-[3px] h-2/3 my-auto bg-black shadow-[-16px_0px10px-4px_rgba(0,_0,_0,_0.1)]"/>
+      <div className="w-[4px] h-1/2 my-auto bg-gray-200"/>
       
       {/* Right Section: login */}
       <div className="flex justify-start items-center h-dvh w-full">
