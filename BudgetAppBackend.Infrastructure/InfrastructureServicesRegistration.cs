@@ -38,9 +38,10 @@ namespace BudgetAppBackend.Infrastructure
             });
             services.AddQuartzHostedService();
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings").Bind);
 
-            services.AddSingleton<IAuthenticationService, JwtAuthentication>();
+            services.AddSingleton<IAuthService, AuthService>();
 
             // Configure EmailSettings
             services.Configure<EmailSettings>(options =>

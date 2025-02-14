@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using BudgetAppBackend.Application.Models;
 using BudgetAppBackend.Application.Service;
@@ -9,11 +10,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace BudgetAppBackend.Infrastructure.Services
 {
-    public class JwtAuthentication : IAuthenticationService
+    public class AuthService : IAuthService
     {
         private readonly JwtSettings _jwtSettings;
 
-        public JwtAuthentication(IOptions<JwtSettings> jwtSettings)
+        public AuthService(IOptions<JwtSettings> jwtSettings)
         {
             _jwtSettings = jwtSettings.Value ?? throw new ArgumentNullException(nameof(jwtSettings));
             if (string.IsNullOrEmpty(_jwtSettings.SecretKey))
@@ -68,6 +69,27 @@ namespace BudgetAppBackend.Infrastructure.Services
             {
                 return false;
             }
+        }
+
+        private string ComputeSha256Hash(string input)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return Convert.ToBase64String(bytes);
+        }
+
+        public (string RawToken, string HashedToken) GenerateRefreshToken()
+        {
+            var randomBytes = RandomNumberGenerator.GetBytes(64);
+            var rawToken = Convert.ToBase64String(randomBytes);
+            var hashedToken = ComputeSha256Hash(rawToken);
+            return (rawToken, hashedToken);
+        }
+
+        public bool ValidateRefreshToken(string storedHashedToken, string providedRawToken)
+        {
+            var computedHash = ComputeSha256Hash(providedRawToken);
+            return computedHash == storedHashedToken;
         }
     }
 }

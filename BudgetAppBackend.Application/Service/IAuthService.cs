@@ -2,9 +2,11 @@
 
 namespace BudgetAppBackend.Application.Service
 {
-    public interface IAuthenticationService
+    public interface IAuthService
     {
         string GenerateToken(User user);
         bool ValidateToken(string token);
+        (string RawToken, string HashedToken) GenerateRefreshToken();
+        bool ValidateRefreshToken(string storedHashedToken, string providedRawToken);
     }
 }
