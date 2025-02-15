@@ -2,13 +2,10 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { registerUser } from '../services/authService';
-//import { sendVerificationCode } from '../services/authService';
 import { useRouter } from "next/navigation";
 import InputField from '../component/InputField';
 import Image from 'next/image';
-import { getCookie } from 'cookies-next/client';
-
-
+import { UserInfo } from '@/app/types/UserInfo';
 
 const Register = () => {
     useEffect(() => { // Redirect if already logged in
@@ -16,18 +13,22 @@ const Register = () => {
         if (accessToken) router.push("/dashboard");
     }, []);
 
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+    const [userInfo, setUserInfo] = useState<UserInfo>({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: ""
+    });
 
-    const [error, setError] = useState("");
-    const [firstNameError, setFirstNameError] = useState("");
-    const [lastNameError, setLastNameError] = useState("");
-    const [emailError, setEmailError] = useState("");
-    const [passwordError, setPasswordError] = useState("");
-    const [confirmPasswordError, setConfirmPasswordError] = useState("");
+    const [errors, setErrors] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        general: ""
+    });
 
     const router = useRouter();
 
@@ -56,40 +57,32 @@ const Register = () => {
         return null;
     };
 
-    const validateField = (value: string, setError: (message: string) => void) => {
-        if (value === '') {
-            setError('This field is required');
-
+    const validateField = (value: string | undefined, fieldName: string) => {
+        if (!value) {
+            setErrors(prevErrors => ({ ...prevErrors, [fieldName]: `This field is required` }));
         } else {
-            setError('');
+            setErrors(prevErrors => ({ ...prevErrors, [fieldName]: '' }));
         }
     };
 
     const handleSubmit = async () => {
-        validateField(firstName, setFirstNameError);
-        validateField(lastName, setLastNameError);
-        validateField(email, setEmailError);
+        validateField(userInfo.firstName, 'firstName');
+        validateField(userInfo.lastName, 'lastName');
+        validateField(userInfo.email, 'email');
 
-        const passwordError = validatePassword(password);
+        const passwordError = validatePassword(userInfo.password || '');
         if (passwordError) {
-            setPasswordError(passwordError);
+            setErrors(prevErrors => ({ ...prevErrors, password: passwordError }));
             return;
         }
 
-        if (password !== confirmPassword) {
-            setConfirmPasswordError('Passwords do not match');
+        if (userInfo.password !== userInfo.confirmPassword) {
+            setErrors(prevErrors => ({ ...prevErrors, confirmPassword: 'Passwords do not match' }));
             return;
         }
 
         try {
-            const userData: UserData = {
-                firstName,
-                lastName,
-                email,
-                password,
-                confirmPassword,
-            };
-            const result = await registerUser(userData);
+            const result = await registerUser(userInfo);
 
             if (result.success) {
                 // Send verification code after successful registration
@@ -97,7 +90,7 @@ const Register = () => {
 
                 //if (verificationSent.success) {
                 //router.push('/verifyEmailPage'); // Redirect to verification page
-                router.push(`/verifyEmail?email=${btoa(email)}`);
+                router.push(`/verifyEmail?email=${btoa(userInfo.email)}`);
                 //router.push(`/verifyEmailPage?email`);
                 console.log("User registered:", result);
                 /* } else {
@@ -105,49 +98,18 @@ const Register = () => {
                     //redirect to error page?
                 } */
             } else {
-
-                setError('Registration failed. Please try again.');
+                setErrors(prevErrors => ({ ...prevErrors, general: 'Registration failed. Please try again.' }));
             }
         } catch (error) {
-            setError("Registration failed.");
+            setErrors(prevErrors => ({ ...prevErrors, general: 'Registration failed.' }));
         }
     }
 
-    const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setPassword(event.target.value);
-        if (event.target.value.length < 8) {
-            setPasswordError('Password must be at least 8 characters long');
-        } else {
-            setPasswordError('');
-        }
-    };
-
-    const handleConfirmPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setConfirmPassword(event.target.value);
-        if (confirmPasswordError) {
-            setConfirmPasswordError('');
-        }
-    };
-
-    const handleFirstNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setFirstName(event.target.value);
-        if (firstNameError) {
-            setFirstNameError('');
-        }
-
-    };
-
-    const handleLastNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setLastName(event.target.value);
-        if (lastNameError) {
-            setLastNameError('');
-        }
-    };
-
-    const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setEmail(event.target.value);
-        if (emailError) {
-            setEmailError('');
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setUserInfo(prevUserInfo => ({ ...prevUserInfo, [name]: value }));
+        if (errors[name as keyof typeof errors]) {
+            setErrors(prevErrors => ({ ...prevErrors, [name]: '' }));
         }
     };
 
@@ -181,8 +143,8 @@ const Register = () => {
                                     label="First Name"
                                     type="text"
                                     id="firstNameInput"
-                                    onChange={handleFirstNameChange}
-                                    error={firstNameError}
+                                    onChange={handleChange}
+                                    error={errors.firstName}
                                 />
                             </div>
                             <div className="flex-1 ml-1">
@@ -190,8 +152,8 @@ const Register = () => {
                                     label="Last Name"
                                     type="text"
                                     id="lastNameInput"
-                                    onChange={handleLastNameChange}
-                                    error={lastNameError}
+                                    onChange={handleChange}
+                                    error={errors.lastName}
                                 />
                             </div>
                         </div>
@@ -199,22 +161,22 @@ const Register = () => {
                             label="Email"
                             type="email"
                             id="emailInput"
-                            onChange={handleEmailChange}
-                            error={emailError}
+                            onChange={handleChange}
+                            error={errors.email}
                         />
                         <InputField
                             label="Password"
                             type="password"
                             id="passwordInput"
-                            onChange={handlePasswordChange}
-                            error={passwordError}
+                            onChange={handleChange}
+                            error={errors.password}
                         />
                         <InputField
                             label="Confirm Password"
                             type="password"
                             id="confirmPasswordInput"
-                            onChange={handleConfirmPasswordChange}
-                            error={confirmPasswordError}
+                            onChange={handleChange}
+                            error={errors.confirmPassword}
                         />
                         <div className="flex justify-center">
                             <button
@@ -225,6 +187,7 @@ const Register = () => {
                                 Register
                             </button>
                         </div>
+                        {errors.general && <p className="text-red-500 mt-4">{errors.general}</p>}
                     </div>
                 </div>
             </div>
