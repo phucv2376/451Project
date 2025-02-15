@@ -2,8 +2,8 @@
 {
     public class RefreshTokenDto
     {
-        public string Token { get; set; } = string.Empty;
-        public string Email { get; set; }
+        public string Token { get; init; } = string.Empty;
+        public string Email { get; init; }
 
     }
 }
