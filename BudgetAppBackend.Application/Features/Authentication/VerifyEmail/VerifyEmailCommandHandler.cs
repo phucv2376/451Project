@@ -1,4 +1,5 @@
-﻿using BudgetAppBackend.Application.Contracts;
+﻿using System.ComponentModel.DataAnnotations;
+using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
 using MediatR;
 
@@ -15,25 +16,22 @@ namespace BudgetAppBackend.Application.Features.Authentication.VerifyEmail
 
         public async Task<AuthResult> Handle(VerifyEmailCommand request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(request.VerifyEmailDto.Email))
+            var validationResults = new List<ValidationResult>();
+            var validationContext = new ValidationContext(request.VerifyEmailDto!);
+            if (!Validator.TryValidateObject(request.VerifyEmailDto!, validationContext, validationResults, true))
             {
-                return new AuthResult { Success = false, Message = "Email cannot be empty" };
-            }
-
-            if (string.IsNullOrEmpty(request.VerifyEmailDto.Code))
-            {
-                return new AuthResult { Success = false, Message = "Code cannot be empty" };
+                throw new ValidationException(string.Join(", ", validationResults.Select(v => v.ErrorMessage!)));
             }
 
             var user = await _authRepository.GetUserByEmailAsync(request.VerifyEmailDto.Email);
             if (user == null)
             {
-                return new AuthResult { Success = false, Message = "User not found" };
+                throw new KeyNotFoundException("User not found.");
             }
 
             if (!user.VerifyEmail(request.VerifyEmailDto.Code))
             {
-                return new AuthResult { Success = false, Message = "Verification code does not match" };
+                throw new UnauthorizedAccessException("Verification code does not match.");
             }
 
             await _authRepository.UpdateUserAsync(user);

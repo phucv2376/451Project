@@ -13,4 +13,5 @@ namespace BudgetAppBackend.Application.DTOs.AuthenticationDTOs
         public DateTime RefreshTokenExpiry { get; set; }
         public string? Message { get; set; }
     }
+    
 }

@@ -29,38 +29,35 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
 
             if (user == null)
             {
-                throw new UnauthorizedAccessException("User not found.");
+                throw new KeyNotFoundException("User not found.");
             }
-            var storedToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id);
+            var existingRefreshToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id);
 
-            if (storedToken == null)
+            if (existingRefreshToken == null)
             {
                 throw new UnauthorizedAccessException("Refresh token not found.");
             }
 
-            if (storedToken.ExpiryDate <= DateTime.UtcNow)
+            if (existingRefreshToken.ExpiryDate <= DateTime.UtcNow)
             {
                 throw new SecurityTokenExpiredException("Refresh token expired. Please log in again.");
             }
 
-            if (!_authService.ValidateRefreshToken(storedToken.TokenHash, request.RefreshToken.Token))
+            if (!_authService.ValidateRefreshToken(existingRefreshToken.TokenHash, request.RefreshToken.Token))
             {
                 throw new UnauthorizedAccessException("Invalid refresh token.");
             }
 
            
-
             var newToken = _authService.GenerateToken(user);
-
             var (rawRefreshToken, hashedRefreshToken) = _authService.GenerateRefreshToken();
-
-            DateTime newRefreshTokenExpiry = storedToken.ExpiryDate > DateTime.UtcNow
-                ? storedToken.ExpiryDate
+            DateTime newRefreshTokenExpiry = existingRefreshToken.ExpiryDate > DateTime.UtcNow
+                ? existingRefreshToken.ExpiryDate
                 : DateTime.UtcNow.AddDays(7);
 
-            storedToken.Revoke();
+            existingRefreshToken.Revoke();
             var newRefreshToken = new RefreshToken(user.Id, hashedRefreshToken, newRefreshTokenExpiry);
-            await _refreshTokenRepository.UpdateAndSaveNewAsync(storedToken, newRefreshToken);
+            await _refreshTokenRepository.UpdateAndSaveNewAsync(existingRefreshToken, newRefreshToken);
 
             return new AuthResult
             {

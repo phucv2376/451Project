@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.ComponentModel.DataAnnotations;
+using AutoMapper;
 using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
 using BudgetAppBackend.Domain.UserAggregate;
@@ -19,11 +20,18 @@ namespace BudgetAppBackend.Application.Features.Authentication.Registration
 
         public async Task<AuthResult> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
+            var validationResults = new List<ValidationResult>();
+            var validationContext = new ValidationContext(request.AddUser!);
+            if (!Validator.TryValidateObject(request.AddUser!, validationContext, validationResults, true))
+            {
+                throw new ValidationException(string.Join(", ", validationResults.Select(v => v.ErrorMessage!)));
+            }
+
             var currentUser = _mapper.Map<User>(request.AddUser);
             var IsEmailExist = await _authRepository!.GetUserByEmailAsync(currentUser.Email);
             if (IsEmailExist != null)
             {
-                return new AuthResult { Success = false, Message = "Email already exist" };
+                throw new ArgumentException("Email already exists.");
             }
 
             var newUser = User.CreateNewUser(

@@ -27,34 +27,31 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
             var validationContext = new ValidationContext(request.LogUser!);
             if (!Validator.TryValidateObject(request.LogUser!, validationContext, validationResults, true))
             {
-                return new AuthResult
-                {
-                    Success = false,
-                    Message = string.Join(", ", validationResults.Select(v => v.ErrorMessage!))
-                };
+                throw new ValidationException(string.Join(", ", validationResults.Select(v => v.ErrorMessage!)));
             }
 
             var user = await _authRepository.GetUserByEmailAsync(request.LogUser!.Email!);
             if (user == null || !user.VerifyPassword(request.LogUser.Password!))
             {
-                return new AuthResult { Success = false, Message = "Wrong Email/Password" };
+                throw new UnauthorizedAccessException("Wrong Email/Password.");
             }
 
             var token = _authenticationService.GenerateToken(user);
             var (rawRefreshToken, hashedRefreshToken) = _authenticationService.GenerateRefreshToken();
-
             var existingRefreshToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id);
-            DateTime refreshTokenExpiry = existingRefreshToken?.ExpiryDate ?? DateTime.UtcNow.AddDays(7);
+            DateTime newRefreshTokenExpiry = existingRefreshToken.ExpiryDate > DateTime.UtcNow
+                ? existingRefreshToken.ExpiryDate
+                : DateTime.UtcNow.AddDays(7);
+            var newRefreshToken = new RefreshToken(user.Id, hashedRefreshToken, newRefreshTokenExpiry);
+
             if (existingRefreshToken != null)
             {
                 existingRefreshToken.Revoke();
-                await _refreshTokenRepository.UpdateAndSaveNewAsync(existingRefreshToken,
-                    new RefreshToken(user.Id, hashedRefreshToken, refreshTokenExpiry));
+                await _refreshTokenRepository.UpdateAndSaveNewAsync(existingRefreshToken, newRefreshToken);
             }
             else
             {
-                var refreshToken = new RefreshToken(user.Id, hashedRefreshToken, refreshTokenExpiry);
-                await _refreshTokenRepository.SaveAsync(new RefreshToken(user.Id, hashedRefreshToken, refreshTokenExpiry));
+                await _refreshTokenRepository.SaveAsync(newRefreshToken);
             }
 
 
@@ -66,7 +63,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
                 TokenType = "Bearer",
                 ExpiresIn = 3600,
                 RefreshToken = rawRefreshToken,
-                RefreshTokenExpiry = refreshTokenExpiry,
+                RefreshTokenExpiry = newRefreshTokenExpiry,
                 Message = "You logged in successfully"
             };
         }
