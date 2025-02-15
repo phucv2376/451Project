@@ -44,13 +44,14 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
             var (rawRefreshToken, hashedRefreshToken) = _authenticationService.GenerateRefreshToken();
 
             var existingRefreshToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id);
+            DateTime refreshTokenExpiry = existingRefreshToken?.ExpiryDate ?? DateTime.UtcNow.AddDays(7);
             if (existingRefreshToken != null)
             {
                 existingRefreshToken.Revoke();
                 await _refreshTokenRepository.UpdateAsync(existingRefreshToken);
             }
 
-            var refreshToken = new RefreshToken(user.Id, hashedRefreshToken, existingRefreshToken.ExpiryDate);
+            var refreshToken = new RefreshToken(user.Id, hashedRefreshToken, refreshTokenExpiry);
             await _refreshTokenRepository.SaveAsync(refreshToken);
 
             return new AuthResult
@@ -61,7 +62,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
                 TokenType = "Bearer",
                 ExpiresIn = 3600,
                 RefreshToken = rawRefreshToken,
-                RefreshTokenExpiry = existingRefreshToken.ExpiryDate,
+                RefreshTokenExpiry = refreshTokenExpiry,
                 Message = "You logged in successfully"
             };
         }
