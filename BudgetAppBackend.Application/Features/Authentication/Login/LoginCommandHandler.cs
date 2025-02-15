@@ -48,11 +48,15 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
             if (existingRefreshToken != null)
             {
                 existingRefreshToken.Revoke();
-                await _refreshTokenRepository.UpdateAsync(existingRefreshToken);
+                await _refreshTokenRepository.UpdateAndSaveNewAsync(existingRefreshToken,
+                    new RefreshToken(user.Id, hashedRefreshToken, refreshTokenExpiry));
+            }
+            else
+            {
+                var refreshToken = new RefreshToken(user.Id, hashedRefreshToken, refreshTokenExpiry);
+                await _refreshTokenRepository.SaveAsync(new RefreshToken(user.Id, hashedRefreshToken, refreshTokenExpiry));
             }
 
-            var refreshToken = new RefreshToken(user.Id, hashedRefreshToken, refreshTokenExpiry);
-            await _refreshTokenRepository.SaveAsync(refreshToken);
 
             return new AuthResult
             {
