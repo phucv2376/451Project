@@ -3,6 +3,7 @@ using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
 using BudgetAppBackend.Application.Service;
 using BudgetAppBackend.Domain.UserAggregate.Entities;
 using MediatR;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BudgetAppBackend.Application.Features.Authentication.RefToken
 {
@@ -39,8 +40,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
 
             if (storedToken.ExpiryDate <= DateTime.UtcNow)
             {
-                await _refreshTokenRepository.DeleteAsync(storedToken);
-                throw new UnauthorizedAccessException("Refresh token expired. Please log in again.");
+                throw new SecurityTokenExpiredException("Refresh token expired. Please log in again.");
             }
 
             if (!_authService.ValidateRefreshToken(storedToken.TokenHash, request.RefreshToken.Token))
@@ -54,8 +54,13 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
 
             var (rawRefreshToken, hashedRefreshToken) = _authService.GenerateRefreshToken();
 
+            DateTime newRefreshTokenExpiry = storedToken.ExpiryDate > DateTime.UtcNow
+                ? storedToken.ExpiryDate
+                : DateTime.UtcNow.AddDays(7);
+
             storedToken.Revoke();
-            await _refreshTokenRepository.UpdateAndSaveNewAsync(storedToken, new RefreshToken(user.Id, hashedRefreshToken, storedToken.ExpiryDate));
+            var newRefreshToken = new RefreshToken(user.Id, hashedRefreshToken, newRefreshTokenExpiry);
+            await _refreshTokenRepository.UpdateAndSaveNewAsync(storedToken, newRefreshToken);
 
             return new AuthResult
             {
@@ -65,7 +70,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
                 TokenType = "Bearer",
                 ExpiresIn = 3600,
                 RefreshToken = rawRefreshToken,
-                RefreshTokenExpiry = storedToken.ExpiryDate,
+                RefreshTokenExpiry = newRefreshTokenExpiry,
                 Message = "You logged in successfully"
             };
         }
