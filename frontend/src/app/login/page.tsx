@@ -2,37 +2,42 @@
 import Link from 'next/link';
 import React from "react";
 import InputField from '../component/InputField';
-import { useRouter } from "next/navigation"; 
-import { useState } from 'react';
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from 'react';
 import { loginUser } from '../services/authService';
 import Image from 'next/image';
 
 
 const Login = () => {
-      const [email, setEmail] = useState("");
-      const [password, setPassword] = useState("");
-      const [message, setMessage] = useState("");
-      const [error, setError] = useState("");
-      const router = useRouter();
+  useEffect(() => { // Redirect if already logged in
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) router.push("/dashboard");
+  }, []);
 
-      const handleSubmit = async () =>{  
-        try {
-            const userData : UserData = { 
-              email, 
-              password 
-            };
-            
-            const result = await loginUser(userData);
-            if(result.success){
-              setMessage("Login successful!"); 
-              router.push("/dashboard");
-              console.log("User logged in:", result);
-            }
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-        } catch (error) {
-            setMessage("Login failed.");
-        }
-      } 
+  const handleSubmit = async () => {
+    try {
+      const userData: UserData = {
+        email,
+        password
+      };
+
+      const result = await loginUser(userData);
+      if (result.success) {
+        setMessage("Login successful!");
+        router.push("/dashboard");
+        console.log("User logged in:", result);
+      }
+
+    } catch (error) {
+      setMessage("Login failed.");
+    }
+  }
 
   return (
     <div className="flex h-screen">
@@ -49,8 +54,8 @@ const Login = () => {
       </div>
 
       {/* Middle Section: divider */}
-      <div className="w-[4px] h-1/2 my-auto bg-gray-200"/>
-      
+      <div className="w-[4px] h-1/2 my-auto bg-gray-200" />
+
       {/* Right Section: login */}
       <div className="flex justify-start items-center h-dvh w-full">
         <div className="p-12 w-3/4 h-3/4 bg-white ml-10">
@@ -63,7 +68,7 @@ const Login = () => {
                 label="Email"
                 type="email"
                 id="emailInput"
-                onChange={(e)=> setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 error={error}
               />
             </div>
@@ -71,10 +76,10 @@ const Login = () => {
               <p className="text-left text-black font-sans font-semibold">Password</p>
               <Link href="/forgotPassword" className="text-right text-blue-500 text-sm underline">Forgot your password?</Link>
             </div>
-            <input 
-              type="password" 
-              id="passwordInput" 
-              onChange={(e)=> setPassword(e.target.value)}
+            <input
+              type="password"
+              id="passwordInput"
+              onChange={(e) => setPassword(e.target.value)}
               className="mt-1 mb-5 block w-full h-11 rounded-sm py-1.5 px-2 ring-1 ring-inset ring-gray-300 focus:text-gray-600"
             />
             <label className="flex items-center cursor-pointer relative">
@@ -96,17 +101,16 @@ const Login = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-              </span>            
+              </span>
               <span className="ml-3 text-slate-600 text-sm">Keep me logged in</span>
             </label>
             <div className="flex justify-center">
-              <button 
+              <button
                 className="mt-12 bg-[#8996da] w-1/2 text-white px-6 py-2 
                 rounded-3xl hover:bg-[#6a7fcb] hover:shadow-lg transition-all duration-300"
                 onClick={handleSubmit}
-                > 
-                  Log in
-                  
+              >
+                Log in
               </button>
             </div>
           </div>

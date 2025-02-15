@@ -1,15 +1,21 @@
 "use client";
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { registerUser } from '../services/authService';
 //import { sendVerificationCode } from '../services/authService';
 import { useRouter } from "next/navigation";
 import InputField from '../component/InputField';
 import Image from 'next/image';
+import { getCookie } from 'cookies-next/client';
 
 
 
 const Register = () => {
+    useEffect(() => { // Redirect if already logged in
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) router.push("/dashboard");
+    }, []);
+
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -91,7 +97,7 @@ const Register = () => {
 
                 //if (verificationSent.success) {
                 //router.push('/verifyEmailPage'); // Redirect to verification page
-                router.push(`/verifyEmailPage?email=${btoa(email)}`);
+                router.push(`/verifyEmail?email=${btoa(email)}`);
                 //router.push(`/verifyEmailPage?email`);
                 console.log("User registered:", result);
                 /* } else {

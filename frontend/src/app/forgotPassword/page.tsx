@@ -1,11 +1,17 @@
 "use client";
 import Link from 'next/link';
 import InputField from '../component/InputField';
-import { useRouter } from "next/navigation";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { getCookie } from 'cookies-next/client';
+import router from 'next/router';
 
 const forgotPassword = () => {
+    useEffect(() => { // Redirect if already logged in
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) router.push("/dashboard");
+    }, []);
+
     const [email, setEmail] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [newConfirmPassword, setNewConfirmPassword] = useState("");

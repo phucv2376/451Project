@@ -1,14 +1,19 @@
 "use client";
-import Link from 'next/link';
 import React from "react";
 import { useState, useRef, useEffect } from "react";
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { verifyEmail } from '../services/authService';
 import { useSearchParams } from 'next/navigation';
+import { getCookie } from "cookies-next/client";
 
 
 const verifyEmailPage = () => {
+    useEffect(() => { // Redirect if already logged in
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) router.push("/dashboard");
+      }, []);
+
     const [email, setEmail] = useState("");
     const [code, setUserCode] = useState('');
     const [error, setError] = useState('');
@@ -77,7 +82,7 @@ const verifyEmailPage = () => {
         const result = await verifyEmail(userData);
 
         if (result.success) {
-            router.push('/loginPage');
+            router.push('/login');
         } else {
             setError(result.message);
         }
@@ -115,7 +120,7 @@ const verifyEmailPage = () => {
                                 maxLength={1}
                                 onChange={(e) => handleChange(index, e.target.value)}
                                 onKeyDown={(e) => handleKeyDown(index, e)}
-                                ref={(el) => (inputRefs.current[index] = el)}
+                                ref={(el) => { inputRefs.current[index] = el; }}
                                 style={{
                                     width: "40px",
                                     height: "50px",
