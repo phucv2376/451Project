@@ -210,28 +210,6 @@ const Register = () => {
                             onChange={handleConfirmPasswordChange}
                             error={confirmPasswordError}
                         />
-                        <label className="flex items-center cursor-pointer relative">
-                            <input
-                                type="checkbox"
-                                className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 checked:bg-slate-800 checked:border-slate-800 transition-all shadow hover:shadow-md"
-                                id="ripple-off"
-                            />
-                            <span className="absolute left-0 top-0 h-5 w-5 flex items-center justify-center opacity-0 peer-checked:opacity-100 pointer-events-none">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-3.5 w-3.5 text-white"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                >
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                            </span>
-                            <span className="ml-3 text-slate-600 text-sm">Keep me logged in</span>
-                        </label>
                         <div className="flex justify-center">
                             <button
                                 className="mt-5 bg-[#8996da] w-1/2 text-white px-6 py-2 
