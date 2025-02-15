@@ -46,31 +46,6 @@ namespace BudgetAppBackend.Infrastructure.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public bool ValidateToken(string token)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
-
-            try
-            {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = key,
-                    ValidateIssuer = !string.IsNullOrEmpty(_jwtSettings.Issuer),
-                    ValidateAudience = !string.IsNullOrEmpty(_jwtSettings.Audience),
-                    ValidIssuer = _jwtSettings.Issuer,
-                    ValidAudience = _jwtSettings.Audience,
-                    ClockSkew = TimeSpan.Zero
-                }, out _);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         private string ComputeSha256Hash(string input)
         {
             using var sha256 = SHA256.Create();
