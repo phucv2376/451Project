@@ -5,7 +5,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.Registration
 {
     public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
     {
-        public RegisterUserCommandValidator(IAuthRepository _authRepository, CancellationToken cancellationToken)
+        public RegisterUserCommandValidator(IAuthRepository _authRepository)
         {
             RuleFor(x => x.AddUser.FirstName)
                 .NotEmpty().WithMessage("First name is required. Please enter your first name.");
@@ -16,8 +16,10 @@ namespace BudgetAppBackend.Application.Features.Authentication.Registration
             RuleFor(x => x.AddUser.Email)
                 .NotEmpty().WithMessage("Email is required. Please enter your email address.")
                 .EmailAddress().WithMessage("Invalid email format. Please enter a valid email like example@domain.com.")
-                .Must(email => email == email.ToLower()).WithMessage("Email must be in lowercase.")
-                .MustAsync(async (email, cancellation) => await _authRepository.GetUserByEmailAsync(email, cancellationToken) == null)
+                .Must(email => string.Equals(email, email.ToLower(), StringComparison.Ordinal))
+                .WithMessage("Email must be in lowercase.")
+                .MustAsync(async (email, cancellationToken) =>
+                    await _authRepository.GetUserByEmailAsync(email, cancellationToken) == null)
                 .WithMessage("This email address is already registered. Please use a different email or log in.");
 
 
