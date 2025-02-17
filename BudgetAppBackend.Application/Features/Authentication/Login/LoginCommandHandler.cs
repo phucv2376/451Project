@@ -23,22 +23,16 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
 
         public async Task<AuthResult> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(request.LogUser!);
-            if (!Validator.TryValidateObject(request.LogUser!, validationContext, validationResults, true))
-            {
-                throw new ValidationException(string.Join(", ", validationResults.Select(v => v.ErrorMessage!)));
-            }
-
-            var user = await _authRepository.GetUserByEmailAsync(request.LogUser!.Email!);
+           
+            var user = await _authRepository.GetUserByEmailAsync(request.LogUser!.Email!, cancellationToken);
             if (user == null || !user.VerifyPassword(request.LogUser.Password!))
             {
-                throw new UnauthorizedAccessException("Wrong Email/Password.");
+                throw new UnauthorizedAccessException("Invalid email or password. Please check your credentials and try again.");
             }
 
             var token = _authenticationService.GenerateToken(user);
             var (rawRefreshToken, hashedRefreshToken) = _authenticationService.GenerateRefreshToken();
-            var existingRefreshToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id);
+            var existingRefreshToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id, cancellationToken);
             DateTime newRefreshTokenExpiry = existingRefreshToken.ExpiryDate > DateTime.UtcNow
                 ? existingRefreshToken.ExpiryDate
                 : DateTime.UtcNow.AddDays(7);
@@ -47,11 +41,11 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
             if (existingRefreshToken != null)
             {
                 existingRefreshToken.Revoke();
-                await _refreshTokenRepository.UpdateAndSaveNewAsync(existingRefreshToken, newRefreshToken);
+                await _refreshTokenRepository.UpdateAndSaveNewAsync(existingRefreshToken, newRefreshToken, cancellationToken);
             }
             else
             {
-                await _refreshTokenRepository.SaveAsync(newRefreshToken);
+                await _refreshTokenRepository.SaveAsync(newRefreshToken, cancellationToken);
             }
 
 

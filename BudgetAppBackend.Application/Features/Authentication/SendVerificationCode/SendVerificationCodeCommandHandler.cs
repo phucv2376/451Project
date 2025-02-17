@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using BudgetAppBackend.Application.Contracts;
+﻿using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Domain.UserAggregate;
 using MediatR;
 
@@ -16,14 +15,8 @@ namespace BudgetAppBackend.Application.Features.Authentication.SendVerificationC
 
         public async Task<bool> Handle(SendVerificationCodeCommand request, CancellationToken cancellationToken)
         {
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(request.SendVerificationCodeDto!);
-            if (!Validator.TryValidateObject(request.SendVerificationCodeDto!, validationContext, validationResults, true))
-            {
-                throw new ValidationException(string.Join(", ", validationResults.Select(v => v.ErrorMessage!)));
-            }
-
-            var user = await _authRepository.GetUserByEmailAsync(request.SendVerificationCodeDto.Email);
+            
+            var user = await _authRepository.GetUserByEmailAsync(request.SendVerificationCodeDto.Email, cancellationToken);
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found.");
@@ -31,7 +24,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.SendVerificationC
 
             var verificationCode = User.GenerateVerificationToken();
             user.SetEmailVerificationCode(verificationCode, DateTime.UtcNow.AddHours(1), user.FirstName, user.LastName, user.Email);
-            await _authRepository.UpdateUserAsync(user);
+            await _authRepository.UpdateUserAsync(user, cancellationToken);
 
             return true;
         }

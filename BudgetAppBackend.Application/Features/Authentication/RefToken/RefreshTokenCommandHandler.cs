@@ -25,13 +25,13 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
 
         public async Task<AuthResult> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            var user = await _authRepository.GetUserByEmailAsync(request.RefreshToken.Email);
+            var user = await _authRepository.GetUserByEmailAsync(request.RefreshToken.Email, cancellationToken);
 
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found.");
             }
-            var existingRefreshToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id);
+            var existingRefreshToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id, cancellationToken);
 
             if (existingRefreshToken == null)
             {
@@ -57,7 +57,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
 
             existingRefreshToken.Revoke();
             var newRefreshToken = new RefreshToken(user.Id, hashedRefreshToken, newRefreshTokenExpiry);
-            await _refreshTokenRepository.UpdateAndSaveNewAsync(existingRefreshToken, newRefreshToken);
+            await _refreshTokenRepository.UpdateAndSaveNewAsync(existingRefreshToken, newRefreshToken, cancellationToken);
 
             return new AuthResult
             {

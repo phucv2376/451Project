@@ -5,10 +5,10 @@ namespace BudgetAppBackend.Application.Contracts
 {
     public interface IRefreshTokenRepository
     {
-        Task<RefreshToken?> GetByUserIdAsync(UserId userId);
-        Task SaveAsync(RefreshToken refreshToken);
-        Task UpdateAsync(RefreshToken refreshToken);
-        Task DeleteAsync(RefreshToken refreshToken);
-        Task UpdateAndSaveNewAsync(RefreshToken oldToken, RefreshToken newToken);
+        Task<RefreshToken?> GetByUserIdAsync(UserId userId, CancellationToken cancellationToken);
+        Task SaveAsync(RefreshToken refreshToken, CancellationToken cancellationToken);
+        Task UpdateAsync(RefreshToken refreshToken, CancellationToken cancellationToken);
+        Task DeleteAsync(RefreshToken refreshToken, CancellationToken cancellationToken);
+        Task UpdateAndSaveNewAsync(RefreshToken oldToken, RefreshToken newToken, CancellationToken cancellationToken);
     }
 }

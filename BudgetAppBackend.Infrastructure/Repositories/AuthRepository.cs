@@ -14,22 +14,21 @@ namespace BudgetAppBackend.Infrastructure.Repositories
         }
 
        
-        public async Task<User> GetUserByEmailAsync(string Email)
+        public async Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == Email);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
         }
 
-        public async Task UpdateUserAsync(User user)
+        public async Task UpdateUserAsync(User user, CancellationToken cancellationToken)
         {
             _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task Register(User addNewUser)
+        public async Task RegisterAsync(User addNewUser, CancellationToken cancellationToken)
         {
-            await _context.Users.AddAsync(addNewUser);
-            await _context.SaveChangesAsync();
+            await _context.Users.AddAsync(addNewUser, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
 

@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using BudgetAppBackend.Application.Contracts;
+﻿using BudgetAppBackend.Application.Contracts;
 using MediatR;
 
 namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
@@ -15,14 +14,8 @@ namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
 
         public async Task<Unit> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
         {
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(request.resetPassword!);
-            if (!Validator.TryValidateObject(request.resetPassword!, validationContext, validationResults, true))
-            {
-                throw new ValidationException(string.Join(", ", validationResults.Select(v => v.ErrorMessage!)));
-            }
-
-            var user = await _authRepository.GetUserByEmailAsync(request.resetPassword.Email);
+            
+            var user = await _authRepository.GetUserByEmailAsync(request.resetPassword.Email, cancellationToken);
             if (user == null)
             {
                 throw new KeyNotFoundException("Invalid email address.");
@@ -35,7 +28,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
 
             user.ChangePassword(request.resetPassword.NewPassword);
 
-            await _authRepository.UpdateUserAsync(user);
+            await _authRepository.UpdateUserAsync(user, cancellationToken);
 
             return Unit.Value;
         }

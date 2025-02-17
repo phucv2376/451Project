@@ -14,56 +14,50 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task DeleteAsync(RefreshToken refreshToken)
+        public async Task DeleteAsync(RefreshToken refreshToken, CancellationToken cancellationToken)
         {
             _context.RefreshTokens.Remove(refreshToken);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<RefreshToken?> GetByUserIdAsync(UserId userId)
+        public async Task<RefreshToken?> GetByUserIdAsync(UserId userId, CancellationToken cancellationToken)
         {
-            bool hasTokens = await _context.RefreshTokens.AnyAsync();
-
-            if (!hasTokens)
-            {
-                return null;
-            }
 
             var result = await _context.RefreshTokens
                 .Where(rt => rt.UserId == userId && rt.RevokedAt == null && rt.ExpiryDate > DateTime.UtcNow)
                 .OrderByDescending(rt => rt.CreatedAt)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             return result;
         }
 
-        public async Task SaveAsync(RefreshToken refreshToken)
+        public async Task SaveAsync(RefreshToken refreshToken, CancellationToken cancellationToken)
         {
-            await _context.RefreshTokens.AddAsync(refreshToken);
-            await _context.SaveChangesAsync();
+            await _context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task UpdateAndSaveNewAsync(RefreshToken oldToken, RefreshToken newToken)
+        public async Task UpdateAndSaveNewAsync(RefreshToken oldToken, RefreshToken newToken, CancellationToken cancellationToken)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 _context.RefreshTokens.Update(oldToken);
-                await _context.RefreshTokens.AddAsync(newToken);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                await _context.RefreshTokens.AddAsync(newToken, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
             }
             catch
             {
-                await transaction.RollbackAsync();
+                await transaction.RollbackAsync(cancellationToken);
                 throw;
             }
         }
 
-        public async Task UpdateAsync(RefreshToken refreshToken)
+        public async Task UpdateAsync(RefreshToken refreshToken, CancellationToken cancellationToken)
         {
             _context.RefreshTokens.Update(refreshToken);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

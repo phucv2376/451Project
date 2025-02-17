@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using BudgetAppBackend.Application.Contracts;
+﻿using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
 using MediatR;
 
@@ -16,14 +15,9 @@ namespace BudgetAppBackend.Application.Features.Authentication.VerifyEmail
 
         public async Task<AuthResult> Handle(VerifyEmailCommand request, CancellationToken cancellationToken)
         {
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(request.VerifyEmailDto!);
-            if (!Validator.TryValidateObject(request.VerifyEmailDto!, validationContext, validationResults, true))
-            {
-                throw new ValidationException(string.Join(", ", validationResults.Select(v => v.ErrorMessage!)));
-            }
+           
 
-            var user = await _authRepository.GetUserByEmailAsync(request.VerifyEmailDto.Email);
+            var user = await _authRepository.GetUserByEmailAsync(request.VerifyEmailDto.Email, cancellationToken);
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found.");
@@ -34,7 +28,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.VerifyEmail
                 throw new UnauthorizedAccessException("Verification code does not match.");
             }
 
-            await _authRepository.UpdateUserAsync(user);
+            await _authRepository.UpdateUserAsync(user, cancellationToken);
 
             return new AuthResult { Success = true, UserId = user.Id.Id, Message = "Email verification has been completed" };
         }

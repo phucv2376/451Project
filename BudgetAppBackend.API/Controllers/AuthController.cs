@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
+﻿using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
 using BudgetAppBackend.Application.Features.Authentication.Login;
 using BudgetAppBackend.Application.Features.Authentication.RefToken;
 using BudgetAppBackend.Application.Features.Authentication.Registration;
@@ -8,7 +7,6 @@ using BudgetAppBackend.Application.Features.Authentication.SendVerificationCode;
 using BudgetAppBackend.Application.Features.Authentication.VerifyEmail;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace BudgetAppBackend.API.Controllers
 {
@@ -24,151 +22,46 @@ namespace BudgetAppBackend.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<AuthResult>> Register([FromBody] AddUserDto AddUserDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> Register([FromBody] AddUserDto addUserDto, CancellationToken cancellationToken)
         {
-            try
-            {
-                var newUser = await Sender.Send(new RegisterUserCommand { AddUser = AddUserDto }, cancellationToken);
-
-                return Ok(newUser);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { success = false, errors = ex.Message.Split(", ") });
-            }
-            catch (ArgumentException ex)
-            {
-                return Conflict(new { success = false, message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { success = false, message = "An error occurred during registration." });
-            }
-
+            var result = await Sender.Send(new RegisterUserCommand { AddUser = addUserDto }, cancellationToken);
+            return CreatedAtAction(nameof(Register), new { userId = result.UserId }, result);
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<AuthResult>> Login([FromBody] LogUserDto LogUserDto)
-        {
-            try
-            {
-                var result = await Sender.Send(new LoginCommand { LogUser = LogUserDto });
-                return Ok(result);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { success = false, errors = new List<string> { ex.Message } });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { Success = false, Message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { success = false, errors = new List<string> { "An error occurred while processing your request." } });
-            }
 
+        [HttpPost("login")]
+        public async Task<ActionResult<AuthResult>> Login([FromBody] LogUserDto LogUserDto, CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new LoginCommand { LogUser = LogUserDto }, cancellationToken);
+            return Ok(result);
         }
 
         [HttpPost("refresh-token")]
-        public async Task<ActionResult<AuthResult>> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto)
+        public async Task<ActionResult<AuthResult>> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto, CancellationToken cancellationToken)
         {
-            try
-            {
-                var authResult = await Sender.Send(new RefreshTokenCommand { RefreshToken = refreshTokenDto });
-                return Ok(authResult);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { Success = false, Message = ex.Message });
-            }
-            catch (SecurityTokenExpiredException ex)
-            {
-                return StatusCode(440, new { Success = false, Message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { Success = false, Message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return BadRequest(new { Success = false, Message = "An error occurred." });
-            }
-
+            var authResult = await Sender.Send(new RefreshTokenCommand { RefreshToken = refreshTokenDto }, cancellationToken);
+            return Ok(authResult);
         }
 
         [HttpPost("reset-password")]
-        public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto, CancellationToken cancellationToken)
         {
-            try
-            {
-                await Sender.Send(new ResetPasswordCommand { resetPassword = resetPasswordDto });
-                return NoContent();
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { success = false, errors = ex.Message.Split(", ") });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { success = false, message = "An error occurred while resetting the password." });
-            }
+            await Sender.Send(new ResetPasswordCommand { resetPassword = resetPasswordDto }, cancellationToken);
+            return NoContent();
         }
 
         [HttpPost("verify-email")]
-        public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailDto verifyEmailDto)
+        public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailDto verifyEmailDto, CancellationToken cancellationToken)
         {
-            try
-            {
-                var result = await Sender.Send(new VerifyEmailCommand { VerifyEmailDto = verifyEmailDto });
-                return Ok(result);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { success = false, errors = ex.Message.Split(", ") });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { success = false, message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { success = false, message = "An error occurred while verifying the email." });
-            }
+            var result = await Sender.Send(new VerifyEmailCommand { VerifyEmailDto = verifyEmailDto }, cancellationToken);
+            return Ok(result); 
         }
 
         [HttpPost("send-verification-code")]
-        public async Task<ActionResult> SendVerificationCode([FromBody] SendVerificationCodeDto sendVerificationCodeDto)
+        public async Task<ActionResult> SendVerificationCode([FromBody] SendVerificationCodeDto sendVerificationCodeDto, CancellationToken cancellationToken)
         {
-            try
-            {
-                var result = await Sender.Send(new SendVerificationCodeCommand { SendVerificationCodeDto = sendVerificationCodeDto });
-                return Ok(new { success = true, message = "Verification code sent successfully." });
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { success = false, errors = ex.Message.Split(", ") });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { success = false, message = "An error occurred while sending verification code." });
-            }
+            var result = await Sender.Send(new SendVerificationCodeCommand { SendVerificationCodeDto = sendVerificationCodeDto }, cancellationToken);
+            return Ok(new { success = true, message = "Verification code sent successfully." });
         }
     }
 }
