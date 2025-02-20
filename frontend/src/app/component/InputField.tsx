@@ -2,6 +2,7 @@ type Props = {
   label: string,
   type: string,
   id: string,
+  name?: string,
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
   error?: string
 }
@@ -16,6 +17,7 @@ const InputField = (props : Props) => {
       <input 
           type={props.type} 
           id={props.id} 
+          name={props.name}
           onChange={props.onChange}
           className={`mt-1 mb-4 block w-full h-11 rounded-sm py-1.5 px-2 ring-1 ring-inset ${
             props.error ? 'ring-red-500' : 'ring-gray-300'} focus:text-gray-600`}        

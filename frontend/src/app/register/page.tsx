@@ -53,13 +53,12 @@ const Register = () => {
             return 'Password must include at least one lowercase letter';
         }
 
-        // If all checks pass, return null (no error)
         return null;
     };
 
     const validateField = (value: string | undefined, fieldName: string) => {
         if (!value) {
-            setErrors(prevErrors => ({ ...prevErrors, [fieldName]: `This field is required` }));
+            setErrors(prevErrors => ({ ...prevErrors, [fieldName]: 'This field is required' }));
         } else {
             setErrors(prevErrors => ({ ...prevErrors, [fieldName]: '' }));
         }
@@ -84,6 +83,7 @@ const Register = () => {
         try {
             const result = await registerUser(userInfo);
 
+            console.log(result)
             if (result.success) {
                 // Send verification code after successful registration
                 //const verificationSent = await sendVerificationCode(email);
@@ -98,7 +98,7 @@ const Register = () => {
                     //redirect to error page?
                 } */
             } else {
-                setErrors(prevErrors => ({ ...prevErrors, general: 'Registration failed. Please try again.' }));
+                setErrors(prevErrors => ({ ...prevErrors, general: result.message }));
             }
         } catch (error) {
             setErrors(prevErrors => ({ ...prevErrors, general: 'Registration failed.' }));
@@ -107,10 +107,21 @@ const Register = () => {
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        setUserInfo(prevUserInfo => ({ ...prevUserInfo, [name]: value }));
-        if (errors[name as keyof typeof errors]) {
-            setErrors(prevErrors => ({ ...prevErrors, [name]: '' }));
-        }
+        setUserInfo(prevUserInfo => {
+            const updatedUserInfo = { ...prevUserInfo, [name]: value };
+            console.log("Updated State:", updatedUserInfo); // Logs the latest state correctly
+            return updatedUserInfo;
+        });
+
+        // Clear field-specific errors when user types
+        setErrors(prevErrors => ({
+            ...prevErrors,
+            [name]: name === "password" ? validatePassword(value) || "" : "", // Revalidate password dynamically
+            confirmPassword:
+                name === "confirmPassword" && value !== userInfo.password
+                    ? "Passwords do not match"
+                    : ""
+        }));
     };
 
     return (
@@ -143,6 +154,7 @@ const Register = () => {
                                     label="First Name"
                                     type="text"
                                     id="firstNameInput"
+                                    name="firstName"
                                     onChange={handleChange}
                                     error={errors.firstName}
                                 />
@@ -152,6 +164,7 @@ const Register = () => {
                                     label="Last Name"
                                     type="text"
                                     id="lastNameInput"
+                                    name="lastName"
                                     onChange={handleChange}
                                     error={errors.lastName}
                                 />
@@ -161,6 +174,7 @@ const Register = () => {
                             label="Email"
                             type="email"
                             id="emailInput"
+                            name="email"
                             onChange={handleChange}
                             error={errors.email}
                         />
@@ -168,6 +182,7 @@ const Register = () => {
                             label="Password"
                             type="password"
                             id="passwordInput"
+                            name="password"
                             onChange={handleChange}
                             error={errors.password}
                         />
@@ -175,6 +190,7 @@ const Register = () => {
                             label="Confirm Password"
                             type="password"
                             id="confirmPasswordInput"
+                            name="confirmPassword"
                             onChange={handleChange}
                             error={errors.confirmPassword}
                         />

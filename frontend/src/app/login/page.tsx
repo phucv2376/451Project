@@ -2,9 +2,11 @@
 import Link from 'next/link';
 import InputField from '../component/InputField';
 import { useRouter } from "next/navigation";
+
 import { useState, useEffect } from 'react';
 import { loginUser } from '../services/authService';
 import Image from 'next/image';
+import { UserInfo } from '@/app/types/UserInfo';
 
 const Login = () => {
 	useEffect(() => { // Redirect if already logged in
@@ -19,24 +21,24 @@ const Login = () => {
 	const router = useRouter();
 
 	const handleSubmit = async () => {
-let hasError = false;
-        const newErrors = { email: "", password: "" };
+		let hasError = false;
+		const newErrors = { email: "", password: "" };
 
 		if (!email) {
 			newErrors.email = "Email is required.";
-            hasError = true;
+			hasError = true;
 		}
 		if (!password) {
 			newErrors.password = "Password is required.";
-            hasError = true;
+			hasError = true;
 		}
 
-        setErrors(newErrors);
+		setErrors(newErrors);
 
-        if (hasError) return;
+		if (hasError) return;
 
 		try {
-			const userData: UserData = {
+			const userData: UserInfo = {
 				email,
 				password
 			};
@@ -46,8 +48,8 @@ let hasError = false;
 				setMessage("Login successful!");
 				router.push("/dashboard");
 				console.log("User logged in:", result);
-} else {
-                setMessage("Login failed.");
+			} else {
+				setMessage("Login failed.");
 			}
 		} catch (error) {
 			setMessage("Login failed.");
