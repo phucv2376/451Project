@@ -1,4 +1,6 @@
-﻿using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
+﻿using System.Security.Claims;
+using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
+using BudgetAppBackend.Application.Features.Authentication.DeleteAccount;
 using BudgetAppBackend.Application.Features.Authentication.Login;
 using BudgetAppBackend.Application.Features.Authentication.RefToken;
 using BudgetAppBackend.Application.Features.Authentication.Registration;
@@ -6,6 +8,7 @@ using BudgetAppBackend.Application.Features.Authentication.ResetPassword;
 using BudgetAppBackend.Application.Features.Authentication.SendVerificationCode;
 using BudgetAppBackend.Application.Features.Authentication.VerifyEmail;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BudgetAppBackend.API.Controllers
@@ -54,7 +57,7 @@ namespace BudgetAppBackend.API.Controllers
         public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailDto verifyEmailDto, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new VerifyEmailCommand { VerifyEmailDto = verifyEmailDto }, cancellationToken);
-            return Ok(result); 
+            return Ok(result);
         }
 
         [HttpPost("send-verification-code")]
@@ -62,6 +65,15 @@ namespace BudgetAppBackend.API.Controllers
         {
             var result = await Sender.Send(new SendVerificationCodeCommand { SendVerificationCodeDto = sendVerificationCodeDto }, cancellationToken);
             return Ok(new { success = true, message = "Verification code sent successfully." });
+        }
+
+        [Authorize]
+        [HttpDelete("delete-account")]
+        public async Task<IActionResult> DeleteAccount(CancellationToken cancellationToken)
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var results = await Sender.Send(new DeleteAccountCommand { Email = email }, cancellationToken);
+            return Ok(new { success = true, message = "Account deleted successfully." });
         }
     }
 }

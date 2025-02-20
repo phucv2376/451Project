@@ -33,9 +33,9 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
             var token = _authenticationService.GenerateToken(user);
             var (rawRefreshToken, hashedRefreshToken) = _authenticationService.GenerateRefreshToken();
             var existingRefreshToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id, cancellationToken);
-            DateTime newRefreshTokenExpiry = existingRefreshToken.ExpiryDate > DateTime.UtcNow
-                ? existingRefreshToken.ExpiryDate
-                : DateTime.UtcNow.AddDays(7);
+            DateTime newRefreshTokenExpiry = (existingRefreshToken != null && existingRefreshToken.ExpiryDate > DateTime.UtcNow)
+    ? existingRefreshToken.ExpiryDate
+    : DateTime.UtcNow.AddDays(7);
             var newRefreshToken = new RefreshToken(user.Id, hashedRefreshToken, newRefreshTokenExpiry);
 
             if (existingRefreshToken != null)

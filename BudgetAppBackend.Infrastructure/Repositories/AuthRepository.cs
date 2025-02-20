@@ -31,6 +31,10 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
         }
 
-
+        public Task DeleteUserAsync(Task<User?> user, CancellationToken cancellationToken)
+        {
+            _context.Users.Remove(user.Result);
+            return _context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

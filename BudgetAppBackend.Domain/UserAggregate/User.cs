@@ -46,6 +46,7 @@ namespace BudgetAppBackend.Domain.UserAggregate
             );
         }
 
+
         public void ChangePassword(string newPassword)
         {
             var (newPasswordHash, newPasswordSalt) = GeneratePasswordHash(newPassword);
