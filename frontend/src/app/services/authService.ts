@@ -74,7 +74,7 @@ export const loginUser = async(userData : UserData) => {
             return { success: true, data };
         } else {
             const errorData = await response.json();
-            return { success: false, message: errorData.message || "Login failed. Please try again." };
+            return { success: false, message: errorData.errors[0] };
         }
     } catch (error) {
         console.error("Error logging in:", error);
