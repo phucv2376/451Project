@@ -1,6 +1,7 @@
 import API_BASE_URL from "@/app/config";
 import { setCookie, getCookie } from "cookies-next/client";
 
+
 export const registerUser = async (userData: UserData) => {
     try {
         const response = await fetch(`${API_BASE_URL}/Auth/register`, {
@@ -16,7 +17,7 @@ export const registerUser = async (userData: UserData) => {
             return { success: true, data };
         } else {
             const errorData = await response.json();
-            return { success: false, message: errorData.message || "Registration failed. Please try again." };
+            return { success: false, message: errorData.errors[0]};
         }
     } catch (error) {
         console.error("Error during registration:", error);
@@ -73,7 +74,7 @@ export const loginUser = async(userData : UserData) => {
             return { success: true, data };
         } else {
             const errorData = await response.json();
-            return { success: false, message: errorData.message || "Login failed. Please try again." };
+            return { success: false, message: errorData.errors[0] };
         }
     } catch (error) {
         console.error("Error logging in:", error);

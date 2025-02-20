@@ -2,9 +2,11 @@
 import Link from 'next/link';
 import InputField from '../component/InputField';
 import { useRouter } from "next/navigation";
+
 import { useState, useEffect } from 'react';
 import { loginUser } from '../services/authService';
 import Image from 'next/image';
+import { UserInfo } from '@/app/types/UserInfo';
 
 const Login = () => {
 	useEffect(() => { // Redirect if already logged in
@@ -12,47 +14,64 @@ const Login = () => {
 		if (accessToken) router.push("/dashboard");
 	}, []);
 
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
 	const [errors, setErrors] = useState({ email: "", password: "" });
 	const router = useRouter();
 
+	const [userInfo, setUserInfo] = useState<UserInfo>({
+        email: "",
+        password: "",
+    });
+
 	const handleSubmit = async () => {
-let hasError = false;
-        const newErrors = { email: "", password: "" };
+		let hasError = false;
+		const newErrors = { email: "", password: "" };
 
-		if (!email) {
+		if (!userInfo.email) {
 			newErrors.email = "Email is required.";
-            hasError = true;
+			hasError = true;
 		}
-		if (!password) {
+		if (!userInfo.password) {
 			newErrors.password = "Password is required.";
-            hasError = true;
+			hasError = true;
 		}
 
-        setErrors(newErrors);
+		setErrors(newErrors);
 
-        if (hasError) return;
+		if (hasError) return;
 
 		try {
-			const userData: UserData = {
-				email,
-				password
+			const user: UserInfo = {
+				email: userInfo.email,
+				password: userInfo.password
 			};
 
-			const result = await loginUser(userData);
+			const result = await loginUser(userInfo);
 			if (result.success) {
 				setMessage("Login successful!");
 				router.push("/dashboard");
 				console.log("User logged in:", result);
-} else {
-                setMessage("Login failed.");
+			} else {
+				setMessage("Incorrect username or password.");
 			}
 		} catch (error) {
 			setMessage("Login failed.");
 		}
 	}
+
+	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setUserInfo(prevUserInfo => {
+            const updatedUserInfo = { ...prevUserInfo, [name]: value };
+            return updatedUserInfo;
+        });
+		if (userInfo.email != "") {
+			setErrors({ ...errors, email: "" });
+		}
+		if (userInfo.password != "") {
+			setErrors({ ...errors, password: "" });
+		}
+    };
 
 	return (
 		<div className="flex h-screen">
@@ -83,14 +102,16 @@ let hasError = false;
 								label="Email"
 								type="email"
 								id="emailInput"
-								onChange={(e) => setEmail(e.target.value)}
+								name="email"
+								onChange={handleChange}
 								error={errors.email}
 							/>
 							<InputField
 								label="Password"
 								type="password"
 								id="passwordInput"
-								onChange={(e) => setPassword(e.target.value)}
+								name="password"
+								onChange={handleChange}
 								error={errors.password}
 							/>
 						</div>
@@ -126,6 +147,7 @@ let hasError = false;
 								Log in
 							</button>
 						</div>
+                        {message && <p className="text-red-500 mt-4">{message}</p>}
 					</div>
 				</div>
 			</div>
