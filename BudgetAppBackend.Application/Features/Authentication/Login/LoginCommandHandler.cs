@@ -29,13 +29,27 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
             {
                 throw new UnauthorizedAccessException("Invalid email or password. Please check your credentials and try again.");
             }
+            if (!user.IsEmailVerified)
+            {
+                throw new UnauthorizedAccessException("Email not verified. Please verify your email address to log in.");
+            }
+
 
             var token = _authenticationService.GenerateToken(user);
             var (rawRefreshToken, hashedRefreshToken) = _authenticationService.GenerateRefreshToken();
             var existingRefreshToken = await _refreshTokenRepository.GetByUserIdAsync(user.Id, cancellationToken);
+
+
+            if (existingRefreshToken != null && existingRefreshToken.ExpiryDate <= DateTime.UtcNow)
+            {
+                existingRefreshToken.Revoke();
+                await _refreshTokenRepository.UpdateAsync(existingRefreshToken, cancellationToken);
+                existingRefreshToken = null;
+            }
+
             DateTime newRefreshTokenExpiry = (existingRefreshToken != null && existingRefreshToken.ExpiryDate > DateTime.UtcNow)
-    ? existingRefreshToken.ExpiryDate
-    : DateTime.UtcNow.AddDays(7);
+                    ? existingRefreshToken.ExpiryDate
+                    : DateTime.UtcNow.AddMinutes(2);
             var newRefreshToken = new RefreshToken(user.Id, hashedRefreshToken, newRefreshTokenExpiry);
 
             if (existingRefreshToken != null)
@@ -54,11 +68,9 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
                 Success = true,
                 UserId = user.Id.Id,
                 Token = token,
-                TokenType = "Bearer",
-                ExpiresIn = 3600,
                 RefreshToken = rawRefreshToken,
                 RefreshTokenExpiry = newRefreshTokenExpiry,
-                Message = "You logged in successfully"
+                Message = "You have successfully logged in! Welcome back."
             };
         }
     }

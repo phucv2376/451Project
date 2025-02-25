@@ -7,8 +7,6 @@ namespace BudgetAppBackend.Application.DTOs.AuthenticationDTOs
         public bool Success { get; set; }
         public Guid? UserId { get; set; }
         public string? Token { get; internal set; }
-        public string TokenType { get; set; } = "Bearer";
-        public int ExpiresIn { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiry { get; set; }
         public string? Message { get; set; }

@@ -33,7 +33,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.Registration
             newUser.SetEmailVerificationCode(verificationCode, DateTime.UtcNow.AddHours(1), newUser.FirstName, newUser.LastName, newUser.Email);
             await _authRepository!.RegisterAsync(newUser, cancellationToken);
 
-            var authResult = new AuthResult { Success = true, UserId = newUser.Id.Id, Message = $"An email verification has been sent to you." };
+            var authResult = new AuthResult { Success = true, Message = "Thank you for registering! A verification email has been sent to your email address." };
             return authResult;
          
         }

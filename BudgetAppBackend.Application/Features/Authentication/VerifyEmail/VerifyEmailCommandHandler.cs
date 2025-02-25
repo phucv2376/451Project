@@ -30,7 +30,9 @@ namespace BudgetAppBackend.Application.Features.Authentication.VerifyEmail
 
             await _authRepository.UpdateUserAsync(user, cancellationToken);
 
-            return new AuthResult { Success = true, UserId = user.Id.Id, Message = "Email verification has been completed" };
+            return new AuthResult { Success = true, Message = "Your email has been successfully verified! Welcome to BudgetApp. " +
+              "You can now log in and start managing your finances with ease. "
+            };
         }
     }
 }

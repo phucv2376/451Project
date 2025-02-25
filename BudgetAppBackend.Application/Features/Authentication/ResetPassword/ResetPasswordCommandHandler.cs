@@ -18,7 +18,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
             var user = await _authRepository.GetUserByEmailAsync(request.resetPassword.Email, cancellationToken);
             if (user == null)
             {
-                throw new KeyNotFoundException("Invalid email address.");
+                throw new UnauthorizedAccessException("Invalid email address.");
             }
 
             if (request.resetPassword.NewPassword != request.resetPassword.ConfirmNewPassword)

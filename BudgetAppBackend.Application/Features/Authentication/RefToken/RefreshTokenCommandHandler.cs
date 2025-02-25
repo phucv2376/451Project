@@ -25,7 +25,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
 
         public async Task<AuthResult> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            var user = await _authRepository.GetUserByEmailAsync(request.RefreshToken.Email, cancellationToken);
+            var user = await _authRepository.GetUserByEmailAsync(request.Email, cancellationToken);
 
             if (user == null)
             {
@@ -40,10 +40,12 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
 
             if (existingRefreshToken.ExpiryDate <= DateTime.UtcNow)
             {
+                existingRefreshToken.Revoke();
+                await _refreshTokenRepository.UpdateAsync(existingRefreshToken, cancellationToken);
                 throw new SecurityTokenExpiredException("Refresh token expired. Please log in again.");
             }
 
-            if (!_authService.ValidateRefreshToken(existingRefreshToken.TokenHash, request.RefreshToken.Token))
+            if (!_authService.ValidateRefreshToken(existingRefreshToken.TokenHash, request.Token))
             {
                 throw new UnauthorizedAccessException("Invalid refresh token.");
             }
@@ -52,8 +54,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
             var newToken = _authService.GenerateToken(user);
             var (rawRefreshToken, hashedRefreshToken) = _authService.GenerateRefreshToken();
             DateTime newRefreshTokenExpiry = existingRefreshToken.ExpiryDate > DateTime.UtcNow
-                ? existingRefreshToken.ExpiryDate
-                : DateTime.UtcNow.AddDays(7);
+                ? existingRefreshToken.ExpiryDate : DateTime.UtcNow.AddMinutes(2);
 
             existingRefreshToken.Revoke();
             var newRefreshToken = new RefreshToken(user.Id, hashedRefreshToken, newRefreshTokenExpiry);
@@ -62,10 +63,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
             return new AuthResult
             {
                 Success = true,
-                UserId = user.Id.Id,
                 Token = newToken,
-                TokenType = "Bearer",
-                ExpiresIn = 3600,
                 RefreshToken = rawRefreshToken,
                 RefreshTokenExpiry = newRefreshTokenExpiry,
                 Message = "You logged in successfully"

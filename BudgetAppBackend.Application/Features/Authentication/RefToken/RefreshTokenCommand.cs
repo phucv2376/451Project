@@ -5,6 +5,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.RefToken
 {
     public class RefreshTokenCommand : IRequest<AuthResult>
     {
-        public RefreshTokenDto? RefreshToken { get; set; }
+        public string Email { get; set; }
+        public string? Token { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
         {
 
             var result = await _context.RefreshTokens
-                .Where(rt => rt.UserId == userId && rt.RevokedAt == null && rt.ExpiryDate > DateTime.UtcNow)
+                .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
                 .OrderByDescending(rt => rt.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 

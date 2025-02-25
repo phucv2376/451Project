@@ -1,87 +1,255 @@
 import API_BASE_URL from "@/app/config";
-import { setCookie, getCookie } from "cookies-next/client";
+import { UserLogin, UserRegister, PasswordReset, EmailVerification } from '../models/auth';
 
-
-export const registerUser = async (userData: UserData) => {
+/**
+ * Registers a new user by sending their details to the backend.
+ * @param userRegister - User registration data.
+ * @returns A success response or an error message.
+ */
+export const registerNewUser = async (userRegister: UserRegister) => {
     try {
         const response = await fetch(`${API_BASE_URL}/Auth/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(userData),
+            body: JSON.stringify(userRegister),
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            return { success: true, data };
-        } else {
-            const errorData = await response.json();
-            return { success: false, message: errorData.errors[0]};
+        if (!response.ok) {
+            let errorMessage = "An unexpected error occurred. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
         }
-    } catch (error) {
-        console.error("Error during registration:", error);
-        return { success: false, message: "An error occurred. Please try again." };
-    }
-};
 
-export const verifyEmail = async (userData : UserData) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/Auth/verify-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData), // Send email and code in the request body
-      });
-  
-      if (response.ok) {
         const data = await response.json();
         return { success: true, data };
-      } else {
-        const errorData = await response.json();
-        return { success: false, message: errorData.message || "Verification failed. Please try again." };
-      }
+        
     } catch (error) {
-      console.error('Error verifying email:', error);
-      return { success: false, message: "An error occurred. Please try again." };
+        console.error("Network error:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
     }
 };
 
-export const loginUser = async(userData : UserData) => {
-    'use client';
-    let response;
+
+/**
+ * Verifies the user's email by sending a verification code to the backend.
+ * @param emailVerification - Contains the email and verification code.
+ * @returns A success response or an error message.
+ */
+export const verifyUserEmail = async (emailVerification: EmailVerification) => {
     try {
-        response = await fetch(`${API_BASE_URL}/Auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/Auth/verify-email`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(userData),
+            body: JSON.stringify(emailVerification),
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            // Store tokens & email in localStorage
-            localStorage.setItem("email", userData.email);
-            localStorage.setItem("accessToken", data.token);
-            setCookie("refreshToken", data.refreshToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "strict",
-                expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-            });
-            return { success: true, data };
-        } else {
-            const errorData = await response.json();
-            return { success: false, message: errorData.errors[0] };
+        if (!response.ok) {
+            let errorMessage = "An unexpected error occurred. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
         }
+
+        const data = await response.json();
+        return { success: true, data : data };
+
     } catch (error) {
-        console.error("Error logging in:", error);
-        return { success: false, message: "An error occurred. Please try again." };
+        console.error("Network error:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
     }
 };
 
-export const isAuthenticated = () => {
-    return getCookie("accessToken");
-}
+
+/**
+ * Logs in the user and stores their email in local storage.
+ * @param userLogin - User credentials.
+ * @returns A success response with user data or an error message.
+ */
+export const loginUserAccount = async (userLogin: UserLogin) => {
+    'use client';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/Auth/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(userLogin),
+        });
+
+        if (!response.ok) {
+            let errorMessage = "An unexpected error occurred. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+
+        const data = await response.json();
+        localStorage.setItem("email", userLogin.email); // Store email for future use
+        return { success: true, data };
+
+    } catch (error) {
+        console.error("Network error:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+    }
+};
+
+
+/**
+ * Refreshes the authentication token using the user's stored email.
+ * @returns A success response with the new token or an error message.
+ */
+export const refreshUserToken = async () => {
+    try {
+        const email = localStorage.getItem("email");
+
+        if (!email) {
+            console.warn("No email found. User needs to log in again.");
+            return { success: false, message: "No email available for token refresh." };
+        }
+
+        const response = await fetch(`${API_BASE_URL}/Auth/refresh-token`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ email }),
+        });
+
+        if (!response.ok) {
+            let errorMessage = "An error occurred while refreshing the token.";
+            const errorData = await response.json();
+            errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            return { success: false, message: errorMessage };
+        }
+
+        const data = await response.json();
+        return { success: true, data };
+
+    } catch (error) {
+        console.error("Network error while refreshing token:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+    }
+};
+
+/**
+ * Resets the user's password.
+ * @param passwordReset - The new password details.
+ * @returns A success response or an error message.
+ */
+export const resetUserPassword = async (passwordReset: PasswordReset) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Auth/reset-password`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(passwordReset),
+        });
+
+        if (!response.ok) {
+            let errorMessage = "An error occurred while resetting the password.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error("Network error while resetting password:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+    }
+};
+
+
+/**
+ * Deletes the user's account.
+ * @returns A success response or an error message.
+ */
+export const deleteUserAccount = async (token: string) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Auth/delete-account`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            let errorMessage = "Failed to delete account. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error("Network error while deleting account:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+    }
+};
+
+
+/**
+ * Sends a verification code to the user's email.
+ * @param email - The email address to send the verification code.
+ * @returns A success response or an error message.
+ */
+export const sendEmailVerificationCode = async (email: string) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Auth/send-verification-code`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ email }),
+        });
+
+        if (!response.ok) {
+            let errorMessage = "Failed to send verification code. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+
+        const data = await response.json();
+        return { success: true, data };
+
+    } catch (error) {
+        console.error("Network error while sending verification code:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+    }
+};

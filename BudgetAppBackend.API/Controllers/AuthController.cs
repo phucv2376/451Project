@@ -1,4 +1,6 @@
-﻿using System.Security.Claims;
+﻿using System.Collections.Generic;
+using System.Net;
+using System.Security.Claims;
 using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
 using BudgetAppBackend.Application.Features.Authentication.DeleteAccount;
 using BudgetAppBackend.Application.Features.Authentication.Login;
@@ -10,6 +12,7 @@ using BudgetAppBackend.Application.Features.Authentication.VerifyEmail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace BudgetAppBackend.API.Controllers
 {
@@ -36,21 +39,42 @@ namespace BudgetAppBackend.API.Controllers
         public async Task<ActionResult<AuthResult>> Login([FromBody] LogUserDto LogUserDto, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new LoginCommand { LogUser = LogUserDto }, cancellationToken);
+
+            HttpContext.Response.Cookies.Append("RefreshToken", result.RefreshToken, new CookieOptions
+            {
+                Path = "/",
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = result.RefreshTokenExpiry
+            });
+            
             return Ok(result);
         }
 
         [HttpPost("refresh-token")]
         public async Task<ActionResult<AuthResult>> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto, CancellationToken cancellationToken)
         {
-            var authResult = await Sender.Send(new RefreshTokenCommand { RefreshToken = refreshTokenDto }, cancellationToken);
-            return Ok(authResult);
+            var refreshTokenFromCookie = HttpContext.Request.Cookies["RefreshToken"];
+          
+            var result = await Sender.Send(new RefreshTokenCommand { Token = refreshTokenFromCookie, Email = refreshTokenDto.Email }, cancellationToken);
+
+            Response.Cookies.Append("RefreshToken", result.RefreshToken, new CookieOptions
+            {
+                Path = "/",
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = result.RefreshTokenExpiry
+            });
+            return Ok(result);
         }
 
         [HttpPost("reset-password")]
         public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto, CancellationToken cancellationToken)
         {
-            await Sender.Send(new ResetPasswordCommand { resetPassword = resetPasswordDto }, cancellationToken);
-            return NoContent();
+           var result = await Sender.Send(new ResetPasswordCommand { resetPassword = resetPasswordDto }, cancellationToken);
+            return Ok(result);
         }
 
         [HttpPost("verify-email")]
@@ -64,7 +88,7 @@ namespace BudgetAppBackend.API.Controllers
         public async Task<ActionResult> SendVerificationCode([FromBody] SendVerificationCodeDto sendVerificationCodeDto, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new SendVerificationCodeCommand { SendVerificationCodeDto = sendVerificationCodeDto }, cancellationToken);
-            return Ok(new { success = true, message = "Verification code sent successfully." });
+            return Ok(result);
         }
 
         [Authorize]
@@ -73,7 +97,7 @@ namespace BudgetAppBackend.API.Controllers
         {
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
             var results = await Sender.Send(new DeleteAccountCommand { Email = email }, cancellationToken);
-            return Ok(new { success = true, message = "Account deleted successfully." });
+            return Ok(results);
         }
     }
 }
