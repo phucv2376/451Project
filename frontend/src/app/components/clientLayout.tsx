@@ -3,7 +3,6 @@
 // The Suspense component is used to provide a loading fallback while components are loading.
 "use client";
 import { Suspense } from "react";
-import Navbar from './navbar';
 import { usePathname } from 'next/navigation';
 
 // List of routes where the Navbar should not be displayed.
@@ -28,7 +27,6 @@ export default function ClientLayout({
     // Suspense component ensures a fallback UI while components are loading.
     <Suspense fallback={<div>Loading...</div>}>
       {/* Conditionally render the Navbar if the route is not in the noNavbarRoutes list. */}
-      {showNavbar && <Navbar />}
       <main>
         {children} {/* Render the main content of the page. */}
       </main>
