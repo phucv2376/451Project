@@ -85,6 +85,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.HttpsPort = 7105;
+});
+
+builder.WebHost.UseUrls("https://localhost:7105");
+
+
 var app = builder.Build();
 
 app.UseCors("AllowOrigin");
