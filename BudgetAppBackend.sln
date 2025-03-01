@@ -23,8 +23,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.API", "Bud
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.Domain.Tests", "BudgetAppBackend.Domain.Tests\BudgetAppBackend.Domain.Tests.csproj", "{5222A3F8-1EF0-498A-AA68-90BBDEFFC5BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1", "TestProject1\TestProject1.csproj", "{C721C2A1-2F23-4781-96D2-AE0ED53B76CF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.API.Tests", "BudgetAppBackend.API.Tests\BudgetAppBackend.API.Tests.csproj", "{6AE29550-381B-4DD3-AEFD-1E2462850E1E}"
 EndProject
 Global
