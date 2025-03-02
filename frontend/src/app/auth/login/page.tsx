@@ -16,7 +16,7 @@ const Login = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const router = useRouter();
     const [isMounted, setIsMounted] = useState<boolean>(false);
-    
+
     // Auth context for authentication functions
     const { accessToken, login } = useAuth();
 
@@ -38,17 +38,17 @@ const Login = () => {
         return () => setIsMounted(false);
     }, []);
 
-    if (!isMounted){
+    if (!isMounted) {
         return null;
     }
-    
+
     // Form submission handler
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage("");
         let hasError = false;
         const newErrors = { email: "", password: "" };
-    
+
         // Validate user input
         if (!userLogin.email) {
             newErrors.email = "Email is required.";
@@ -58,17 +58,17 @@ const Login = () => {
             newErrors.password = "Password is required.";
             hasError = true;
         }
-    
+
         setErrors(newErrors);
-    
+
         // Prevent submission if validation fails
         if (hasError) return;
-    
+
         // Set loading state
         setIsLoading(true);
         try {
             const response = await login(userLogin);
-            
+
             if (!response.success) {
                 setMessage(response.message);
                 return;
@@ -81,7 +81,7 @@ const Login = () => {
             setIsLoading(false);
         }
     };
-    
+
     // Input change handler
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -115,11 +115,11 @@ const Login = () => {
             </div>
 
             {/* Divider */}
-            <div className="hidden md:block w-[4px] h-1/2 my-auto bg-gray-200" />
+            <div className="hidden md:block w-[2px] h-1/2 my-auto bg-gray-200" />
 
             {/* Right Section: Login */}
             <div className="flex justify-center items-center h-full w-full md:w-1/2 p-6">
-                <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+                <div className="w-full max-w-md p-8 bg-white">
                     <p className="text-left text-3xl md:text-4xl text-gray-800 font-serif font-bold mb-4">Sign in</p>
                     <p className="inline text-left text-gray-800 text-md">Need an account? </p>
                     <Link href="/auth/register" className="text-blue-500 underline">Create an account</Link>
@@ -143,7 +143,7 @@ const Login = () => {
                             error={errors.password}
                         />
                         <Link href="/auth/forgotPassword" className="text-right text-blue-500 text-sm underline">Forgot your password?</Link>
-                        
+
                         {/* Remember Me Checkbox */}
                         <label className="flex items-center cursor-pointer relative mt-4">
                             <input
@@ -160,10 +160,15 @@ const Login = () => {
                         </label>
 
                         {/* Submit Button */}
-                        <button type="submit" className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">
+                        <div className='flex justify-center'>
+                        <button
+                            type="submit"
+                            className="mt-5 bg-[#8996da] w-full md:w-1/2 text-white px-6 py-2 
+                            rounded-3xl hover:bg-[#6a7fcb] hover:shadow-lg transition-all duration-300"    
+                        >
                             Sign In
                         </button>
-
+                        </div>
                         {/* Display error messages */}
                         {message && <p className="mt-3 text-red-500">{message}</p>}
                     </form>

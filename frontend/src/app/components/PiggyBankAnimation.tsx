@@ -22,7 +22,7 @@ const PiggyBankAnimation = () => {
                     loop
                     muted
                     playsInline
-                    className="h-[150px] w-[150px]"
+                    className="h-[100px] w-[100px]"
                 >
                     <source src="/images/piggy-bank.webm" type="video/webm" />
                     Your browser does not support the video tag.

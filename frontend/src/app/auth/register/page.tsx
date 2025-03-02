@@ -6,8 +6,10 @@ import InputField from '../../components/InputField';
 import Image from 'next/image';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRegister, EmailVerification } from '@/app/models/auth';
+import PiggyBankAnimation from "../../components/PiggyBankAnimation"; // Import the animation
 
-// Spinner component for loading state during verification
+
+{/*// Spinner component for loading state during verification
 const Spinner = ({ message }: { message?: string }) => (
     <div className="flex justify-center items-center absolute top-0 left-0 w-full h-full bg-white bg-opacity-50 z-50">
         <div className="relative">
@@ -23,7 +25,7 @@ const Spinner = ({ message }: { message?: string }) => (
             )}
         </div>
     </div>
-);
+);*/}
 
 const Register = () => {
     const { registerNewUserAccount, verifyUserEmailAddress, sendUserEmailVerificationCode } = useAuth();
@@ -59,8 +61,8 @@ const Register = () => {
         if (!/[0-9]/.test(password)) {
             return 'Password must include at least one number';
         }
-        if (!/[!@#$%^&*]/.test(password)) {
-            return 'Password must include at least one special character (!@#$%^&*)';
+        if (!/[!@$%^&*]/.test(password)) {
+            return 'Password must include at least one special character (!@$%^&*)';
         }
         if (!/[A-Z]/.test(password)) {
             return 'Password must include at least one uppercase letter';
@@ -199,14 +201,14 @@ const Register = () => {
             </div>
 
             {/* Middle Section: divider */}
-            <div className="hidden md:block w-[4px] h-1/2 my-auto bg-gray-200" />
+            <div className="hidden md:block w-[2px] h-1/2 my-auto bg-gray-200" />
 
             {/* Right Section: registration and email verification */}
             <div className="flex justify-center items-center w-full md:w-1/2 h-2/3 md:h-dvh">
                 <div className="p-6 md:p-12 w-full md:w-3/4 h-full md:h-3/4 bg-white md:ml-10">
                     <p className="text-left text-2xl md:text-4xl text-gray-800 font-serif font-bold mb-4">Create an account</p>
-                    <p className="text-left text-gray-800 text-sm md:text-md">Have an account? </p>
-                    <Link href="/auth/login" className="text-blue-500 underline">Sign in</Link>
+                    <p className="inline-block text-left text-gray-800 md:text-md">Have an account? </p>
+                    <Link href="/auth/login" className="ml-2 text-blue-500 underline">Sign in</Link>
                     <div className="flex flex-col mt-4">
                         <div className='flex flex-col md:flex-row'>
                             <div className="flex-1 md:mr-1">
@@ -311,10 +313,11 @@ const Register = () => {
                         </div>
                     )}
 
-                    {/* Spinner with success message */}
+                    {/* Spinner with success message 
                     {isProcessing && (
                         <Spinner message={statusMessage?.type === 'success' ? statusMessage.message : undefined} />
-                    )}
+                    )}*/}
+                    {isProcessing && <PiggyBankAnimation />}
 
                     {statusMessage && !isProcessing && (
                         <div
