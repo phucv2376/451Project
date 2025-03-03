@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A1D83CE0-E677-480A-9AC4-7855735D3B20}"
 EndProject
@@ -21,7 +21,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.Applicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.API", "BudgetAppBackend.API\BudgetAppBackend.API.csproj", "{B2238C2F-3418-4916-89B9-946E3774CCCC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1", "TestProject1\TestProject1.csproj", "{C721C2A1-2F23-4781-96D2-AE0ED53B76CF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.Domain.Tests", "BudgetAppBackend.Domain.Tests\BudgetAppBackend.Domain.Tests.csproj", "{5222A3F8-1EF0-498A-AA68-90BBDEFFC5BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BudgetAppBackend.API.Tests", "BudgetAppBackend.API.Tests\BudgetAppBackend.API.Tests.csproj", "{6AE29550-381B-4DD3-AEFD-1E2462850E1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,10 +47,14 @@ Global
 		{B2238C2F-3418-4916-89B9-946E3774CCCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2238C2F-3418-4916-89B9-946E3774CCCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2238C2F-3418-4916-89B9-946E3774CCCC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C721C2A1-2F23-4781-96D2-AE0ED53B76CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C721C2A1-2F23-4781-96D2-AE0ED53B76CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C721C2A1-2F23-4781-96D2-AE0ED53B76CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C721C2A1-2F23-4781-96D2-AE0ED53B76CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5222A3F8-1EF0-498A-AA68-90BBDEFFC5BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5222A3F8-1EF0-498A-AA68-90BBDEFFC5BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5222A3F8-1EF0-498A-AA68-90BBDEFFC5BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5222A3F8-1EF0-498A-AA68-90BBDEFFC5BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AE29550-381B-4DD3-AEFD-1E2462850E1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AE29550-381B-4DD3-AEFD-1E2462850E1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AE29550-381B-4DD3-AEFD-1E2462850E1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AE29550-381B-4DD3-AEFD-1E2462850E1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -61,6 +67,7 @@ Global
 		{623F75C8-5760-42DA-9164-FB0E20F8A42D} = {44CD73D0-6D45-4524-9C21-C4A2BE3946A8}
 		{5DFABB2D-DA13-4DE5-AE96-E858293A92E4} = {44CD73D0-6D45-4524-9C21-C4A2BE3946A8}
 		{B2238C2F-3418-4916-89B9-946E3774CCCC} = {947D9CE7-8710-4C7E-8017-CC40DCD07209}
-		{C721C2A1-2F23-4781-96D2-AE0ED53B76CF} = {F91B8FCB-31C3-4C85-9875-AEA1204E9181}
+		{5222A3F8-1EF0-498A-AA68-90BBDEFFC5BC} = {F91B8FCB-31C3-4C85-9875-AEA1204E9181}
+		{6AE29550-381B-4DD3-AEFD-1E2462850E1E} = {F91B8FCB-31C3-4C85-9875-AEA1204E9181}
 	EndGlobalSection
 EndGlobal
