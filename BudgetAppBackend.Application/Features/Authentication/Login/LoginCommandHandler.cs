@@ -49,7 +49,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
 
             DateTime newRefreshTokenExpiry = (existingRefreshToken != null && existingRefreshToken.ExpiryDate > DateTime.UtcNow)
                     ? existingRefreshToken.ExpiryDate
-                    : DateTime.UtcNow.AddMinutes(2);
+                    : DateTime.UtcNow.AddMinutes(160);
             var newRefreshToken = new RefreshToken(user.Id, hashedRefreshToken, newRefreshTokenExpiry);
 
             if (existingRefreshToken != null)
