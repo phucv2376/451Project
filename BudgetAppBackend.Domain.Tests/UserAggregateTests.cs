@@ -1,6 +1,4 @@
 ﻿using BudgetAppBackend.Domain.UserAggregate;
-using System;
-using Xunit;
 
 namespace BudgetAppBackend.Domain.Tests
 {
