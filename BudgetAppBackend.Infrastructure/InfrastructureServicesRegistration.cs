@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
-using Npgsql;
+using BudgetAppBackend.Infrastructure.Jobs;
 
 namespace BudgetAppBackend.Infrastructure
 {
@@ -35,9 +35,17 @@ namespace BudgetAppBackend.Infrastructure
                         .WithSimpleSchedule(s =>
                             s.WithIntervalInSeconds(1)
                                 .RepeatForever()));
+
+                var resetBudgetJobKey = new JobKey("ResetBudgetJob");
+                q.AddJob<ResetBudgetJob>(resetBudgetJobKey)
+                 .AddTrigger(trigger => trigger.ForJob(resetBudgetJobKey)
+                        .WithSchedule(CronScheduleBuilder.MonthlyOnDayAndHourAndMinute(1, 0, 0)));
             });
             services.AddQuartzHostedService();
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<IBudgetRepository, BudgetRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings").Bind);
 
@@ -51,6 +59,11 @@ namespace BudgetAppBackend.Infrastructure
                 options.SenderEmail = configuration.GetSection("EmailSettings")["EmailSender"];
                 options.EmailPassword = configuration.GetSection("EmailSettings")["EmailPassword"];
                 options.SenderName = configuration.GetSection("EmailSettings")["SenderName"];
+            });
+
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(InfrastructureServicesRegistration).Assembly);
             });
 
             services.AddTransient<IEmailService, EmailService>();

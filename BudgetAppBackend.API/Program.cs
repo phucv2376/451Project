@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using BudgetAppBackend.API.Middlewares;
 using Microsoft.OpenApi.Models;
+using BudgetAppBackend.API.Services;
+using BudgetAppBackend.Application.Service;
+using BudgetAppBackend.Infrastructure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,9 +37,10 @@ builder.Services.AddAuthentication(options =>
 });
 
 
-
+builder.Services.AddSingleton<IUrlGenerator, UrlGeneratorService>();
 builder.Services.RegisterInfrastructureServices(builder.Configuration);
 builder.Services.RegisterApplicationServices();
+builder.Services.AddSignalR();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -112,6 +116,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.MapHub<NotificationHub>("/notification");
 
 app.MapControllers();
 
