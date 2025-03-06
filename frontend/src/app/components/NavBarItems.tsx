@@ -1,3 +1,5 @@
+
+
 type Props = {
     alt: string;
     label: string;
@@ -9,7 +11,7 @@ type Props = {
 const NavBarItems = (props: Props) => {
     return (
         <h2
-            className="my-2 flex items-center gap-2 px-3 py-4 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            className="cursor-pointer my-2 flex items-center gap-2 px-3 py-4 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             onClick={props.onClick}
         >
             <props.Icon />

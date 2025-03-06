@@ -28,7 +28,7 @@ const TransactionTable = (props: Props) => {
                                 {transaction.category.Icon ? <transaction.category.Icon /> : null} {transaction.category.category}
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-900">{transaction.description}</td>
-                            <td className="px-6 py-4 text-sm text-right text-gray-900">${transaction.amount}</td>
+                            <td className="px-6 py-4 text-sm text-right text-gray-900">${transaction.amount.toFixed(2)}</td>
                         </tr>
                     ))}
                 </tbody>

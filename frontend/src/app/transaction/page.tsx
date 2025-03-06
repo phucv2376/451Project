@@ -1,13 +1,21 @@
 "use client";
 
+import NavBar from "../components/NavBar";
+import { useRouter } from "next/navigation";
+
 const TransactionPage = () => {
-  
-    return (
-      <div>
-        <h1>Transaction Page</h1>
-        <p>This is the transaction page. More content will be added later.</p>
+  const router = useRouter();
+
+  return (
+    <div className="flex bg-[#F1F5F9] min-h-screen w-full">
+      <NavBar/>
+
+      {/*Main Page*/}
+      <div className="ml-[20%] mr-5 mt-5 w-3/4 h-full">
+      
       </div>
-    );
-  };
-  
-  export default TransactionPage;
+    </div>
+  );
+};
+
+export default TransactionPage;
