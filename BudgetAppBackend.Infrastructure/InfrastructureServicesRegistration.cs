@@ -33,7 +33,7 @@ namespace BudgetAppBackend.Infrastructure
                     trigger =>
                     trigger.ForJob(jobKey)
                         .WithSimpleSchedule(s =>
-                            s.WithIntervalInSeconds(1)
+                            s.WithIntervalInSeconds(10)
                                 .RepeatForever()));
 
                 var resetBudgetJobKey = new JobKey("ResetBudgetJob");

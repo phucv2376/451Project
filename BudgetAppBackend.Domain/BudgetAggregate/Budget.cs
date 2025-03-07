@@ -5,6 +5,7 @@ using BudgetAppBackend.Domain.TransactionAggregate;
 using BudgetAppBackend.Domain.DomainEvents;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using BudgetAppBackend.Domain.Exceptions.BudgetExceptions;
+using System.Text.Json.Serialization;
 
 namespace BudgetAppBackend.Domain.BudgetAggregate
 {
@@ -20,6 +21,7 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
 
         private Budget() : base(default!) { } // For EF Core
 
+        [JsonConstructor]
         private Budget(BudgetId id, UserId userId, string title, decimal totalAmount, CategoryId categoryId, DateTime createdDate)
             : base(id)
         {
@@ -46,7 +48,7 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
 
             if (_spentAmount > TotalAmount)
             {
-                RaiseDomainEvent(new BudgetExceededEvent(UserId, Id, CategoryId, _spentAmount, TotalAmount));
+                RaiseDomainEvent(new BudgetExceededEvent(UserId.Id, Id.Id, CategoryId.Id, _spentAmount, TotalAmount));
             }
         }
 

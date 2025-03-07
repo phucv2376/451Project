@@ -1,4 +1,5 @@
-﻿using BudgetAppBackend.Domain.Commons;
+﻿using System.Text.Json.Serialization;
+using BudgetAppBackend.Domain.Commons;
 
 namespace BudgetAppBackend.Domain.TransactionAggregate.ValueObjects
 {
@@ -6,6 +7,7 @@ namespace BudgetAppBackend.Domain.TransactionAggregate.ValueObjects
     {
         public Guid Id { get; private set; }
 
+        [JsonConstructor]
         private TransactionId(Guid id)
         {
             Id = id;

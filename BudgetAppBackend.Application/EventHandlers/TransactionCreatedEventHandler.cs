@@ -1,4 +1,5 @@
 ﻿using BudgetAppBackend.Application.Contracts;
+using BudgetAppBackend.Domain.CategoryAggregate;
 using BudgetAppBackend.Domain.DomainEvents;
 using MediatR;
 
@@ -14,7 +15,8 @@ namespace BudgetAppBackend.Application.EventHandlers
         }
         public async Task Handle(TransactionCreatedEvent notification, CancellationToken cancellationToken)
         {
-            var budget = await _budgetRepository.GetByCategoryAsync(notification.categoryId, cancellationToken);
+            var categoryId = CategoryId.Create(notification.categoryId);
+            var budget = await _budgetRepository.GetByCategoryAsync(categoryId, cancellationToken);
 
             if (budget is not null)
             {

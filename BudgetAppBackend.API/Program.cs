@@ -12,7 +12,6 @@ using BudgetAppBackend.Infrastructure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -30,26 +29,40 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
-
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
         ClockSkew = TimeSpan.Zero
     };
-});
 
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            if (string.IsNullOrEmpty(accessToken) == false)
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
 
 builder.Services.AddSingleton<IUrlGenerator, UrlGeneratorService>();
 builder.Services.RegisterInfrastructureServices(builder.Configuration);
 builder.Services.RegisterApplicationServices();
-builder.Services.AddSignalR();
+
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+});
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
 
-    // Add JWT Authentication
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -57,7 +70,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your token in the text input below.\n\nExample: Bearer eyJhbGciOiJIUzI1..."
+        Description = "Enter 'Bearer' [space] then token."
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -65,60 +78,45 @@ builder.Services.AddSwaggerGen(c =>
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
 
-
-// Add CORS services
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowOrigin", policy =>
     {
         policy.WithOrigins("http://localhost:3000")
-              .AllowCredentials()  // Allow credentials cookies
+              .AllowCredentials()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
 });
 
-builder.Services.AddHttpsRedirection(options =>
-{
-    options.HttpsPort = 7105;
-});
-
+builder.Services.AddHttpsRedirection(options => { options.HttpsPort = 7105; });
 builder.WebHost.UseUrls("https://localhost:7105");
-
 
 var app = builder.Build();
 
-app.UseCors("AllowOrigin");
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
+app.UseCors("AllowOrigin");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapHub<NotificationHub>("/notification");
-
+app.MapHub<NotificationHub>("/notifications"); 
 app.MapControllers();
 
 app.Run();

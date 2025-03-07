@@ -4,7 +4,7 @@ using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 
 namespace BudgetAppBackend.Domain.DomainEvents
 {
-    public sealed record TransactionUpdatedEvent(UserId UserId, CategoryId CategoryId, decimal OldAmount, decimal NewAmount) : IDomainEvent
+    public sealed record TransactionUpdatedEvent(Guid UserId, Guid CategoryId, decimal OldAmount, decimal NewAmount) : IDomainEvent
     {
     }
 }

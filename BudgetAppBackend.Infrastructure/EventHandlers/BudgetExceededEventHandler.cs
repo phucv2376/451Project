@@ -19,7 +19,7 @@ namespace BudgetAppBackend.Infrastructure.EventHandlers
             var message = $"⚠️ Budget Alert: Spent {notification.SpentAmount:C} in category {notification.CategoryId}, exceeding limit of {notification.BudgetLimit:C}.";
 
             await _hubContext.Clients
-                .User(notification.UserId.Id.ToString())
+                .User(notification.UserId.ToString())
                 .SendAsync("ReceiveNotification", message, cancellationToken);
         }
     }

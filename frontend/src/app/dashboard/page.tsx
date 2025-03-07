@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState  } from "react";
 import { useRouter } from "next/navigation";
 import { red } from '@mui/material/colors';
 import BudgetCircle from "../components/BudgetCircle";
@@ -23,11 +23,17 @@ import { categories } from "../models/TransactionCategory";
 import React from "react";
 
 const Dashboard = () => {
-    const { accessToken, logout } = useAuth();
+    const {logout } = useAuth();
+
+    const [name, setName] = useState<string | null>(null);
+
 
     useEffect(() => {
+        setName(localStorage.getItem('user'));
+        const accessToken = localStorage.getItem('accessToken');
+        
         if (!accessToken) {
-            //logout();
+            logout();
         }
     }, []);
 
@@ -102,7 +108,7 @@ const Dashboard = () => {
 
             {/*Main Page*/}
             <div className="ml-[20%] mr-5 mt-5 w-3/4 h-full">
-                <p className="text-3xl mb-10">Hello, Name!</p>
+                <p className="text-3xl mb-10">Hello, {name}!</p>
                 <div className="flex flex-row gap-10 mt-5 justify-center">
                     <div className="flex-1 bg-white rounded-lg flex flex-col items-start justify-start p-5 border border-gray-200">
                         <p className="text-md font-bold">Balance</p>

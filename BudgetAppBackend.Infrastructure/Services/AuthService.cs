@@ -30,7 +30,7 @@ namespace BudgetAppBackend.Infrastructure.Services
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email)
             };
 

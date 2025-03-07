@@ -67,6 +67,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
             {
                 Success = true,
                 UserId = user.Id.Id,
+                Name = $"{user.FirstName} {user.LastName}",
                 Token = token,
                 RefreshToken = rawRefreshToken,
                 RefreshTokenExpiry = newRefreshTokenExpiry,
