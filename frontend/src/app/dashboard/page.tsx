@@ -2,22 +2,13 @@
 
 import { useEffect, useState  } from "react";
 import { useRouter } from "next/navigation";
-import { red } from '@mui/material/colors';
 import BudgetCircle from "../components/BudgetCircle";
 import { Box, LinearProgress, Typography, Stack } from '@mui/material';
 import TransactionTable from "../components/TransactionTable";
 import NavBar from "../components/NavBar";
 
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import Avatar from '@mui/material/Avatar';
-import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
-import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
-import SwapHorizOutlinedIcon from '@mui/icons-material/SwapHorizOutlined';
-import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import MoneyBox from "../components/MoneyBox";
-import NavBarItems from "../components/NavBarItems";
 import { useAuth } from "../contexts/AuthContext";
 import { categories } from "../models/TransactionCategory";
 import React from "react";
@@ -145,6 +136,8 @@ const Dashboard = () => {
                                 <div className="overflow-x-auto">
                                     <TransactionTable
                                         transactions={transactionList}
+                                        enablePagination={false}
+                                        enableCheckbox={false}
                                     />
                                 </div>
                             </div>

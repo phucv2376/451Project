@@ -189,7 +189,7 @@ const Register = () => {
             {/* Left Section: Image */}
             <div className="w-full h-full flex justify-center items-center md:w-1/2">
                 <div className="w-full h-3/4 relative">
-                    <Image
+                    <Image    
                         src="/images/loginImage.jpg"
                         alt="Login Background"
                         fill
