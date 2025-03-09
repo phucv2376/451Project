@@ -9,6 +9,9 @@ using Microsoft.OpenApi.Models;
 using BudgetAppBackend.API.Services;
 using BudgetAppBackend.Application.Service;
 using BudgetAppBackend.Infrastructure.SignalR;
+using Microsoft.Extensions.Options;
+using System.Runtime;
+using BudgetAppBackend.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +50,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
+
+builder.Services.AddHttpClient<IAIAnalysisService, OllamaAIService>();
 builder.Services.AddSingleton<IUrlGenerator, UrlGeneratorService>();
 builder.Services.RegisterInfrastructureServices(builder.Configuration);
 builder.Services.RegisterApplicationServices();

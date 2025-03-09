@@ -18,8 +18,7 @@ const Login = () => {
     const [isMounted, setIsMounted] = useState<boolean>(false);
 
     // Auth context for authentication functions
-    const { accessToken, login } = useAuth();
-
+    const { login } = useAuth();
     // User login state
     const [userLogin, setUserInfo] = useState<UserLogin>({
         email: "",
@@ -27,11 +26,12 @@ const Login = () => {
     });
 
     // Redirect if already logged in
-    useEffect(() => {
+   /* useEffect(() => {
+        const accessToken = localStorage.getItem("accessToken");
         if (accessToken) {
             router.push("/dashboard");
         }
-    }, [accessToken, router]);
+    }, [router]);*/
 
     useEffect(() => {
         setIsMounted(true);

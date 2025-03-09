@@ -14,5 +14,6 @@ namespace BudgetAppBackend.Application.Contracts
         Task UpdateAsync(Budget budget, CancellationToken cancellationToken); //
         Task DeleteAsync(Budget budget, CancellationToken cancellationToken);
         Task<List<Budget>> GetAllBudgetsAsync();
+        Task<IEnumerable<Budget>> GetBudgetsByUserIdAsync(UserId userId);
     }
 }

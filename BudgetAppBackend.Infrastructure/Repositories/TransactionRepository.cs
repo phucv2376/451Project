@@ -114,5 +114,12 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             _dbContext.Transactions.Update(transaction);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task<IEnumerable<Transaction>> GetTransactionsByUserIdAsync(UserId userId)
+        {
+            return await _dbContext.Transactions
+                                 .Where(t => t.UserId == userId)
+                                 .ToListAsync();
+        }
     }
 }

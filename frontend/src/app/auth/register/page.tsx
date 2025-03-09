@@ -8,25 +8,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { UserRegister, EmailVerification } from '@/app/models/auth';
 import PiggyBankAnimation from "../../components/PiggyBankAnimation"; // Import the animation
 
-
-{/*// Spinner component for loading state during verification
-const Spinner = ({ message }: { message?: string }) => (
-    <div className="flex justify-center items-center absolute top-0 left-0 w-full h-full bg-white bg-opacity-50 z-50">
-        <div className="relative">
-            <div className="w-12 h-12 border-t-4 border-blue-600 border-solid rounded-full animate-spin"></div>
-            {message ? (
-                <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg font-medium text-green-600">
-                    {message}
-                </span>
-            ) : (
-                <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg font-medium text-gray-600">
-                    Loading...
-                </span>
-            )}
-        </div>
-    </div>
-);*/}
-
 const Register = () => {
     const { registerNewUserAccount, verifyUserEmailAddress, sendUserEmailVerificationCode } = useAuth();
     const [showVerification, setShowVerification] = useState(false);

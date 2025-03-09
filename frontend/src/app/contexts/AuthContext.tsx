@@ -33,13 +33,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null); // State to hold the user's access token
   const router = useRouter(); // Use Next.js router for navigation after authentication actions
 
-    // On mount, try to load the token from localStorage
-    useEffect(() => {
+  // On mount, try to load the token from localStorage
+  useEffect(() => {
       const storedToken = localStorage.getItem("accessToken");
       if (storedToken) {
         setAccessToken(storedToken);
       }
-    }, []);
+  }, []);
 
   const registerNewUserAccount = async (userRegister: UserRegister) => {
     try {
@@ -98,6 +98,7 @@ const login = async (userLogin: UserLogin) => {
       setAccessToken(token); // Store the token in state for subsequent authenticated requests
       localStorage.setItem("accessToken", token); // Store the token in local storage for persistence
       localStorage.setItem("user", result.data.name); // Store the user data in local storage
+      localStorage.setItem("userId", result.data.userId); // Store the user email in local storage
       router.push('/dashboard'); // Redirect to the dashboard page after successful login
       return { success: true, message: result.data.message}; // Return success and message
     } else {
@@ -131,6 +132,8 @@ const ResetPassword = async (passwordReset: PasswordReset) => {
   const logout = () => {
     setAccessToken(null); // Clear the access token from the state
     localStorage.removeItem("accessToken"); // Remove the access token from local storage
+    localStorage.removeItem("user"); // Remove the user data from local storage
+    localStorage.removeItem("userId"); // Remove the user email from local storage
     router.push('/auth/login'); // Redirect to the login page
   };
 
@@ -153,7 +156,7 @@ const ResetPassword = async (passwordReset: PasswordReset) => {
   useEffect(() => {
     const interval = setInterval(async () => {
       await refreshUserAuthToken(); // Refresh the token periodically
-    }, 1000 * 60 * 20); // 5-minute interval
+    }, 1000 * 60 * 20); // 20-minute interval
 
     return () => clearInterval(interval); // Cleanup the interval when the component unmounts
   }, []);

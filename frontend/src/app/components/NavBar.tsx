@@ -87,6 +87,7 @@ const NavBar = (props: Props) => {
                         <Avatar />
                         <h2 className="ml-3">Profile</h2>
                     </div>
+                    <NotificationBell />
                     <LogoutOutlinedIcon
                         sx={{
                             color: red[600],

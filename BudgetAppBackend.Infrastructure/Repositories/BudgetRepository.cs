@@ -57,5 +57,12 @@ namespace BudgetAppBackend.Infrastructure.Repositories
         {
             return await _dbContext.Budgets.ToListAsync();
         }
+
+        public async Task<IEnumerable<Budget>> GetBudgetsByUserIdAsync(UserId userId)
+        {
+            return await _dbContext.Budgets
+                                 .Where(b => b.UserId == userId)
+                                 .ToListAsync();
+        }
     }
 }

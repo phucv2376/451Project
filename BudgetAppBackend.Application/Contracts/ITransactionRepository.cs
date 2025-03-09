@@ -17,5 +17,7 @@ namespace BudgetAppBackend.Application.Contracts
         Task DeleteAsync(Transaction transaction, CancellationToken cancellationToken);
         Task<decimal> GetTotalIncomeForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken);
         Task<decimal> GetTotalExpensesForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken);
+
+        Task<IEnumerable<Transaction>> GetTransactionsByUserIdAsync(UserId userId);
     }
 }

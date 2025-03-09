@@ -3,6 +3,7 @@ using BudgetAppBackend.Domain.Commons;
 using BudgetAppBackend.Domain.TransactionAggregate.ValueObjects;
 using BudgetAppBackend.Domain.DomainEvents;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
+using BudgetAppBackend.Domain.Exceptions.TransactionExceptions;
 
 namespace BudgetAppBackend.Domain.TransactionAggregate
 {
@@ -22,9 +23,9 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
             : base(id)
         {
             if (amount <= 0)
-                throw new ArgumentException("Transaction amount must be greater than zero.");
+                throw new TransactionAmountException("Transaction amount must be greater than zero.");
             if (string.IsNullOrWhiteSpace(payee))
-                throw new ArgumentException("Payee name cannot be empty.");
+                throw new TransactionPayeeException("Payee name cannot be empty.");
 
             UserId = userId;
             CategoryId = categoryId;
@@ -45,9 +46,9 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
         public void UpdateTransaction(decimal newAmount, DateTime newTransactionDate, string newPayee, TransactionType newType)
         {
             if (newAmount <= 0)
-                throw new ArgumentException("Transaction amount must be greater than zero.");
+                throw new TransactionAmountException("Transaction amount must be greater than zero.");
             if (string.IsNullOrWhiteSpace(newPayee))
-                throw new ArgumentException("Payee name cannot be empty.");
+                throw new TransactionPayeeException("Payee name cannot be empty.");
 
             var oldAmount = Amount;
             var oldType = Type;
