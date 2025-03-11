@@ -1,9 +1,25 @@
 import { TransactionCategory } from "./TransactionCategory";
+import { TransactionType } from "./TransactionType";
 
 export interface Transaction {
-    id: string;
-    date: Date;
-    amount: number;
-    description: string;
-    category: TransactionCategory;
+    transactionId: string; //was id
+    transactionDate: Date;
+    amount: number; 
+    payee: string; //was description
+    type?: TransactionType; //type of transaction income or expense
+    categoryName: TransactionCategory; //was category
+    categoryId?: string 
+}
+
+export interface TransactionListResponse {
+    paging: {
+        totalRows: number;
+        totalPages: number;
+        curPage: number;
+        hasNextPage: boolean;
+        hasPrevPage: boolean;
+        nextPageURL: string;
+        prevPageURL: string;
+    }
+    data: Transaction[];
 }

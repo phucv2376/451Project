@@ -1,32 +1,67 @@
 "use client";
 
-import { useEffect, useState  } from "react";
-import { useRouter } from "next/navigation";
-import BudgetCircle from "../components/BudgetCircle";
-import { Box, LinearProgress, Typography, Stack } from '@mui/material';
-import TransactionTable from "../components/TransactionTable";
-import NavBar from "../components/NavBar";
-
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import MoneyBox from "../components/MoneyBox";
-import { useAuth } from "../contexts/AuthContext";
-import { categories } from "../models/TransactionCategory";
 import React from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Box, LinearProgress, Typography, Stack } from '@mui/material';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+
+import NavBar from "../components/NavBar";
+import BudgetCircle from "../components/BudgetCircle";
+import TransactionTable from "../components/TransactionTable";
+import MoneyBox from "../components/MoneyBox";
+
+import { Transaction } from "../models/Transaction";
+import { categories } from "../models/TransactionCategory";
+import { useAuth } from "../contexts/AuthContext";
+
+import { getRecentTransactions } from "../services/transactionService";
+import { access } from "fs";
 
 const Dashboard = () => {
-    const {logout } = useAuth();
-
+    const { logout } = useAuth();
+    const [transactions, setTransactions] = useState<Transaction[]>([{
+        transactionId: "",
+        transactionDate: new Date,
+        amount: 0,
+        categoryId: "",
+        categoryName: categories[0],
+        payee: ""
+    }]);
+    
     const [name, setName] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
 
     useEffect(() => {
         setName(localStorage.getItem('user'));
+        setUserId(localStorage.getItem('userId'));
         const accessToken = localStorage.getItem('accessToken');
-        
-        if (!accessToken) {
-            logout();
-        }
-    }, []);
+
+        // Fetch recent transactions
+        const fetchTransactions = async () => {
+            if (!userId) {
+                setError("User ID not found");
+                return;
+            }
+            if (!accessToken) {
+                //logout();
+                return;
+            }
+            const result = await getRecentTransactions(userId, accessToken);
+            if (result.success) {
+                if (result.data) {
+                    setTransactions(result.data);
+                } else {
+                    setError("No data found");
+                }
+            } else {
+                setError(result.message || "An unknown error occurred");
+            }
+        };
+        fetchTransactions();
+    }, [userId]); // Add userId as a dependency
 
     const router = useRouter();
 
@@ -53,45 +88,8 @@ const Dashboard = () => {
         }
     ];
 
-    const transactionList = [
-        {
-            id: '0',
-            date: new Date(),
-            amount: 323.20,
-            description: 'Groceries',
-            category: categories[0]
-        },
-        {
-            id: '1',
-            date: new Date(),
-            amount: 12.40,
-            description: 'Uber',
-            category: categories[1]
-        },
-        {
-            id: '3',
-            date: new Date(),
-            amount: 2576.00,
-            description: 'Tuition',
-            category: categories[3]
-        },
-        {
-            id: '2',
-            date: new Date(),
-            amount: 23.57,
-            description: 'Movie',
-            category: categories[2]
-        },
-        {
-            id: '5',
-            date: new Date(),
-            amount: 292.30,
-            description: 'Job',
-            category: categories[5]
-        }
 
-    ]
-
+    
     return (
         <div className="flex bg-[#F1F5F9] min-h-screen w-full">
             {/*Nav bar*/}
@@ -135,7 +133,7 @@ const Dashboard = () => {
                                 {/* Table */}
                                 <div className="overflow-x-auto">
                                     <TransactionTable
-                                        transactions={transactionList}
+                                        transactions={transactions}
                                         enablePagination={false}
                                         enableCheckbox={false}
                                     />
