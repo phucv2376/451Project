@@ -26,13 +26,15 @@ import { categories } from "../models/TransactionCategory";
 import { deleteTransaction } from '../services/transactionService';
 import { getTransactions } from '../services/transactionService';
 
+
 const TransactionPage = () => {
     const [category, setCategory] = useState('');
     const [showAddTransaction, setShowAddTransaction] = useState(false);
-    const [showEditTransaction, setShowEditTransaction] = useState(true);
+    const [showEditTransaction, setShowEditTransaction] = useState(false);
     const [transactionType, setTransactionType] = useState('');
     const [userId, setUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [rowsPerPage, setRowsPerPage] = useState(10); // Default to 10 rows per page
 
     const [transactions, setTransactions] = useState<Transaction[]>([{
         transactionId: "",
@@ -44,7 +46,7 @@ const TransactionPage = () => {
     }]);
     const [transactionPaging, setTransactionPaging] = useState<TransactionListResponse>({
         paging: {
-            totalRows: 0,
+            totalRows: 10,
             totalPages: 0,
             curPage: 0,
             hasNextPage: false,
@@ -55,29 +57,49 @@ const TransactionPage = () => {
         data: transactions,
     });
 
+    const loadTransactions = async (page: number) => {
+        if (!userId) {
+            setError("User ID not found");
+            //logout();
+            return;
+        }
+        const result = await getTransactions(userId, rowsPerPage, page); // Fetch first page with 10 transactions
+        if (result.success) {
+            if (result.data) {
+                //console.log(result.data);
+                setTransactions(result.data.data);
+                setTransactionPaging(result.data);
+            } else {
+                setError("No data found");
+            }
+        } else {
+            setError(result.message || "An unknown error occurred");
+        }
+    }
+
     useEffect(() => {
         setUserId(localStorage.getItem('userId'));
-
-        const loadTransactions = async () => {
-            if (!userId) {
-                setError("User ID not found");
-                return;
-            }
-            const result = await getTransactions(userId); // Fetch first page with 10 transactions
-            if (result.success) {
-                if (result.data) {
-                    setTransactions(result.data.data);
-                    setTransactionPaging(result.data);
-                } else {
-                    setError("No data found");
-                }
-            } else {
-                setError(result.message || "An unknown error occurred");
-            }
-        };
-        loadTransactions();
-
     }, [userId]);
+
+    useEffect(() => {
+        console.log("In 1st" + transactionPaging.paging.curPage);
+
+        loadTransactions(transactionPaging.paging.curPage);
+    }, [userId, transactionPaging.paging.curPage, rowsPerPage]);
+
+    const handlePageChange = (event: unknown, newPage: number) => {
+        transactionPaging.paging.curPage = newPage;
+        console.log(transactionPaging.paging.curPage);
+        loadTransactions(transactionPaging.paging.curPage); // Fetch new page data
+    };
+
+    const handleRowsPerPageChange = () => {
+        setRowsPerPage(rowsPerPage);
+        transactionPaging.paging.curPage = 0; // Reset to the first page
+        loadTransactions(transactionPaging.paging.curPage); // Fetch first page with new rows per page
+    };
+
+
 
     const handleCategoryChange = (event: SelectChangeEvent) => {
         setCategory(event.target.value as string);
@@ -149,6 +171,10 @@ const TransactionPage = () => {
                                 transactions={transactions}
                                 enablePagination={true}
                                 enableCheckbox={true}
+                                page={transactionPaging.paging.curPage}
+                                rowsPerPage={rowsPerPage}
+                                onPageChange={handlePageChange}
+                                onRowsPerPageChange={handleRowsPerPageChange}
                             />
                         </div>
                     </div>

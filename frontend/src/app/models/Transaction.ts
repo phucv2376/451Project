@@ -21,5 +21,5 @@ export interface TransactionListResponse {
         nextPageURL: string;
         prevPageURL: string;
     }
-    data: Transaction[];
+    data: Transaction[]
 }

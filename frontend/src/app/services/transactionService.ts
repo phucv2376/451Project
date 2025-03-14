@@ -42,24 +42,23 @@ export const getRecentTransactions = async (userId: string, token: string) => {
  * Fetches a list of transactions for a specific user.
  * @param userId - The ID of the user whose transactions are to be fetched.
  * @param page - The page number to fetch (optional).
- * @param pageSize - The number of transactions per page (optional).
+ * @param rowCount - The number of transactions per page (optional).
  * @returns A success response with the list of transactions or an error message.
  */
-export const getTransactions = async (userId: string, page?: number, pageSize?: number) => {
+export const getTransactions = async (userId: string, rowCount?: number, page?: number) => {
     try {
         // Construct the URL with optional query parameters for pagination
         let url = `${API_BASE_URL}/Transaction/user/${userId}/list-of-transactions`;
-        if (page !== undefined && pageSize !== undefined) {
-            url += `?page=${page}&pageSize=${pageSize}`;
+        if (page !== undefined && rowCount !== undefined) {
+            url += `?rowCount=${rowCount}&page=${page}`;
         }
-
         const response = await fetch(url, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
             },
         });
-
+        
         if (!response.ok) {
             let errorMessage = "An unexpected error occurred. Please try again.";
             try {
@@ -72,6 +71,8 @@ export const getTransactions = async (userId: string, page?: number, pageSize?: 
         }
 
         const data: TransactionListResponse = await response.json();
+        //console.log("data Info:", data.data);
+
         return { success: true, data };
         
     } catch (error) {
