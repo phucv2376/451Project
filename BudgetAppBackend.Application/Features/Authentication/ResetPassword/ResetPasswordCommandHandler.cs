@@ -1,9 +1,10 @@
 ﻿using BudgetAppBackend.Application.Contracts;
+using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
 using MediatR;
 
 namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
 {
-    public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, Unit>
+    public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, AuthResult>
     {
         private readonly IAuthRepository _authRepository;
 
@@ -12,7 +13,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
             _authRepository = authRepository;
         }
 
-        public async Task<Unit> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
+        public async Task<AuthResult> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
         {
             
             var user = await _authRepository.GetUserByEmailAsync(request.resetPassword.Email, cancellationToken);
@@ -30,7 +31,7 @@ namespace BudgetAppBackend.Application.Features.Authentication.ResetPassword
 
             await _authRepository.UpdateUserAsync(user, cancellationToken);
 
-            return Unit.Value;
+            return new AuthResult { Success = true, Message = "Password reset successfully." };
         }
     }
 }
