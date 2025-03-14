@@ -6,7 +6,7 @@ import { getCategory } from "../models/TransactionCategory";
 
 type Props = {
     transactions: Transaction[];
-    paging: TransactionListResponse;
+    paging?: TransactionListResponse;
     enablePagination?: boolean; 
     enableCheckbox?: boolean;
     page?: number;
@@ -140,7 +140,7 @@ const TransactionTable = (props: Props) => {
                     <tr>
                         {props.enablePagination && (
                             <TablePagination sx={{ borderBottom: "none" }}
-                                count={props.paging.paging.totalRows}
+                                count={props.paging?.paging.totalRows!}
                                 rowsPerPage={props.rowsPerPage!}
                                 page={props.page!}
                                 onPageChange={props.onPageChange}
