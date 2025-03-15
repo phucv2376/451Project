@@ -1,7 +1,18 @@
+'use client';
+
 import React, { useState } from "react";
 import { Transaction, TransactionListResponse } from "../models/Transaction";
-import { Checkbox, Table, TableBody, TableCell, TableContainer, 
-    TableHead, TableRow, Paper, TablePagination } from "@mui/material";
+import { 
+    Checkbox, 
+    Table, 
+    TableBody, 
+    TableCell, 
+    TableContainer, 
+    TableHead, 
+    TableRow, 
+    Paper, 
+    TablePagination 
+} from "@mui/material";
 
 type Props = {
     transactions: Transaction[];
@@ -10,73 +21,48 @@ type Props = {
     enableCheckbox?: boolean;
     page?: number;
     rowsPerPage?: number;
-    onPageChange?: any;
-    onRowsPerPageChange?: any
+    onPageChange?: (event: unknown, newPage: number) => void;
+    onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    selectedTransaction?: string | null;
+    onTransactionSelect?: (transactionId: string) => void;
 };
 
 const TransactionTable = (props: Props) => {
-    //const [page, setPage] = useState(props.paging.paging.curPage);
-    //const [rowsPerPage, setRowsPerPage] = useState(props.paging.paging.totalRows);
-    const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
-    
-    // Slice the transactions if pagination is enabled
-    const paginatedTransactions = props.enablePagination
-    ? props.transactions.slice(
-        (props.page ?? 0) * (props.rowsPerPage ?? 10), 
-        (props.page ?? 0) * (props.rowsPerPage ?? 10) + (props.rowsPerPage ?? 10)
-      )
-    : props.transactions;
+    // Use the transactions directly from props since pagination is handled by the backend
+    const transactions = props.transactions;
 
-    // // Handle page change
-    // const handleChangePage = (event: unknown, newPage: number) => {
-    //     setPage(newPage);
-    // };
-
-    // // Handle rows per page change
-    // const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setRowsPerPage(parseInt(event.target.value, 10));
-    //     setPage(0); // Reset to the first page
-    // };
-
-    
     // Handle row selection
     const handleRowSelection = (transactionId: string) => {
-        const newSelectedRows = new Set(selectedRows);
-        if (newSelectedRows.has(transactionId)) {
-            newSelectedRows.delete(transactionId);
-        } else {
-            newSelectedRows.add(transactionId);
+        if (props.onTransactionSelect) {
+            props.onTransactionSelect(transactionId);
         }
-        setSelectedRows(newSelectedRows);
     };
 
-    
-    // Handle "Select All" checkbox
-    const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.checked) {
-            const allRowIds = paginatedTransactions.map((transaction) => transaction.transactionId);
-            setSelectedRows(new Set(allRowIds));
-        } else {
-            setSelectedRows(new Set());
-        }
+    const formatAmount = (amount: number) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount);
+    };
+
+    const formatDate = (date: Date) => {
+        return new Date(date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
     };
 
     return (
         <div className="overflow-x-auto">
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} elevation={0}>
                 <Table className="min-w-full">
-                    <TableHead className="bg-gray-100">
+                    <TableHead className="bg-gray-50">
                         <TableRow>
                             {props.enableCheckbox && (
-                                <TableCell padding="checkbox">
-                                    <Checkbox
-                                        indeterminate={
-                                            selectedRows.size > 0 && selectedRows.size < paginatedTransactions.length
-                                        }
-                                        checked={selectedRows.size === paginatedTransactions.length}
-                                        onChange={handleSelectAll}
-                                    />
-                                </TableCell>
+                                <TableCell padding="checkbox" />
                             )}
                             <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Date
@@ -94,51 +80,54 @@ const TransactionTable = (props: Props) => {
                     </TableHead>
 
                     <TableBody className="divide-y divide-gray-200">
-                        {props.transactions.map((transaction) => (
+                        {transactions.map((transaction) => (
                             <TableRow
                                 key={transaction.transactionId}
-                                hover={props.enableCheckbox}
-                                selected={props.enableCheckbox && selectedRows.has(transaction.transactionId)}
-                                onClick={() => props.enableCheckbox && handleRowSelection(transaction.transactionId)}
-                                style={{ cursor: props.enableCheckbox ? "pointer" : "default" }}
+                                hover
+                                selected={props.selectedTransaction === transaction.transactionId}
+                                onClick={() => handleRowSelection(transaction.transactionId)}
+                                style={{ cursor: 'pointer' }}
                             >
                                 {props.enableCheckbox && (
                                     <TableCell padding="checkbox">
                                         <Checkbox
-                                            checked={selectedRows.has(transaction.transactionId)}
+                                            checked={props.selectedTransaction === transaction.transactionId}
                                             onChange={() => handleRowSelection(transaction.transactionId)}
+                                            onClick={(e) => e.stopPropagation()}
                                         />
                                     </TableCell>
                                 )}
                                 <TableCell className="px-6 py-4 text-sm text-gray-900">
-                                    {new Date(transaction.transactionDate).toDateString()}                               
+                                    {formatDate(transaction.transactionDate)}                               
                                 </TableCell>
-                                <TableCell className="px-6 py-4 text-sm text-gray-900 ">
+                                <TableCell className="px-6 py-4 text-sm text-gray-900">
                                     {transaction.category}
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-sm text-gray-900">
                                     {transaction.payee}
                                 </TableCell>
-                                <TableCell className="px-6 py-4 text-sm text-right text-gray-900">
-                                    ${transaction.amount.toFixed(2)}
+                                <TableCell className="px-6 py-4 text-sm text-right" sx={{
+                                    color: transaction.amount < 0 ? 'error.main' : 'success.main',
+                                    fontWeight: 500
+                                }}>
+                                    {formatAmount(transaction.amount)}
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
-                <tfoot>
-                    <tr>
-                        {props.enablePagination && (
-                            <TablePagination sx={{ borderBottom: "none" }}
-                                count={props.paging?.paging.totalRows!}
-                                rowsPerPage={props.rowsPerPage!}
-                                page={props.page!}
-                                onPageChange={props.onPageChange}
-                                onRowsPerPageChange={props.onRowsPerPageChange}
-                            />
-                        )}
-                    </tr>
-                </tfoot>
-            </Table>
+                </Table>
+                {props.enablePagination && props.paging && (
+                    <TablePagination
+                        component="div"
+                        count={props.paging.paging.totalRows}
+                        page={props.page || 0}
+                        rowsPerPage={props.rowsPerPage || 10}
+                        onPageChange={props.onPageChange || (() => {})}
+                        onRowsPerPageChange={props.onRowsPerPageChange || (() => {})}
+                        rowsPerPageOptions={[5, 10, 25, 50]}
+                        sx={{ borderTop: 1, borderColor: 'divider' }}
+                    />
+                )}
             </TableContainer>
         </div>
     );

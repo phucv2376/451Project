@@ -18,14 +18,14 @@ import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import FilterListIcon from '@mui/icons-material/FilterList';
+import Collapse from '@mui/material/Collapse';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 
 import { Transaction, TransactionListResponse } from '../models/Transaction';
 import { transactionTypes } from '../models/TransactionType';
-//import { categories } from "../models/TransactionCategory";
-import { deleteTransaction } from '../services/transactionService';
-import { getTransactions } from '../services/transactionService';
-
+import { deleteTransaction, getTransactions } from '../services/transactionService';
 
 const TransactionPage = () => {
     const [category, setCategory] = useState('');
@@ -34,18 +34,16 @@ const TransactionPage = () => {
     const [transactionType, setTransactionType] = useState('');
     const [userId, setUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [rowsPerPage, setRowsPerPage] = useState(10); // Default to 10 rows per page
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [showFilters, setShowFilters] = useState(false);
+    const [selectedTransaction, setSelectedTransaction] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
 
-    const [transactions, setTransactions] = useState<Transaction[]>([{
-        transactionId: "",
-        transactionDate: new Date,
-        amount: 0,
-        category: "",
-        payee: ""
-    }]);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [transactionPaging, setTransactionPaging] = useState<TransactionListResponse>({
         paging: {
-            totalRows: 10,
+            totalRows: 0,
             totalPages: 0,
             curPage: 0,
             hasNextPage: false,
@@ -53,320 +51,296 @@ const TransactionPage = () => {
             nextPageURL: "",
             prevPageURL: ""
         },
-        data: transactions,
+        data: []
     });
 
     const loadTransactions = async (page: number) => {
-        if (!userId) {
+
+        const storedUserId = localStorage.getItem('userId');
+
+        if (!storedUserId) {
             setError("User ID not found");
-            //logout();
+            setLoading(false);
             return;
         }
-        const result = await getTransactions(userId, rowsPerPage, page); // Fetch first page with 10 transactions
-        if (result.success) {
-            if (result.data) {
-                //console.log(result.data);
+        setLoading(true);
+        try {
+            const result = await getTransactions(storedUserId, rowsPerPage, page);
+            if (result.success && result.data) {
                 setTransactions(result.data.data);
                 setTransactionPaging(result.data);
+                setCurrentPage(page);
+                setError(null);
             } else {
-                setError("No data found");
+                setError(result.message || "No data found");
+                setTransactions([]);
             }
-        } else {
-            setError(result.message || "An unknown error occurred");
+        } catch (error) {
+            setError("An error occurred while loading transactions");
+            console.error(error);
+            setTransactions([]);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
-        setUserId(localStorage.getItem('userId'));
-    }, [userId]);
-
-    useEffect(() => {
-        console.log("In 1st" + transactionPaging.paging.curPage);
-
-        loadTransactions(transactionPaging.paging.curPage);
-    }, [userId, transactionPaging.paging.curPage, rowsPerPage]);
+        const storedUserId = localStorage.getItem('userId');
+        if (storedUserId) {
+            setUserId(storedUserId);
+            loadTransactions(0); // Load first page when userId is set
+        }
+    }, []);
 
     const handlePageChange = (event: unknown, newPage: number) => {
-        transactionPaging.paging.curPage = newPage;
-        console.log(transactionPaging.paging.curPage);
-        loadTransactions(transactionPaging.paging.curPage); // Fetch new page data
-    };
-
-    const handleRowsPerPageChange = () => {
-        setRowsPerPage(rowsPerPage);
-        transactionPaging.paging.curPage = 0; // Reset to the first page
-        loadTransactions(transactionPaging.paging.curPage); // Fetch first page with new rows per page
+        if (event) {
+            // @ts-ignore
+            event.preventDefault?.();
+        }
+        setCurrentPage(newPage);
+        loadTransactions(newPage);
     };
 
 
+    const handleRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event) {
+            event.preventDefault();
+        }
+        const newRowsPerPage = parseInt(event.target.value, 10);
+        setRowsPerPage(newRowsPerPage);
+        setCurrentPage(0);
+    };
 
     const handleCategoryChange = (event: SelectChangeEvent) => {
         setCategory(event.target.value as string);
-    }
+    };
 
     const handleCancel = () => {
         setShowAddTransaction(false);
         setShowEditTransaction(false);
-    }
+    };
 
     const handleShowAddTransaction = () => {
         setShowAddTransaction(true);
-    }
+    };
+
     const handleShowEditTransaction = () => {
-        setShowEditTransaction(true);
-    }
+        if (selectedTransaction) {
+            setShowEditTransaction(true);
+        }
+    };
 
     const handleTransactionType = (event: SelectChangeEvent) => {
         setTransactionType(event.target.value as string);
-    }
+    };
+
     const handleDeleteTransaction = async () => {
-        //const result = await deleteTransaction(transactionId, userId);
-        /*
-        if (result.success) {
-            alert("Transaction deleted successfully!");
-            //onDelete(); // Refresh the transaction list or update the UI
-        } else {
-            alert(`Failed to delete transaction: ${result.message}`);
+        if (selectedTransaction && userId) {
+            const result = await deleteTransaction(selectedTransaction, userId);
+            if (result.success) {
+                loadTransactions(currentPage); // Reload current page after deletion
+                setSelectedTransaction(null);
+            } else {
+                setError(result.message || "Failed to delete transaction");
+            }
         }
-            */
-    }
+    };
+
+    const handleTransactionSelect = (transactionId: string) => {
+        setSelectedTransaction(transactionId === selectedTransaction ? null : transactionId);
+    };
 
     return (
         <div className="flex bg-[#F1F5F9] min-h-screen w-full">
             <NavBar />
 
-            <div className="ml-[20%] mr-5 mt-5 w-3/4 h-full">
+            <div className="w-full lg:ml-[5%] lg:w-3/4 p-6">
                 <div className="h-full">
-                    {/* White Container with Rounded Edges */}
-                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-                        <div className="mb-5">
-                            Filter
-                        </div>
-                        <div className="flex justify-between items-center mb-5">
-                            <h2 className="text-md font-bold">Transaction History</h2>
-                            <div className="justify-right">
-                                <IconButton aria-label="delete" disabled color="primary">
-                                    <DeleteIcon
+                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                        {/* Header Section */}
+                        <div className="p-6 border-b border-gray-200">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center gap-2">
+                                    <h1 className="text-xl font-bold text-gray-800">Transactions</h1>
+                                    <Button
+                                        startIcon={<FilterListIcon />}
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        size="small"
+                                        color="inherit"
+                                    >
+                                        Filters
+                                    </Button>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <IconButton 
+                                        aria-label="delete" 
+                                        color="error"
+                                        disabled={!selectedTransaction}
                                         onClick={handleDeleteTransaction}
-                                    />
-                                </IconButton>
-                                <IconButton aria-label="edit" color="primary">
-                                    <EditIcon
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                    <IconButton 
+                                        aria-label="edit" 
+                                        color="primary"
+                                        disabled={!selectedTransaction}
                                         onClick={handleShowEditTransaction}
-                                    />
-                                </IconButton>
-                                <IconButton aria-label="add" color="primary">
-                                    <AddIcon
+                                    >
+                                        <EditIcon />
+                                    </IconButton>
+                                    <Button
+                                        variant="contained"
+                                        startIcon={<AddIcon />}
                                         onClick={handleShowAddTransaction}
-                                    />
-                                </IconButton>
+                                        size="small"
+                                    >
+                                        Add Transaction
+                                    </Button>
+                                </div>
                             </div>
 
+                            {/* Filters Section */}
+                            <Collapse in={showFilters}>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel>Transaction Type</InputLabel>
+                                        <Select
+                                            value={transactionType}
+                                            onChange={handleTransactionType}
+                                            label="Transaction Type"
+                                        >
+                                            {transactionTypes.map((type, index) => (
+                                                <MenuItem key={index} value={type}>
+                                                    {type}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel>Category</InputLabel>
+                                        <Select
+                                            value={category}
+                                            onChange={handleCategoryChange}
+                                            label="Category"
+                                        >
+                                            {/* Add your categories here */}
+                                        </Select>
+                                    </FormControl>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DateField
+                                            label="Date"
+                                            size="small"
+                                            sx={{ width: '100%' }}
+                                        />
+                                    </LocalizationProvider>
+                                </div>
+                            </Collapse>
                         </div>
-                        {/* Table */}
+
+                        {/* Table Section */}
                         <div className="overflow-x-auto">
-                            <TransactionTable
-                                paging={transactionPaging}
-                                transactions={transactions}
-                                enablePagination={true}
-                                enableCheckbox={true}
-                                page={transactionPaging.paging.curPage}
-                                rowsPerPage={rowsPerPage}
-                                onPageChange={handlePageChange}
-                                onRowsPerPageChange={handleRowsPerPageChange}
-                            />
+                            {error && (
+                                <div className="p-4 text-red-500">{error}</div>
+                            )}
+                            {loading ? (
+                                <div className="p-4">Loading transactions...</div>
+                            ) : (
+                                <TransactionTable
+                                    paging={transactionPaging}
+                                    transactions={transactions}
+                                    enablePagination={true}
+                                    enableCheckbox={true}
+                                    page={currentPage}
+                                    rowsPerPage={rowsPerPage}
+                                    onPageChange={handlePageChange}
+                                    onRowsPerPageChange={handleRowsPerPageChange}
+                                    selectedTransaction={selectedTransaction}
+                                    onTransactionSelect={handleTransactionSelect}
+                                />
+                            )}
                         </div>
                     </div>
-                    {showEditTransaction && ( //grab info and fill in fields?
-                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-10 z-10">
-                            <div className="bg-white rounded-lg border p-5 border-gray-200 w-1/3 h-[60%] ml-[25vh] relative">
-                                <p className="font-bold mb-5">Edit Transaction</p>
-                                <div className='flex mb-5'>
-                                    <div className='flex-1 mr-2'>
-                                        <p>Transaction Type</p>
-                                        <Select
-                                            id="simple-select"
-                                            size="small"
-                                            value={transactionType}
-                                            onChange={handleTransactionType}
-                                            sx={{ width: '100%' }}
-                                        >
-                                            {transactionTypes.map((type, index) => (
-                                                <MenuItem key={index} value={type}>
-                                                    {type}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </div>
-
-                                    <div className='flex-1 ml-2'>
-                                        <p>Category</p>
-                                        <Select
-                                            sx={{ width: '100%' }}
-                                            size="small"
-                                            id="simple-select"
-                                            value={category}
-                                            onChange={handleCategoryChange}
-                                        >
-                                            {/*categories.map((cat, index) => (
-                                                <MenuItem key={index} value={cat.category}>
-                                                    <cat.Icon style={{ color: cat.color, marginRight: '6px' }} />
-                                                    {cat.category}
-                                                </MenuItem>
-                                            ))*/}
-                                        </Select>
-                                    </div>
-                                </div>
-                                <div className='flex mb-5'>
-                                    <div className='flex-1 mr-2'>
-                                        <p>Date</p>
-                                        <LocalizationProvider dateAdapter={AdapterDayjs}
-                                        >
-                                            <DateField
-                                                size="small"
-                                                sx={{ width: '100%' }}
-                                            />
-                                        </LocalizationProvider>
-                                    </div>
-                                    <div className='flex-1 ml-2'>
-                                        <p>Amount</p>
-                                        <TextField
-                                            id="outlined-start-adornment"
-                                            size="small"
-                                            placeholder="00.00"
-                                            slotProps={{
-                                                input: {
-                                                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                                                },
-                                            }}
-                                            sx={{ width: '100%' }}
-                                            variant="outlined"
-                                        />
-                                    </div>
-                                </div>
-                                <div className='flex'>
-                                    <div className='flex-1'>
-                                        <p>Transaction Description</p>
-                                        <TextField
-                                            id="outlined-size-small"
-                                            variant="outlined"
-                                            size="small"
-                                            helperText="e.g. groceries"
-                                            sx={{ width: '100%' }}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="absolute bottom-4 right-4 space-x-2">
-                                    <Button
-                                        variant="contained"
-                                    >
-                                        Edit
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={handleCancel}
-                                    >
-                                        Cancel</Button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {showAddTransaction && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-10 z-10">
-                            <div className="bg-white rounded-lg border p-5 border-gray-200 w-1/3 h-[60%] ml-[25vh] relative">
-                                <p className="font-bold mb-5">Add Transaction</p>
-                                <div className='flex mb-5'>
-                                    <div className='flex-1 mr-2'>
-                                        <p>Transaction Type</p>
-                                        <Select
-                                            id="simple-select"
-                                            size="small"
-                                            value={transactionType}
-                                            onChange={handleTransactionType}
-                                            sx={{ width: '100%' }}
-                                        >
-                                            {transactionTypes.map((type, index) => (
-                                                <MenuItem key={index} value={type}>
-                                                    {type}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </div>
-
-                                    <div className='flex-1 ml-2'>
-                                        <p>Category</p>
-                                        <Select
-                                            sx={{ width: '100%' }}
-                                            size="small"
-                                            id="simple-select"
-                                            value={category}
-                                            onChange={handleCategoryChange}
-                                        >
-                                            {/*categories.map((cat, index) => (
-                                                <MenuItem key={index} value={cat.category}>
-                                                    <cat.Icon style={{ color: cat.color, marginRight: '6px' }} />
-                                                    {cat.category}
-                                                </MenuItem>
-                                            ))*/}
-                                        </Select>
-                                    </div>
-                                </div>
-                                <div className='flex mb-5'>
-                                    <div className='flex-1 mr-2'>
-                                        <p>Date</p>
-                                        <LocalizationProvider dateAdapter={AdapterDayjs}
-                                        >
-                                            <DateField
-                                                size="small"
-                                                sx={{ width: '100%' }}
-                                            />
-                                        </LocalizationProvider>
-                                    </div>
-                                    <div className='flex-1 ml-2'>
-                                        <p>Amount</p>
-                                        <TextField
-                                            id="outlined-start-adornment"
-                                            size="small"
-                                            placeholder="00.00"
-                                            slotProps={{
-                                                input: {
-                                                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                                                },
-                                            }}
-                                            sx={{ width: '100%' }}
-                                            variant="outlined"
-                                        />
-                                    </div>
-                                </div>
-                                <div className='flex'>
-                                    <div className='flex-1'>
-                                        <p>Transaction Description</p>
-                                        <TextField
-                                            id="outlined-size-small"
-                                            variant="outlined"
-                                            size="small"
-                                            helperText="e.g. groceries"
-                                            sx={{ width: '100%' }}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="absolute bottom-4 right-4 space-x-2">
-                                    <Button
-                                        variant="contained"
-                                    >
-                                        Add
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={handleCancel}
-                                    >
-                                        Cancel</Button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
+
+            {/* Transaction Modals */}
+            {(showAddTransaction || showEditTransaction) && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+                        <div className="p-6">
+                            <h2 className="text-xl font-bold mb-6">
+                                {showAddTransaction ? 'Add Transaction' : 'Edit Transaction'}
+                            </h2>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <FormControl fullWidth>
+                                    <InputLabel>Transaction Type</InputLabel>
+                                    <Select
+                                        value={transactionType}
+                                        onChange={handleTransactionType}
+                                        label="Transaction Type"
+                                    >
+                                        {transactionTypes.map((type, index) => (
+                                            <MenuItem key={index} value={type}>
+                                                {type}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+
+                                <FormControl fullWidth>
+                                    <InputLabel>Category</InputLabel>
+                                    <Select
+                                        value={category}
+                                        onChange={handleCategoryChange}
+                                        label="Category"
+                                    >
+                                        {/* Add your categories here */}
+                                    </Select>
+                                </FormControl>
+
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DateField
+                                        label="Date"
+                                        sx={{ width: '100%' }}
+                                    />
+                                </LocalizationProvider>
+
+                                <TextField
+                                    label="Amount"
+                                    placeholder="0.00"
+                                    InputProps={{
+                                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                    }}
+                                    fullWidth
+                                />
+
+                                <TextField
+                                    label="Description"
+                                    placeholder="e.g., Groceries at Walmart"
+                                    fullWidth
+                                    className="md:col-span-2"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3">
+                                <Button
+                                    variant="outlined"
+                                    onClick={handleCancel}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                >
+                                    {showAddTransaction ? 'Add' : 'Save Changes'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

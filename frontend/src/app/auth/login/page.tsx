@@ -26,12 +26,12 @@ const Login = () => {
     });
 
     // Redirect if already logged in
-   /* useEffect(() => {
+   useEffect(() => {
         const accessToken = localStorage.getItem("accessToken");
         if (accessToken) {
             router.push("/dashboard");
         }
-    }, [router]);*/
+    }, [router]);
 
     useEffect(() => {
         setIsMounted(true);
@@ -76,7 +76,7 @@ const Login = () => {
 
             router.push("/dashboard");
         } catch (error) {
-            setMessage("An unexpected error occurred. Please try again.");
+            setMessage(`An unexpected error occurred. Please try again.${error}`);
         } finally {
             setIsLoading(false);
         }

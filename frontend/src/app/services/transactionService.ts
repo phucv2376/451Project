@@ -15,6 +15,8 @@ export const getRecentTransactions = async (userId: string, token: string) => {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
+            credentials: "include"
+
         });
 
         if (!response.ok) {
@@ -115,4 +117,77 @@ export const deleteTransaction = async (transactionId: string, userId: string) =
        console.error("Network error:", error);
        return { success: false, message: "A network error occurred. Please check your connection and try again." };
    }
+};
+
+
+/**
+ * Fetches the monthly expenses for a user.
+ * @param userId - The ID of the user.
+ * @param token - The access token for authentication.
+ * @returns A success response with the monthly expenses or an error message.
+ */
+export const getMonthlyExpenses = async (userId: string, token: string) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Transaction/user/${userId}/monthly-expenses`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            credentials: "include"
+        });
+        
+        if (!response.ok) {
+            let errorMessage = "An unexpected error occurred. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+        
+        const data = await response.json();
+        return { success: true, data };
+    } catch (error) {
+        console.error("Network error:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+    }
+};
+
+/**
+ * Fetches the monthly income for a user.
+ * @param userId - The ID of the user.
+ * @param token - The access token for authentication.
+ * @returns A success response with the monthly income or an error message.
+ */
+export const getMonthlyIncome = async (userId: string, token: string) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Transaction/user/${userId}/monthly-income`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            credentials : "include"
+        });
+        
+        if (!response.ok) {
+            let errorMessage = "An unexpected error occurred. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+        
+        const data = await response.json();
+        return { success: true, data };
+    } catch (error) {
+        console.error("Network error:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+    }
 };

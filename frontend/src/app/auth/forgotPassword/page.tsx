@@ -60,7 +60,7 @@ const ForgotPassword = () => {
                 setMessage(result.message); // Display error message from backend
             }
         } catch (error) {
-            setMessage("An error occurred. Please try again later.");
+            setMessage(`An error occurred. Please try again later${error}.`);
         } finally {
             setIsLoading(false); // Reset loading state
         }

@@ -16,23 +16,20 @@ namespace BudgetAppBackend.Infrastructure.SignalR
         [Authorize]
         public override async Task OnConnectedAsync()
         {
-           
             var userId = Context.UserIdentifier;
 
             if (!string.IsNullOrEmpty(userId))
             {
-               
                 await Clients.User(userId).ReceiveNotification($"🔔 Welcome, User {userId}!");
+                _logger.LogInformation($"User {userId} connected to SignalR Hub.");
             }
             else
             {
-                
                 _logger.LogWarning("⚠️ SignalR: A user connected but `UserIdentifier` is NULL.");
             }
 
             await base.OnConnectedAsync();
         }
-
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
@@ -46,13 +43,21 @@ namespace BudgetAppBackend.Infrastructure.SignalR
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task SendNotification(Guid userSId, string message)
+        public async Task SendNotification(Guid userId, string message)
         {
-            var userId = Context.UserIdentifier;
-            await Clients.User(userId).ReceiveNotification(message);
+            await Clients.User(userId.ToString()).ReceiveNotification(message);
         }
 
-    }
+        /// <summary>
+        /// Sends a notification to a user when a new transaction occurs.
+        /// </summary>
+        public async Task NotifyNewTransaction(Guid userId, decimal amount, string category, DateTime transactionDate, string name)
+        {
+            var message = $"💰 New transaction: {amount:C} in {category} on {transactionDate:MMMM d, yyyy}";
+            _logger.LogInformation($"📢 Sending transaction notification to User {userId}: {message}");
 
+            await Clients.User(userId.ToString()).ReceiveNewTransaction(transactionDate , category, amount, name);
+        }
+    }
 
 }
