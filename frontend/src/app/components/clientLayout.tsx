@@ -1,37 +1,48 @@
 "use client"; // Ensures this component runs on the client-side in Next.js
 
-import React, { Suspense } from "react";
-import SignalRClient from "./SignalRClient"; // Component to handle real-time SignalR connections
-import { PlaidProvider } from '../contexts/PlaidContext'; // Provides Plaid Link script initialization and context
+import React, { Suspense, useMemo } from "react";
+import SignalRClient from "./SignalRClient"; // Handles real-time SignalR connections
+import { PlaidProvider } from '../contexts/PlaidContext'; // Provides Plaid integration context
+import NotificationBell from "../components/NotificationBell"; // Global NotificationBell
 
 /**
  * ClientLayout Component
  * 
- * This component serves as a high-level layout wrapper for client-side components.
- * It ensures:
- * - The Plaid integration is available throughout the application by using `PlaidProvider`
- * - The SignalR client is initialized for real-time communication
- * - A suspense boundary is set up to handle asynchronous component loading
- * 
- * @param {Object} props - Component props
- * @param {React.ReactNode} props.children - Child components that will be wrapped by this layout
+ * - Wraps the entire application with `PlaidProvider` for Plaid banking integration
+ * - Initializes `SignalRClient` for real-time updates
+ * - Uses a `Suspense` boundary for better performance and UI loading experience
+ * - Keeps `NotificationBell` global to avoid unnecessary re-renders
  */
-export default function ClientLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+const ClientLayout = ({ children }: { children: React.ReactNode }) => {
+  // Memoize providers to prevent unnecessary re-renders
+  const wrappedChildren = useMemo(() => (
+    <Suspense fallback={<LoadingFallback />}>
+      <SignalRClient />
+      <main>{children}</main>
+    </Suspense>
+  ), [children]);
+
   return (
-    // Wrap the application with PlaidProvider to ensure Plaid scripts and context are available
     <PlaidProvider>
-      {/* Suspense boundary to handle lazy-loaded components, displaying a fallback UI while loading */}
-      <Suspense fallback={<div>Loading...</div>}>
-        {/* Initializes SignalRClient for handling real-time updates */}
-        <SignalRClient />
-        
-        {/* Main content of the application */}
-        <main>
-          {children}
-        </main>
-      </Suspense>
+      {/* ✅ Global NotificationBell (Persists across pages) */}
+      <div className="fixed top-4 right-4 z-50">
+        <NotificationBell />
+      </div>
+
+      {wrappedChildren}
     </PlaidProvider>
   );
-}
+};
+
+/**
+ * LoadingFallback Component
+ * - Displays a simple loading animation while components are being loaded.
+ */
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen text-gray-600">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div>
+    <p className="ml-3 text-lg">Loading...</p>
+  </div>
+);
+
+export default ClientLayout;
