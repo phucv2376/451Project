@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using BudgetAppBackend.Domain.BudgetAggregate;
-using BudgetAppBackend.Domain.BudgetAggregate.ValueObjects;
-using BudgetAppBackend.Domain.CategoryAggregate;
-using BudgetAppBackend.Domain.TransactionAggregate;
+﻿using BudgetAppBackend.Domain.BudgetAggregate;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using BudgetAppBackend.Domain.Exceptions.BudgetExceptions;
-using Xunit;
 
 namespace BudgetAppBackend.Domain.Tests
 {
@@ -17,7 +11,7 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var userId = UserId.CreateId();
-            var categoryId = CategoryId.CreateId();
+            var categoryId = "test";
             string title = "Monthly Budget";
             decimal totalAmount = 1000;
             DateTime createdDate = DateTime.UtcNow;
@@ -27,7 +21,7 @@ namespace BudgetAppBackend.Domain.Tests
 
             // Assert
             Assert.Equal(userId, budget.UserId);
-            Assert.Equal(categoryId, budget.CategoryId);
+            Assert.Equal(categoryId, budget.Category);
             Assert.Equal(title, budget.Title);
             Assert.Equal(totalAmount, budget.TotalAmount);
             Assert.True(budget.IsActive);
@@ -37,7 +31,7 @@ namespace BudgetAppBackend.Domain.Tests
         public void ApplyTransaction_ShouldIncreaseSpentAmount()
         {
             // Arrange
-            var budget = Budget.Create(UserId.CreateId(), "Test Budget", 500, CategoryId.CreateId(), DateTime.UtcNow);
+            var budget = Budget.Create(UserId.CreateId(), "Test Budget", 500, "Travel", DateTime.UtcNow);
             decimal transactionAmount = 200;
 
             // Act
@@ -51,7 +45,7 @@ namespace BudgetAppBackend.Domain.Tests
         public void ApplyTransaction_ShouldRaiseEvent_WhenBudgetExceeded()
         {
             // Arrange
-            var budget = Budget.Create(UserId.CreateId(), "Over Budget", 100, CategoryId.CreateId(), DateTime.UtcNow);
+            var budget = Budget.Create(UserId.CreateId(), "Over Budget", 100, "Travel", DateTime.UtcNow);
             decimal transactionAmount = 150;
 
             // Act
@@ -65,7 +59,7 @@ namespace BudgetAppBackend.Domain.Tests
         public void RollbackTransaction_ShouldDecreaseSpentAmount()
         {
             // Arrange
-            var budget = Budget.Create(UserId.CreateId(), "Rollback Budget", 500, CategoryId.CreateId(), DateTime.UtcNow);
+            var budget = Budget.Create(UserId.CreateId(), "Rollback Budget", 500, "Travel", DateTime.UtcNow);
             budget.ApplyTransaction(200);
 
             // Act
@@ -79,7 +73,7 @@ namespace BudgetAppBackend.Domain.Tests
         public void RollbackTransaction_ShouldThrowException_WhenAmountExceedsSpent()
         {
             // Arrange
-            var budget = Budget.Create(UserId.CreateId(), "Rollback Fail Budget", 500, CategoryId.CreateId(), DateTime.UtcNow);
+            var budget = Budget.Create(UserId.CreateId(), "Rollback Fail Budget", 500, "Travel", DateTime.UtcNow);
             budget.ApplyTransaction(100);
 
             // Act & Assert
@@ -90,7 +84,7 @@ namespace BudgetAppBackend.Domain.Tests
         public void UpdateTotalAmount_ShouldThrowException_WhenNewAmountIsLessThanSpent()
         {
             // Arrange
-            var budget = Budget.Create(UserId.CreateId(), "Update Fail Budget", 500, CategoryId.CreateId(), DateTime.UtcNow);
+            var budget = Budget.Create(UserId.CreateId(), "Update Fail Budget", 500, "Travel", DateTime.UtcNow);
             budget.ApplyTransaction(400);
 
             // Act & Assert

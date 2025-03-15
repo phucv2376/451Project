@@ -4,8 +4,7 @@
         Guid TransactionId,
         decimal Amount,
         DateTime TransactionDate,
-        Guid CategoryId,
-        string CategoryName,
+        string Category,
         string payee
     );
 }

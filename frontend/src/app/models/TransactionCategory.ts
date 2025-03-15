@@ -1,4 +1,4 @@
-import LunchDiningOutlinedIcon from '@mui/icons-material/LunchDiningOutlined';
+/*import LunchDiningOutlinedIcon from '@mui/icons-material/LunchDiningOutlined';
 import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined';
 import TheaterComedyOutlinedIcon from '@mui/icons-material/TheaterComedyOutlined';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
@@ -98,4 +98,4 @@ export interface TransactionCategory {
 export const getCategory = (transaction: Transaction): TransactionCategory => {
     const category = categories.find((cat) => cat.categoryId === transaction.categoryId);
     return category || categories[7];
-}
+}*/

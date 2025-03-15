@@ -1,11 +1,11 @@
 ﻿using BudgetAppBackend.Application.Contracts;
-using BudgetAppBackend.Domain.CategoryAggregate;
 using BudgetAppBackend.Domain.DomainEvents;
+using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using MediatR;
 
 namespace BudgetAppBackend.Application.EventHandlers
 {
-   
+
     public class TransactionCreatedEventHandler : INotificationHandler<TransactionCreatedEvent>
     {
         private readonly IBudgetRepository _budgetRepository;
@@ -15,8 +15,8 @@ namespace BudgetAppBackend.Application.EventHandlers
         }
         public async Task Handle(TransactionCreatedEvent notification, CancellationToken cancellationToken)
         {
-            var categoryId = CategoryId.Create(notification.categoryId);
-            var budget = await _budgetRepository.GetByCategoryAsync(categoryId, cancellationToken);
+            var userId = UserId.Create(notification.UserId);
+            var budget = await _budgetRepository.GetByCategoryAsync(notification.category, userId, notification.Date, cancellationToken);
 
             if (budget is not null)
             {

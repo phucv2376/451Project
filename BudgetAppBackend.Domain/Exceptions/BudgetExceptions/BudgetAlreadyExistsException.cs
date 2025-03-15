@@ -4,8 +4,8 @@ namespace BudgetAppBackend.Domain.Exceptions.BudgetExceptions
 {
     public class BudgetAlreadyExistsException : DomainException
     {
-        public BudgetAlreadyExistsException(Guid userId, Guid categoryId)
-            : base($"A budget already exists for user '{userId}' and category '{categoryId}'.")
+        public BudgetAlreadyExistsException(Guid userId, string category)
+            : base($"A budget already exists for user '{userId}' and category '{category}'.")
         {
         }
     }

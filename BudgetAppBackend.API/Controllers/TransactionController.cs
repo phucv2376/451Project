@@ -8,7 +8,6 @@ using BudgetAppBackend.Application.Features.Transactions.GetRecentTransactions;
 using BudgetAppBackend.Application.Features.Transactions.GetUserTransactionsWithPagination;
 using BudgetAppBackend.Application.Features.Transactions.UpdateTransaction;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BudgetAppBackend.API.Controllers

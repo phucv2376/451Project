@@ -9,7 +9,6 @@ namespace BudgetAppBackend.Application.Features.Budgets.GetBudgetsByUser
     public class GetBudgetsByUserQueryHandler : IRequestHandler<GetBudgetsByUserQuery, List<BudgetDto>>
     {
         private readonly IBudgetRepository _budgetRepository;
-        //private readonly IAuthRepository _userRepository;
         private readonly IMapper _mapper;
 
         public GetBudgetsByUserQueryHandler(IBudgetRepository budgetRepository, IMapper mapper)
@@ -20,12 +19,6 @@ namespace BudgetAppBackend.Application.Features.Budgets.GetBudgetsByUser
         public async Task<List<BudgetDto>> Handle(GetBudgetsByUserQuery request, CancellationToken cancellationToken)
         {
              var userId = UserId.Create(request.UserId);
-            /*var user = await _userRepository.GetUserByEmailAsync(userId, cancellationToken);
-            if (user == null)
-            {
-
-                throw new KeyNotFoundException($"User with ID '{request.UserId}' not found.");
-            }*/
             var budgets = await _budgetRepository.GetActiveBudgetsAsync(userId, cancellationToken);
 
                var mappedBudgets = _mapper.Map<List<BudgetDto>>(budgets);

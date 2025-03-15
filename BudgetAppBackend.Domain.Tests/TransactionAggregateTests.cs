@@ -1,10 +1,6 @@
-﻿using System;
-using BudgetAppBackend.Domain.TransactionAggregate;
-using BudgetAppBackend.Domain.TransactionAggregate.ValueObjects;
-using BudgetAppBackend.Domain.CategoryAggregate;
+﻿using BudgetAppBackend.Domain.TransactionAggregate;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using BudgetAppBackend.Domain.Exceptions.TransactionExceptions;
-using Xunit;
 
 namespace BudgetAppBackend.Domain.Tests
 {
@@ -15,18 +11,18 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var userId = UserId.CreateId();
-            var categoryId = CategoryId.CreateId();
+            var category = "Travel";
             decimal amount = 100;
             DateTime transactionDate = DateTime.UtcNow;
             string payee = "John Doe";
             TransactionType type = TransactionType.Expense;
 
             // Act
-            var transaction = Transaction.Create(userId, categoryId, amount, transactionDate, payee, type);
+            var transaction = Transaction.Create(userId, category, amount, transactionDate, payee, type);
 
             // Assert
             Assert.Equal(userId, transaction.UserId);
-            Assert.Equal(categoryId, transaction.CategoryId);
+            Assert.Equal(category, transaction.Category);
             Assert.Equal(amount, transaction.Amount);
             Assert.Equal(transactionDate, transaction.TransactionDate);
             Assert.Equal(payee, transaction.Payee);
@@ -38,14 +34,14 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var userId = UserId.CreateId();
-            var categoryId = CategoryId.CreateId();
+            var category = "Travel";
             decimal amount = 0;
             DateTime transactionDate = DateTime.UtcNow;
             string payee = "John Doe";
             TransactionType type = TransactionType.Expense;
 
             // Act & Assert
-            Assert.Throws<TransactionAmountException>(() => Transaction.Create(userId, categoryId, amount, transactionDate, payee, type));
+            Assert.Throws<TransactionAmountException>(() => Transaction.Create(userId, category, amount, transactionDate, payee, type));
         }
 
         [Fact]
@@ -53,28 +49,28 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var userId = UserId.CreateId();
-            var categoryId = CategoryId.CreateId();
+            var category = "Travel";
             decimal amount = 100;
             DateTime transactionDate = DateTime.UtcNow;
             string payee = "";
             TransactionType type = TransactionType.Expense;
 
             // Act & Assert
-            Assert.Throws<TransactionPayeeException>(() => Transaction.Create(userId, categoryId, amount, transactionDate, payee, type));
+            Assert.Throws<TransactionPayeeException>(() => Transaction.Create(userId, category, amount, transactionDate, payee, type));
         }
 
         [Fact]
         public void UpdateTransaction_ShouldModifyValuesCorrectly()
         {
             // Arrange
-            var transaction = Transaction.Create(UserId.CreateId(), CategoryId.CreateId(), 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
+            var transaction = Transaction.Create(UserId.CreateId(), "Travel", 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
             decimal newAmount = 200;
             DateTime newTransactionDate = DateTime.UtcNow.AddDays(1);
             string newPayee = "Jane Doe";
             TransactionType newType = TransactionType.Income;
 
             // Act
-            transaction.UpdateTransaction(newAmount, newTransactionDate, newPayee, newType);
+            transaction.UpdateTransaction(newAmount, newTransactionDate, newPayee, "Travel", newType);
 
             // Assert
             Assert.Equal(newAmount, transaction.Amount);
@@ -87,21 +83,21 @@ namespace BudgetAppBackend.Domain.Tests
         public void UpdateTransaction_ShouldThrowException_WhenAmountIsZeroOrNegative()
         {
             // Arrange
-            var transaction = Transaction.Create(UserId.CreateId(), CategoryId.CreateId(), 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
+            var transaction = Transaction.Create(UserId.CreateId(), "Travel", 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
             decimal newAmount = 0;
             DateTime newTransactionDate = DateTime.UtcNow.AddDays(1);
             string newPayee = "Jane Doe";
             TransactionType newType = TransactionType.Income;
 
             // Act & Assert
-            Assert.Throws<TransactionAmountException>(() => transaction.UpdateTransaction(newAmount, newTransactionDate, newPayee, newType));
+            Assert.Throws<TransactionAmountException>(() => transaction.UpdateTransaction(newAmount, newTransactionDate, newPayee, "Travel", newType));
         }
 
         [Fact]
         public void DeleteTransaction_ShouldRaiseDomainEvent()
         {
             // Arrange
-            var transaction = Transaction.Create(UserId.CreateId(), CategoryId.CreateId(), 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
+            var transaction = Transaction.Create(UserId.CreateId(), "Travel", 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
 
             // Act
             transaction.DeleteTransaction();

@@ -8,15 +8,22 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetRecentTransactio
     public class GetRecentTransactionsQueryHandler : IRequestHandler<GetRecentTransactionsQuery, List<TransactionDto>>
     {
         private readonly ITransactionRepository _transactionRepository;
-        public GetRecentTransactionsQueryHandler(ITransactionRepository transactionRepository)
+        private readonly IPlaidTransactionRepository _laidTransactionRepository;
+        public GetRecentTransactionsQueryHandler(ITransactionRepository transactionRepository, IPlaidTransactionRepository laidTransactionRepository)
         {
             _transactionRepository = transactionRepository;
+            _laidTransactionRepository = laidTransactionRepository;
         }
         public async Task<List<TransactionDto>> Handle(GetRecentTransactionsQuery request, CancellationToken cancellationToken)
         {
             var userId = UserId.Create(request.UserId);
-            var transactionsQuery = await _transactionRepository.GetRecentTransactionsByUserAsync(userId, cancellationToken);
-            return transactionsQuery;
+            var manualTransactions = await _transactionRepository.GetRecentTransactionsByUserAsync(userId, cancellationToken);
+            var plaidTransactions = await _laidTransactionRepository.GetRecentTransactionsByUserAsync(userId, cancellationToken);
+            var allTransactions = manualTransactions.Concat(plaidTransactions)
+                                   .OrderByDescending(t => t.TransactionDate)
+                                   .ToList();
+
+            return allTransactions;
         }
     }
 }

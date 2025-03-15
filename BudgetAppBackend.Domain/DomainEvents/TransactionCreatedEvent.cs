@@ -1,10 +1,8 @@
-﻿using BudgetAppBackend.Domain.CategoryAggregate;
-using BudgetAppBackend.Domain.Commons;
-using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
+﻿using BudgetAppBackend.Domain.Commons;
 
 namespace BudgetAppBackend.Domain.DomainEvents
 {
-    public sealed record TransactionCreatedEvent(Guid UserId, Guid categoryId, decimal amount) : IDomainEvent
+    public sealed record TransactionCreatedEvent(Guid UserId, string category, decimal amount, DateTime Date) : IDomainEvent
     {
 
     }

@@ -12,11 +12,14 @@ import TransactionTable from "../components/TransactionTable";
 import MoneyBox from "../components/MoneyBox";
 
 import { Transaction } from "../models/Transaction";
-import { categories } from "../models/TransactionCategory";
+/*import { categories } from "../models/TransactionCategory";*/
 import { useAuth } from "../contexts/AuthContext";
 
 import { getRecentTransactions } from "../services/transactionService";
 import { access } from "fs";
+import BankIntegration from "../components/PlaidIntegration/BankIntegration";
+import PlaidLinkWrapper from "../components/PlaidIntegration/PlaidLinkWrapper";
+import { usePlaid } from '../hooks/usePlaid';
 
 const Dashboard = () => {
     const { logout } = useAuth();
@@ -24,14 +27,15 @@ const Dashboard = () => {
         transactionId: "",
         transactionDate: new Date,
         amount: 0,
-        categoryId: "",
-        categoryName: categories[0],
+        category: "",
         payee: ""
     }]);
     
     const [name, setName] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [mounted, setMounted] = useState(false);
+    const { plaidAccessToken, exchangePublicToken, disconnectBank } = usePlaid();
 
 
     useEffect(() => {
@@ -63,9 +67,10 @@ const Dashboard = () => {
         fetchTransactions();
     }, [userId]); // Add userId as a dependency
 
-    const router = useRouter();
+    // Return nothing until mounted to prevent hydration mismatches.
 
-    const expenses = [
+
+    /*const expenses = [
         {
             category: categories[0],
             percentage: 8,
@@ -86,10 +91,9 @@ const Dashboard = () => {
             category: categories[4],
             percentage: 31
         }
-    ];
+    ];*/
 
 
-    
     return (
         <div className="flex bg-[#F1F5F9] min-h-screen w-full">
             {/*Nav bar*/}
@@ -121,6 +125,14 @@ const Dashboard = () => {
                     />
                 </div>
 
+                <div className="mt-7">
+                {!plaidAccessToken ? (
+                    <PlaidLinkWrapper onSuccess={exchangePublicToken} />
+                ) : (
+                    <BankIntegration onDisconnect={disconnectBank} />
+                )}
+                </div>
+
                 <div className="flex flex-row gap-5 mt-7">
                     {/*Table*/}
                     <div className="flex-[2]">
@@ -147,7 +159,7 @@ const Dashboard = () => {
                         <h2 className="font-bold text-md justify-start mb-5">Budget</h2>
                         <div className="flex justify-center">
                             <div className="grid grid-cols-2 gap-10 ">
-                                <BudgetCircle
+                               {/* <BudgetCircle
                                     progressValue={10}
                                     color={categories[1].color}
                                     label={categories[1].category}
@@ -167,6 +179,7 @@ const Dashboard = () => {
                                     color={categories[0].color}
                                     label={categories[0].category}
                                 />
+                                */}
                             </div>
                         </div>
                     </div>
@@ -191,7 +204,7 @@ const Dashboard = () => {
                             />
                             {/* Segmented Bar */}
                             <Box sx={{ display: 'flex', height: '100%', position: 'absolute', width: '100%' }}>
-                                {expenses.map((expense, index) => (
+                                {/*expenses.map((expense, index) => (
                                     <Box
                                         key={index}
                                         sx={{
@@ -202,15 +215,15 @@ const Dashboard = () => {
                                                 index === expenses.length - 1 ? '0 5px 5px 0' : '0',
                                         }}
                                     />
-                                ))}
+                                ))*/}
                             </Box>
                         </Box>
 
                         {/* Labels */}
                         <Stack direction="row" justifyContent="flex-start" spacing={7} sx={{ mt: 2 }}>
-                            {expenses.map((expense, index) => (
+                            {/*expenses.map((expense, index) => (
                                 <Stack key={index} direction="row" alignItems="center" spacing={2}>
-                                    {/* Colored circle */}
+                                  
                                     <Box
                                         sx={{
                                             width: 15,
@@ -219,12 +232,12 @@ const Dashboard = () => {
                                             backgroundColor: expense.category.color,
                                         }}
                                     />
-                                    {/* Text */}
+                                    {
                                     <Typography variant="body2" sx={{ color: "black" }}>
                                         {expense.category.category} ({expense.percentage}%)
                                     </Typography>
                                 </Stack>
-                            ))}
+                            ))*/}
                         </Stack>
                     </Box>
 

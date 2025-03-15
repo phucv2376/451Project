@@ -3,5 +3,8 @@
     "@mui/icons-material": "^6.4.7",
     "@mui/x-date-pickers": "^7.27.3",
     "dayjs": "^1.11.13"
+  },
+  "devDependencies": {
+    "@types/react-plaid-link": "^1.3.1"
   }
 }

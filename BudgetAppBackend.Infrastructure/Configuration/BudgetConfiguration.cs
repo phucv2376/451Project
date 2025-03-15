@@ -1,6 +1,5 @@
 ﻿using BudgetAppBackend.Domain.BudgetAggregate;
 using BudgetAppBackend.Domain.BudgetAggregate.ValueObjects;
-using BudgetAppBackend.Domain.CategoryAggregate;
 using BudgetAppBackend.Domain.UserAggregate;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -33,11 +32,7 @@ namespace BudgetAppBackend.Infrastructure.Configuration
                 .HasForeignKey(b => b.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Property(b => b.CategoryId)
-                .HasConversion(
-                    categoryId => categoryId.Id,
-                    value => CategoryId.Create(value)
-                )
+            builder.Property(b => b.Category)
                 .IsRequired();
 
             builder.Property(b => b.Title)
@@ -45,6 +40,11 @@ namespace BudgetAppBackend.Infrastructure.Configuration
                 .HasMaxLength(100);
 
             builder.Property(b => b.TotalAmount)
+                .IsRequired()
+                .HasPrecision(18, 2);
+
+            builder.Property(b => b.SpendAmount)
+                .HasField("_spentAmount")
                 .IsRequired()
                 .HasPrecision(18, 2);
 
@@ -57,7 +57,7 @@ namespace BudgetAppBackend.Infrastructure.Configuration
                 .HasDefaultValue(true);
 
             builder.HasIndex(b => b.UserId);
-            builder.HasIndex(b => b.CategoryId);
+            builder.HasIndex(b => b.Category);
             builder.HasIndex(b => b.CreatedDate);
 
             builder.ToTable("Budgets");

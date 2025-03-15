@@ -19,7 +19,7 @@ namespace BudgetAppBackend.Application.Features.Transactions.CreateTransaction
             var mappedTransaction = _mapper.Map<Transaction>(request.createTransactionDto);
             var newTransaction = Transaction.Create(
                 mappedTransaction.UserId,
-                mappedTransaction.CategoryId,
+                mappedTransaction.Category,
                 mappedTransaction.Amount,
                 mappedTransaction.TransactionDate,
                 mappedTransaction.Payee,

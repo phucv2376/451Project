@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Transaction, TransactionListResponse } from "../models/Transaction";
 import { Checkbox, Table, TableBody, TableCell, TableContainer, 
     TableHead, TableRow, Paper, TablePagination } from "@mui/material";
-import { getCategory } from "../models/TransactionCategory";
 
 type Props = {
     transactions: Transaction[];
@@ -66,10 +65,8 @@ const TransactionTable = (props: Props) => {
         <div className="overflow-x-auto">
             <TableContainer component={Paper}>
                 <Table className="min-w-full">
-                    {/* Table Header */}
                     <TableHead className="bg-gray-100">
                         <TableRow>
-                            {/* Checkbox column (conditionally rendered) */}
                             {props.enableCheckbox && (
                                 <TableCell padding="checkbox">
                                     <Checkbox
@@ -96,18 +93,15 @@ const TransactionTable = (props: Props) => {
                         </TableRow>
                     </TableHead>
 
-                    {/* Table Body */}
                     <TableBody className="divide-y divide-gray-200">
                         {props.transactions.map((transaction) => (
                             <TableRow
                                 key={transaction.transactionId}
-                                hover={props.enableCheckbox} // Enable hover only if checkboxes are enabled
-                                selected={props.enableCheckbox && selectedRows.has(transaction.transactionId)} // Highlight selected rows only if checkboxes are enabled
-                                onClick={() => props.enableCheckbox && handleRowSelection(transaction.transactionId)} // Handle row selection only if checkboxes are enabled
-                                style={{ cursor: props.enableCheckbox ? "pointer" : "default" }} // Change cursor only if checkboxes are enabled
+                                hover={props.enableCheckbox}
+                                selected={props.enableCheckbox && selectedRows.has(transaction.transactionId)}
+                                onClick={() => props.enableCheckbox && handleRowSelection(transaction.transactionId)}
+                                style={{ cursor: props.enableCheckbox ? "pointer" : "default" }}
                             >
-
-                                {/* Checkbox column (conditionally rendered) */}
                                 {props.enableCheckbox && (
                                     <TableCell padding="checkbox">
                                         <Checkbox
@@ -120,12 +114,7 @@ const TransactionTable = (props: Props) => {
                                     {new Date(transaction.transactionDate).toDateString()}                               
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-sm text-gray-900 ">
-                                    <div className="flex gap-2">
-                                        <div style={{ color: getCategory(transaction).color }}>
-                                            {React.createElement(getCategory(transaction).Icon)}
-                                        </div>
-                                        {getCategory(transaction).category}
-                                    </div>
+                                    {transaction.category}
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-sm text-gray-900">
                                     {transaction.payee}

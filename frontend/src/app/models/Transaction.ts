@@ -1,4 +1,4 @@
-import { TransactionCategory } from "./TransactionCategory";
+/*import { TransactionCategory } from "./TransactionCategory";*/
 import { TransactionType } from "./TransactionType";
 
 export interface Transaction {
@@ -7,8 +7,7 @@ export interface Transaction {
     amount: number; 
     payee: string; //was description
     type?: TransactionType; //type of transaction income or expense
-    categoryName: TransactionCategory; //was category
-    categoryId?: string 
+    category: string; //was category
 }
 
 export interface TransactionListResponse {

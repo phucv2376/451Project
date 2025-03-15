@@ -1,7 +1,5 @@
 ﻿using BudgetAppBackend.Application.Features.AI.GetAiAnalysis;
-using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BudgetAppBackend.API.Controllers

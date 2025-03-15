@@ -6,6 +6,7 @@
         DateTime TransactionDate,
         Guid UserId,
         string payee,
-        string transactionType
+        string transactionType,
+        string category
     );
 }

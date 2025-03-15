@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using BudgetAppBackend.Application.Models;
+using BudgetAppBackend.Application.Configuration;
 using BudgetAppBackend.Application.Service;
 using BudgetAppBackend.Domain.UserAggregate;
 using Microsoft.Extensions.Options;

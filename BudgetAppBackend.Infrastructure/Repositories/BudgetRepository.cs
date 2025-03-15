@@ -1,7 +1,6 @@
 ﻿using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Domain.BudgetAggregate;
 using BudgetAppBackend.Domain.BudgetAggregate.ValueObjects;
-using BudgetAppBackend.Domain.CategoryAggregate;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,12 +34,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<Budget?> GetByCategoryAsync(CategoryId categoryId, CancellationToken cancellationToken)
-        {
-            return await _dbContext.Budgets
-                .FirstOrDefaultAsync(b => b.CategoryId == categoryId, cancellationToken);
-        }
-
+        
         public async Task<Budget?> GetByIdAsync(BudgetId budgetId, CancellationToken cancellationToken)
         {
             return await _dbContext.Budgets
@@ -64,5 +58,16 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                                  .Where(b => b.UserId == userId)
                                  .ToListAsync();
         }
+
+        public async Task<Budget?> GetByCategoryAsync(string categoryName, UserId userId, DateTime date, CancellationToken cancellationToken)
+        {
+            return await _dbContext.Budgets
+                .FirstOrDefaultAsync(b =>
+                    b.UserId == userId &&
+                    b.CreatedDate.Year == date.Year &&
+                    b.CreatedDate.Month == date.Month &&
+                    b.Category == categoryName);
+        }
+
     }
 }

@@ -4,6 +4,7 @@ using BudgetAppBackend.Application.Models;
 using BudgetAppBackend.Application.Service;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using BudgetAppBackend.Application.Configuration;
 
 namespace BudgetAppBackend.Infrastructure.Services
 {

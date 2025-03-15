@@ -1,11 +1,11 @@
 ﻿using BudgetAppBackend.Domain.BudgetAggregate.ValueObjects;
-using BudgetAppBackend.Domain.CategoryAggregate;
 using BudgetAppBackend.Domain.Commons;
 using BudgetAppBackend.Domain.TransactionAggregate;
 using BudgetAppBackend.Domain.DomainEvents;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using BudgetAppBackend.Domain.Exceptions.BudgetExceptions;
 using System.Text.Json.Serialization;
+using BudgetAppBackend.Domain.PlaidTransactionAggregate;
 
 namespace BudgetAppBackend.Domain.BudgetAggregate
 {
@@ -14,15 +14,17 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
         public string Title { get; private set; }
         public decimal TotalAmount { get; private set; }
         public UserId UserId { get; private set; }
-        public CategoryId CategoryId { get; private set; }
+        public string Category { get; private set; }
         public bool IsActive { get; private set; } = true;
         public DateTime CreatedDate { get; private set; }
         private decimal _spentAmount;
 
+        public decimal SpendAmount => _spentAmount;
+
         private Budget() : base(default!) { } // For EF Core
 
         [JsonConstructor]
-        private Budget(BudgetId id, UserId userId, string title, decimal totalAmount, CategoryId categoryId, DateTime createdDate)
+        private Budget(BudgetId id, UserId userId, string title, decimal totalAmount, string category, DateTime createdDate)
             : base(id)
         {
             ValidateTitle(title);
@@ -31,14 +33,14 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
             UserId = userId;
             Title = title;
             TotalAmount = totalAmount;
-            CategoryId = categoryId;
+            Category = category;
             CreatedDate = createdDate;
             _spentAmount = 0;
         }
 
-        public static Budget Create(UserId userId, string title, decimal totalAmount, CategoryId categoryId, DateTime createdDate)
+        public static Budget Create(UserId userId, string title, decimal totalAmount, string category, DateTime createdDate)
         {
-            return new Budget(BudgetId.CreateId(), userId, title, totalAmount, categoryId, createdDate);
+            return new Budget(BudgetId.CreateId(), userId, title, totalAmount, category, createdDate);
         }
 
         public void ApplyTransaction(decimal amount)
@@ -48,7 +50,7 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
 
             if (_spentAmount > TotalAmount)
             {
-                RaiseDomainEvent(new BudgetExceededEvent(UserId.Id, Id.Id, CategoryId.Id, _spentAmount, TotalAmount));
+                RaiseDomainEvent(new BudgetExceededEvent(UserId.Id, Id.Id, Category, _spentAmount, TotalAmount));
             }
         }
 
@@ -96,12 +98,29 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
             {
                 if (transaction.TransactionDate.Month == CreatedDate.Month &&
                     transaction.TransactionDate.Year == CreatedDate.Year &&
-                    transaction.CategoryId == CategoryId)
+                    transaction.Category != null &&
+                    transaction.Category.Contains(Category, StringComparison.OrdinalIgnoreCase))
                 {
                     ApplyTransaction(transaction.Amount);
                 }
             }
         }
+
+        public void ApplyPastPlaidTransactions(IEnumerable<PlaidTransaction> plaidTransactions)
+        {
+            foreach (var plaidTransaction in plaidTransactions)
+            {
+
+                if (plaidTransaction.Date.Month == CreatedDate.Month &&
+                    plaidTransaction.Date.Year == CreatedDate.Year &&
+                    !string.IsNullOrWhiteSpace(plaidTransaction.Category) &&
+                    plaidTransaction.Category.Contains(Category, StringComparison.OrdinalIgnoreCase))
+                {
+                    ApplyTransaction(plaidTransaction.Amount);
+                }
+            }
+        }
+
 
         private void ValidateTitle(string title)
         {

@@ -28,6 +28,7 @@ namespace BudgetAppBackend.Application.Features.Transactions.UpdateTransaction
                 request.UpdateTransactionDto.Amount,
                 request.UpdateTransactionDto.TransactionDate,
                 request.UpdateTransactionDto.payee,
+                request.UpdateTransactionDto.category,
                 Enum.Parse<TransactionType>(request.UpdateTransactionDto.transactionType)
             );
             await _transactionRepository.UpdateAsync(transaction, cancellationToken);

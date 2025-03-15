@@ -1,5 +1,4 @@
 ﻿using BudgetAppBackend.Application.Contracts;
-using BudgetAppBackend.Application.Models;
 using BudgetAppBackend.Application.Service;
 using BudgetAppBackend.Infrastructure.Outbox;
 using BudgetAppBackend.Infrastructure.Repositories;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 using BudgetAppBackend.Infrastructure.Jobs;
+using BudgetAppBackend.Application.Configuration;
 
 namespace BudgetAppBackend.Infrastructure
 {
@@ -45,8 +45,9 @@ namespace BudgetAppBackend.Infrastructure
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddScoped<IBudgetRepository, BudgetRepository>();
-            services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IPlaidTransactionRepository, PlaidTransactionRepository>();
+            services.AddScoped<IPlaidSyncCursorRepository, PlaidSyncCursorRepository>();
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings").Bind);
 
             services.AddSingleton<IAuthService, AuthService>();
@@ -60,6 +61,36 @@ namespace BudgetAppBackend.Infrastructure
                 options.EmailPassword = configuration.GetSection("EmailSettings")["EmailPassword"];
                 options.SenderName = configuration.GetSection("EmailSettings")["SenderName"];
             });
+
+            // Configure OllamaSettings
+            services.Configure<OllamaSettings>(options =>
+            {
+                options.Endpoint = configuration.GetSection("OllamaSettings")["Endpoint"];
+                options.Model = configuration.GetSection("OllamaSettings")["Model"];
+            });
+
+            // Configure PlaidOptions
+            services.Configure<PlaidOptions>(options =>
+            {
+                options.ClientId = configuration.GetSection("Plaid")["ClientId"];
+                options.Secret = configuration.GetSection("Plaid")["Secret"];
+                options.Environment = configuration.GetSection("Plaid")["Environment"];
+                options.BaseUrl = configuration.GetSection("Plaid")["BaseUrl"];
+            });
+
+            // Validate Plaid configuration
+            services.PostConfigure<PlaidOptions>(options =>
+            {
+                if (string.IsNullOrEmpty(options.ClientId))
+                    throw new InvalidOperationException("Plaid ClientId is not configured");
+                if (string.IsNullOrEmpty(options.Secret))
+                    throw new InvalidOperationException("Plaid Secret is not configured");
+                if (string.IsNullOrEmpty(options.BaseUrl))
+                    throw new InvalidOperationException("Plaid BaseUrl is not configured");
+            });
+
+            // Register Plaid service
+            services.AddScoped<IPlaidService, PlaidService>();
 
             services.AddMediatR(cfg =>
             {

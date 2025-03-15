@@ -22,7 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { Transaction, TransactionListResponse } from '../models/Transaction';
 import { transactionTypes } from '../models/TransactionType';
-import { categories } from "../models/TransactionCategory";
+//import { categories } from "../models/TransactionCategory";
 import { deleteTransaction } from '../services/transactionService';
 import { getTransactions } from '../services/transactionService';
 
@@ -40,8 +40,7 @@ const TransactionPage = () => {
         transactionId: "",
         transactionDate: new Date,
         amount: 0,
-        categoryId: "",
-        categoryName: categories[0],
+        category: "",
         payee: ""
     }]);
     const [transactionPaging, setTransactionPaging] = useState<TransactionListResponse>({
@@ -209,12 +208,12 @@ const TransactionPage = () => {
                                             value={category}
                                             onChange={handleCategoryChange}
                                         >
-                                            {categories.map((cat, index) => (
+                                            {/*categories.map((cat, index) => (
                                                 <MenuItem key={index} value={cat.category}>
                                                     <cat.Icon style={{ color: cat.color, marginRight: '6px' }} />
                                                     {cat.category}
                                                 </MenuItem>
-                                            ))}
+                                            ))*/}
                                         </Select>
                                     </div>
                                 </div>
@@ -303,12 +302,12 @@ const TransactionPage = () => {
                                             value={category}
                                             onChange={handleCategoryChange}
                                         >
-                                            {categories.map((cat, index) => (
+                                            {/*categories.map((cat, index) => (
                                                 <MenuItem key={index} value={cat.category}>
                                                     <cat.Icon style={{ color: cat.color, marginRight: '6px' }} />
                                                     {cat.category}
                                                 </MenuItem>
-                                            ))}
+                                            ))*/}
                                         </Select>
                                     </div>
                                 </div>

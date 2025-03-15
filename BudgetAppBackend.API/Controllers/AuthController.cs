@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Net;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
 using BudgetAppBackend.Application.Features.Authentication.DeleteAccount;
 using BudgetAppBackend.Application.Features.Authentication.Login;
@@ -12,7 +10,6 @@ using BudgetAppBackend.Application.Features.Authentication.VerifyEmail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 
 namespace BudgetAppBackend.API.Controllers
 {
