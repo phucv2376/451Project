@@ -83,10 +83,8 @@ namespace BudgetAppBackend.Infrastructure.Services
                     throw new InvalidOperationException("Empty response received from LLM");
                 }
 
-                // Log the raw LLM response for debugging
                 Console.WriteLine($"Raw LLM Response: {llmResponse}");
 
-                // Extract the first complete JSON object
                 var jsonStart = llmResponse.IndexOf('{');
                 if (jsonStart == -1)
                 {
@@ -123,7 +121,6 @@ namespace BudgetAppBackend.Infrastructure.Services
 
                 var jsonString = llmResponse.Substring(jsonStart, jsonEnd - jsonStart + 1);
 
-                // Clean up the JSON string
                 jsonString = jsonString
                     .Replace("```json", "")
                     .Replace("```", "")

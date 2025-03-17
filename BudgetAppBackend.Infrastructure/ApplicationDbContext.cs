@@ -28,6 +28,8 @@ namespace BudgetAppBackend.Infrastructure
 
         public DbSet<PlaidTransaction> PlaidTransactions { get; set; }
 
+        public DbSet<PlaidAccountFingerprint> PlaidAccountFingerprints { get; set; }
+
         public DbSet<PlaidSyncCursor> PlaidSyncCursors { get; set; }
 
         public DbSet<Budget> Budgets { get; set; }

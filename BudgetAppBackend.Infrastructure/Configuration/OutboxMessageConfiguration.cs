@@ -32,7 +32,6 @@ namespace BudgetAppBackend.Infrastructure.Configuration
             builder.Property(o => o.ProcessedAt)
                    .IsRequired(false);
 
-            // Optional: Add indexing for faster queries
             builder.HasIndex(o => o.CreatedAt).HasDatabaseName("IX_OutboxMessages_CreatedAt");
         }
     }

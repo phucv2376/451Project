@@ -9,3 +9,5 @@ public record PlaidAccount(
     string SubType,
     decimal CurrentBalance,
     decimal AvailableBalance);
+
+

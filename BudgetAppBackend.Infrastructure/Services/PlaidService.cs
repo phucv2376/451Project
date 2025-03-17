@@ -138,7 +138,6 @@ namespace BudgetAppBackend.Infrastructure.Services
             var hasMore = result.GetProperty("has_more").GetBoolean();
             var requestId = result.GetProperty("request_id").GetString()!;
 
-            // Get the item_id for this access token if we don't have it
             if (!string.IsNullOrEmpty(accessToken))
             {
                 var itemRequest = new
@@ -160,7 +159,7 @@ namespace BudgetAppBackend.Infrastructure.Services
                     nextCursor,
                     hasMore,
                     requestId,
-                    itemId);  // Add itemId to response
+                    itemId);
             }
             return new TransactionsSyncResponse(
                 added,

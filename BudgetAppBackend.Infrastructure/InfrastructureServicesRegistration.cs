@@ -48,6 +48,7 @@ namespace BudgetAppBackend.Infrastructure
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<IPlaidTransactionRepository, PlaidTransactionRepository>();
             services.AddScoped<IPlaidSyncCursorRepository, PlaidSyncCursorRepository>();
+            services.AddScoped<IPlaidAccountFingerprintRepository, PlaidAccountFingerprintRepository>();
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings").Bind);
 
             services.AddSingleton<IAuthService, AuthService>();

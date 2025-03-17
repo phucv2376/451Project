@@ -1,4 +1,5 @@
-﻿using BudgetAppBackend.Application.Features.Plaid.CreateLinkToken;
+﻿using BudgetAppBackend.API.Models;
+using BudgetAppBackend.Application.Features.Plaid.CreateLinkToken;
 using BudgetAppBackend.Application.Features.Plaid.ExchangePublicToken;
 using BudgetAppBackend.Application.Features.Plaid.GetAccounts;
 using BudgetAppBackend.Application.Features.Plaid.SyncTransactions;
@@ -29,10 +30,35 @@ namespace BudgetAppBackend.API.Controllers
         [HttpPost("exchange-token")] //done
         public async Task<IActionResult> ExchangePublicToken([FromBody] ExchangePublicTokenRequest request, CancellationToken cancellationToken)
         {
-            var command = new ExchangePublicTokenCommand(request.PublicToken);
+            var command = new ExchangePublicTokenCommand(
+                request.PublicToken,
+                Guid.Parse(request.UserId),
+                request.Metadata != null ? new LinkSuccessMetadata(
+                    request.Metadata.InstitutionId,
+                    request.Metadata.InstitutionName,
+                    request.Metadata.Accounts.Select(a => new LinkAccount(
+                        a.Id,
+                        a.Name,
+                        a.Mask,
+                        a.Type,
+                        a.Subtype
+                    )).ToList(),
+                    request.Metadata.LinkSessionId
+                ) : null
+            );
+
             var result = await _mediator.Send(command, cancellationToken);
-            return Ok(result);
+
+            return Ok(new
+            {
+                result.AccessToken,
+                result.ItemId,
+                result.Success,
+                result.IsDuplicate,
+                result.Error
+            });
         }
+
 
         [HttpPost("transactions/sync")] // done
         public async Task<IActionResult> SyncTransactions([FromBody] SyncTransactionsRequest request,CancellationToken cancellationToken)
@@ -56,11 +82,5 @@ namespace BudgetAppBackend.API.Controllers
             return Ok(result);
         }
     }
-
-    public record CreateLinkTokenRequest(string ClientUserId);
-    public record ExchangePublicTokenRequest(string PublicToken);
-    public record GetAccountsRequest(string AccessToken);
-
-    public record SyncTransactionsRequest(Guid userId,string AccessToken, string? Cursor, int? Count);
     
 }
