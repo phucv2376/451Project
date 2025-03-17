@@ -52,7 +52,7 @@ export const getTransactions = async (userId: string, rowCount?: number, page?: 
         // Construct the URL with optional query parameters for pagination
         let url = `${API_BASE_URL}/Transaction/user/${userId}/list-of-transactions`;
         if (page !== undefined && rowCount !== undefined) {
-            url += `?rowCount=${rowCount}&page=${page}`;
+            url += `?rowCount=${rowCount}&pageNumber=${page}`;
         }
         const response = await fetch(url, {
             method: "GET",

@@ -120,7 +120,7 @@ const TransactionTable = (props: Props) => {
                     <TablePagination
                         component="div"
                         count={props.paging.paging.totalRows}
-                        page={props.page || 0}
+                        page={(props.page || 1)-1}
                         rowsPerPage={props.rowsPerPage || 10}
                         onPageChange={props.onPageChange || (() => {})}
                         onRowsPerPageChange={props.onRowsPerPageChange || (() => {})}

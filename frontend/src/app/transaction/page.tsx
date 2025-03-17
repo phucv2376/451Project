@@ -55,7 +55,6 @@ const TransactionPage = () => {
     });
 
     const loadTransactions = async (page: number) => {
-
         const storedUserId = localStorage.getItem('userId');
 
         if (!storedUserId) {
@@ -96,7 +95,8 @@ const TransactionPage = () => {
         if (event) {
             // @ts-ignore
             event.preventDefault?.();
-        }
+        }   
+        newPage = newPage + 1;
         setCurrentPage(newPage);
         loadTransactions(newPage);
     };
