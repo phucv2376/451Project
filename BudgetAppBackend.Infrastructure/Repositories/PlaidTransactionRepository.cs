@@ -1,7 +1,6 @@
 ﻿using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.DTOs.TransactionDTOs;
 using BudgetAppBackend.Domain.PlaidTransactionAggregate;
-using BudgetAppBackend.Domain.PlaidTransactionAggregate.Entities;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -67,12 +66,6 @@ namespace BudgetAppBackend.Infrastructure.Repositories
         {
             return await _context.PlaidTransactions
                 .FirstOrDefaultAsync(t => t.PlaidTransactionId == plaidTransactionId);
-        }
-
-        public async Task<PlaidSyncCursor?> GetLastCursorAsync(UserId userId, string accessToken)
-        {
-            return await _context.PlaidSyncCursors
-                .FirstOrDefaultAsync(c => c.UserId == userId && c.AccessToken == accessToken);
         }
 
         public async Task<List<TransactionDto>> GetRecentTransactionsByUserAsync(UserId userId, CancellationToken cancellationToken)
@@ -191,25 +184,6 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             }
         }
 
-        public async Task SaveCursorAsync(PlaidSyncCursor cursor)
-        {
-            var existing = await _context.PlaidSyncCursors
-                .FirstOrDefaultAsync(c => c.UserId == cursor.UserId
-                    && c.AccessToken == cursor.AccessToken);
-
-            if (existing == null)
-            {
-                _context.PlaidSyncCursors.Add(cursor);
-            }
-            else
-            {
-                existing.Cursor = cursor.Cursor;
-                existing.LastSynced = cursor.LastSynced;
-                existing.LastSyncStatus = cursor.LastSyncStatus;
-            }
-
-            await _context.SaveChangesAsync();
-        }
 
         public async Task UpdateTransactionsAsync(IEnumerable<PlaidTransaction> transactions)
         {

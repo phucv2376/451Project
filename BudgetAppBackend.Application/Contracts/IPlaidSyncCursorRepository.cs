@@ -10,6 +10,7 @@ namespace BudgetAppBackend.Application.Contracts
         Task SaveCursorAsync(PlaidSyncCursor cursor);
 
         Task<List<PlaidSyncCursor>> GetUserCursorsAsync(UserId userId);
+        Task<PlaidSyncCursor?> GetCursorByItemIdAsync(UserId userId, string itemId);
 
         Task DeleteCursorAsync(UserId userId, string accessToken);
     }

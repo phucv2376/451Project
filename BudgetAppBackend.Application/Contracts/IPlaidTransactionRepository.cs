@@ -11,9 +11,6 @@ namespace BudgetAppBackend.Application.Contracts
         Task AddTransactionsAsync(IEnumerable<PlaidTransaction> transactions);
         Task UpdateTransactionsAsync(IEnumerable<PlaidTransaction> transactions);
         Task MarkTransactionsAsRemovedAsync(IEnumerable<string> plaidTransactionIds);
-        Task<PlaidSyncCursor?> GetLastCursorAsync(UserId userId, string accessToken);
-        Task SaveCursorAsync(PlaidSyncCursor cursor);
-
         Task<decimal> GetTotalIncomeForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken);
         Task<decimal> GetTotalExpensesForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken);
         Task<IQueryable<TransactionDto>> GetUserTransactionsQueryAsync(UserId userId, CancellationToken cancellationToken);

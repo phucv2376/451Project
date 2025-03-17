@@ -25,6 +25,8 @@ namespace BudgetAppBackend.Infrastructure.Configuration
                     value => UserId.Create(value))
                 .IsRequired();
 
+            builder.Property(c => c.ItemId);
+
             // Configure AccessToken with max length and required constraint
             builder.Property(c => c.AccessToken)
                 .IsRequired()
@@ -44,7 +46,7 @@ namespace BudgetAppBackend.Infrastructure.Configuration
                 .HasMaxLength(100);
 
             // Define a unique index for UserId and AccessToken combination
-            builder.HasIndex(c => new { c.UserId, c.AccessToken })
+            builder.HasIndex(c => new { c.UserId, c.AccessToken, c.ItemId })
                 .IsUnique();
         }
     }

@@ -34,17 +34,61 @@ namespace BudgetAppBackend.Application.Features.Plaid.SyncTransactions
         {
             try
             {
-                // Get the current cursor if not provided
+                string itemId = null!;
+                PlaidSyncCursor savedCursor = null!;
+                var userId = UserId.Create(request.userId);
+
+
+                // Initial sync to get the Item ID if we don't already have it
+                var initialSync = await _plaidService.SyncTransactionsAsync(
+                    request.userId,
+                    request.AccessToken,
+                    null,
+                    1, // Minimal data to just get the ItemID
+                    cancellationToken);
+
+                itemId = initialSync.ItemId!;
+
+                if (string.IsNullOrEmpty(itemId))
+                {
+                    _logger.LogWarning("Could not retrieve Item ID for access token. Proceeding with access token only sync.");
+                }
+
+                // Get the current cursor using a prioritization strategy:
+                // 1. Use provided cursor if available
+                // 2. Try to find by ItemID if we have it (handles reconnection scenarios)
+                // 3. Fall back to finding by AccessToken (original flow)
                 var cursor = request.Cursor;
                 if (cursor == null)
                 {
-                    var savedCursor = await _cursorRepository.GetLastCursorAsync(
-                        UserId.Create(request.userId),
-                        request.AccessToken);
+                    if (!string.IsNullOrEmpty(itemId))
+                    {
+                        // Try to get cursor by ItemID first (for reconnection scenarios)
+                        savedCursor = await _cursorRepository.GetCursorByItemIdAsync(userId, itemId);
+                        if (savedCursor != null)
+                        {
+                            _logger.LogInformation("Found existing cursor by Item ID {ItemId}. User has likely reconnected with a new access token.", itemId);
+
+                            // Update the access token for this item if it's different
+                            if (savedCursor.AccessToken != request.AccessToken)
+                            {
+                                savedCursor.UpdateAccessToken(request.AccessToken);
+                                await _cursorRepository.SaveCursorAsync(savedCursor);
+                                _logger.LogInformation("Updated access token for Item ID {ItemId}", itemId);
+                            }
+                        }
+                    }
+
+                    // If we didn't find by ItemID or don't have an ItemID, try by access token
+                    if (savedCursor == null)
+                    {
+                        savedCursor = await _cursorRepository.GetLastCursorAsync(userId, request.AccessToken);
+                    }
+
                     cursor = savedCursor?.Cursor;
                 }
 
-                // Get transactions from Plaid
+                // Get transactions from Plaid with the cursor we found
                 var syncResponse = await _plaidService.SyncTransactionsAsync(
                     request.userId,
                     request.AccessToken,
@@ -74,13 +118,24 @@ namespace BudgetAppBackend.Application.Features.Plaid.SyncTransactions
                     await _transactionRepository.MarkTransactionsAsRemovedAsync(removedIds);
                 }
 
+                // Ensure we have the Item ID from the sync response
+                itemId = syncResponse.ItemId ?? itemId;
+
+                if (string.IsNullOrEmpty(itemId))
+                {
+                    _logger.LogWarning("No Item ID available after sync for user {UserId}. Using access token only.", request.userId);
+                }
+
+
                 // Update the sync cursor
                 var newCursor = PlaidSyncCursor.Create(
                     UserId.Create(request.userId),
                     request.AccessToken,
+                    itemId ?? "unknown",
                     syncResponse.NextCursor);
 
                 await _cursorRepository.SaveCursorAsync(newCursor);
+                _logger.LogInformation("Updated sync cursor for user {UserId}, Item ID {ItemId}", request.userId, itemId);
 
                 return syncResponse;
             }

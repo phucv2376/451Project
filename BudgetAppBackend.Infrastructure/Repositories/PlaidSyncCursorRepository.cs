@@ -37,6 +37,24 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             }
         }
 
+        public async Task<PlaidSyncCursor?> GetCursorByItemIdAsync(UserId userId, string itemId)
+        {
+            try
+            {
+                return await _context.PlaidSyncCursors
+                    .FirstOrDefaultAsync(c =>
+                        c.UserId == userId &&
+                        c.ItemId == itemId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Error retrieving cursor for user {UserId} and item ID {ItemId}",
+                    userId.Id, itemId);
+                throw;
+            }
+        }
+
         public async Task SaveCursorAsync(PlaidSyncCursor cursor)
         {
             try
@@ -44,7 +62,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 var existing = await _context.PlaidSyncCursors
                     .FirstOrDefaultAsync(c =>
                         c.UserId == cursor.UserId &&
-                        c.AccessToken == cursor.AccessToken);
+                        c.ItemId == cursor.ItemId);
 
                 if (existing == null)
                 {
@@ -52,7 +70,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 }
                 else
                 {
-
+                    existing.UpdateAccessToken(cursor.AccessToken);
                     existing.UpdateCursor(cursor.Cursor);
                 }
 
@@ -86,14 +104,14 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             }
         }
 
-        public async Task DeleteCursorAsync(UserId userId, string accessToken)
+        public async Task DeleteCursorAsync(UserId userId, string itemId)
         {
             try
             {
                 var cursor = await _context.PlaidSyncCursors
                     .FirstOrDefaultAsync(c =>
                         c.UserId == userId &&
-                        c.AccessToken == accessToken);
+                        c.ItemId == itemId);
 
                 if (cursor != null)
                 {
@@ -105,14 +123,14 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 {
                     _logger.LogWarning(
                         "Attempted to delete non-existent cursor for user {UserId} and access token {AccessToken}",
-                        userId.Id, accessToken);
+                        userId.Id, itemId);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
                     "Error deleting cursor for user {UserId} and access token {AccessToken}",
-                    userId.Id, accessToken);
+                    userId.Id, itemId);
                 throw;
             }
         }

@@ -6,7 +6,8 @@
         List<RemovedTransaction> Removed,
         string NextCursor,
         bool HasMore,
-        string RequestId);
+        string RequestId,
+        string? ItemId = null);
 
     public record RemovedTransaction(
         string TransactionId,

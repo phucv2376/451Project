@@ -113,8 +113,7 @@ namespace BudgetAppBackend.Infrastructure.Services
                 secret = _options.Secret,
                 access_token = accessToken,
                 cursor = cursor,
-                count = 100,
-                //Math.Min(500, Math.Max(1, count))
+                count = Math.Min(500, Math.Max(1, count))
             };
 
             var response = await _httpClient.PostAsJsonAsync("transactions/sync", request, cancellationToken);
@@ -135,14 +134,41 @@ namespace BudgetAppBackend.Infrastructure.Services
                     t.GetProperty("transaction_id").GetString()!,
                     t.GetProperty("account_id").GetString()!))
                 .ToList();
+            var nextCursor = result.GetProperty("next_cursor").GetString()!;
+            var hasMore = result.GetProperty("has_more").GetBoolean();
+            var requestId = result.GetProperty("request_id").GetString()!;
 
+            // Get the item_id for this access token if we don't have it
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                var itemRequest = new
+                {
+                    client_id = _options.ClientId,
+                    secret = _options.Secret,
+                    access_token = accessToken
+                };
+
+                var itemResponse = await _httpClient.PostAsJsonAsync("item/get", itemRequest, cancellationToken);
+                itemResponse.EnsureSuccessStatusCode();
+                var itemResult = await itemResponse.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
+                var itemId = itemResult.GetProperty("item").GetProperty("item_id").GetString()!;
+
+                return new TransactionsSyncResponse(
+                    added,
+                    modified,
+                    removed,
+                    nextCursor,
+                    hasMore,
+                    requestId,
+                    itemId);  // Add itemId to response
+            }
             return new TransactionsSyncResponse(
                 added,
                 modified,
                 removed,
-                result.GetProperty("next_cursor").GetString()!,
-                result.GetProperty("has_more").GetBoolean(),
-                result.GetProperty("request_id").GetString()!);
+                nextCursor,
+                hasMore,
+                requestId);
         }
 
         private static PlaidTransactionDto ParseTransaction(JsonElement t, Guid userId)
