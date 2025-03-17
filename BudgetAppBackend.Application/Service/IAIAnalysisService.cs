@@ -1,4 +1,6 @@
-﻿using BudgetAppBackend.Domain.BudgetAggregate;
+﻿using BudgetAppBackend.Application.DTOs.AiAnalysisDTOS;
+using BudgetAppBackend.Application.DTOs.TransactionDTOs;
+using BudgetAppBackend.Domain.BudgetAggregate;
 using BudgetAppBackend.Domain.TransactionAggregate;
 
 namespace BudgetAppBackend.Application.Service
@@ -8,11 +10,14 @@ namespace BudgetAppBackend.Application.Service
         /// <summary>
         /// Analyzes spending patterns based on a collection of transactions.
         /// </summary>
-        Task<string> AnalyzeSpendingPatterns(IEnumerable<Transaction> transactions);
+        Task<QuarterlyTransactionAnalysis> AnalyzeSpendingPatternsForLastThreeMonth(IEnumerable<TransactionDto> transactions);
+
+
+        Task<SpendingForecast> ForecastSpendingTrends(IEnumerable<TransactionDto> transactions);
 
         /// <summary>
         /// Generates budget recommendations using the provided budgets and transactions.
         /// </summary>
-        Task<string> GetBudgetRecommendations(IEnumerable<Budget> budgets, IEnumerable<Transaction> transactions);
+        Task<string> GetBudgetRecommendations(IEnumerable<Budget> budgets, IEnumerable<TransactionDto> transactions);
     }
 }

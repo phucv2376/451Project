@@ -29,11 +29,14 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
         public async Task<Transaction?> GetByIdAsync(TransactionId transactionId, CancellationToken cancellationToken)
         {
-            return await _dbContext.Transactions
+            var transaction = await _dbContext.Transactions
                 .FirstOrDefaultAsync(t => t.Id == transactionId, cancellationToken);
+
+            return transaction;
+
         }
 
-        public async Task<List<TransactionDto>> GetRecentTransactionsByUserAsync(UserId userId, CancellationToken cancellationToken)
+        public async Task<IEnumerable<TransactionDto>> GetRecentTransactionsByUserAsync(UserId userId, CancellationToken cancellationToken)
         {
             var transactions = await _dbContext.Transactions
                 .Where(t => t.UserId == userId)
@@ -41,24 +44,28 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 .Take(5)
                 .Select(t => new TransactionDto(
                     t.Id.Id,
-                    t.Amount,
                     t.TransactionDate,
-                    t.Category,
-                    t.Payee))
+                    t.Amount,
+                    t.Payee,
+                    t.Category))
                 .ToListAsync(cancellationToken);
 
             return transactions;
         }
 
-        public async Task<List<Transaction>> GetTransactionsByUserAndCategoryAsync( UserId userId, string category,DateTime budgetCreatedDate, CancellationToken cancellationToken)
+        public async Task<IEnumerable<Transaction>> GetTransactionsByUserAndCategoryAsync(UserId userId, string category, DateTime budgetCreatedDate, CancellationToken cancellationToken)
         {
             var lowerCategory = category.ToLower();
-            return await _dbContext.Transactions
+            var transactions = await _dbContext.Transactions
                 .Where(t => t.UserId == userId &&
                             t.Category.ToLower().Contains(lowerCategory) &&
                             t.TransactionDate.Month == budgetCreatedDate.Month &&
                             t.TransactionDate.Year == budgetCreatedDate.Year)
                 .ToListAsync(cancellationToken);
+
+            return transactions;
+
+            
         }
 
 
@@ -89,11 +96,11 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 .Where(t => t.UserId == userId)
                 .OrderByDescending(t => t.CreatedDate)
                 .Select(t => new TransactionDto(
-                    t.Id.Id,
-                    t.Amount,
+                     t.Id.Id,
                     t.TransactionDate,
-                    t.Category,
-                    t.Payee
+                    t.Amount,
+                    t.Payee,
+                    t.Category
                 ))
                 .AsQueryable();
 
@@ -108,12 +115,19 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByUserIdAsync(UserId userId)
+        public async Task<IEnumerable<TransactionDto>> GetThreeMonthTransactionsByUserIdAsync(UserId userId)
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-90);
-            return await _dbContext.Transactions
-                                   .Where(t => t.UserId == userId && t.TransactionDate >= cutoffDate)
-                                   .ToListAsync();
+            var transactions = await _dbContext.Transactions
+                                               .Where(t => t.UserId == userId && t.TransactionDate >= cutoffDate)
+                                               .ToListAsync();
+
+            return transactions.Select(t => new TransactionDto(
+                 t.Id.Id,
+                 t.TransactionDate,
+                 t.Amount,
+                 t.Payee,
+                 t.Category)).ToList();
         }
 
     }

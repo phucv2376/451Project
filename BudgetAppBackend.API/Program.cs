@@ -97,7 +97,7 @@ internal class Program
         {
             options.AddPolicy("AllowOrigin", policy =>
             {
-                policy.WithOrigins("http://localhost:3000", "http://10.2.0.2:3000", "http://10.96.0.45:3000", "http://localhost:3001", "http://10.2.0.2:3001", "http://192.168.56.1:3000")
+                policy.WithOrigins("http://localhost:3000", "http://10.2.0.2:3000", "http://10.96.0.45:3000", "http://localhost:3001", "http://localhost:3002", "http://10.2.0.2:3001", "http://192.168.56.1:3000")
                       .AllowCredentials()
                       .AllowAnyMethod()
                       .AllowAnyHeader()

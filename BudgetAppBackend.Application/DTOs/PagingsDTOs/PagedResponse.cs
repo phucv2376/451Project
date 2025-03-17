@@ -14,11 +14,11 @@ namespace BudgetAppBackend.Application.DTOs.PagingsDTOs
                 TotalRows = queryable.Count()
             };
             Paging.TotalPages = (int)Math.Ceiling((double)Paging.TotalRows / pagingdDto.rowCount);
-            Paging.CurPage = pagingdDto.pagNumber;
+            Paging.CurPage = pagingdDto.pageNumber;
             Paging.HasNextPage = Paging.CurPage < Paging.TotalPages;
             Paging.HasPrevPage = Paging.CurPage > 1;
 
-            Data = queryable.Skip((pagingdDto.pagNumber - 1) * pagingdDto.rowCount)
+            Data = queryable.Skip((pagingdDto.pageNumber - 1) * pagingdDto.rowCount)
                  .Take(pagingdDto.rowCount).ToList();
         }
     }

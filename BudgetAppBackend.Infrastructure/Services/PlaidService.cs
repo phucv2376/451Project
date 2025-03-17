@@ -113,7 +113,8 @@ namespace BudgetAppBackend.Infrastructure.Services
                 secret = _options.Secret,
                 access_token = accessToken,
                 cursor = cursor,
-                count = Math.Min(500, Math.Max(1, count))
+                count = 100,
+                //Math.Min(500, Math.Max(1, count))
             };
 
             var response = await _httpClient.PostAsJsonAsync("transactions/sync", request, cancellationToken);

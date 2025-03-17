@@ -1,4 +1,5 @@
-﻿using BudgetAppBackend.Application.Features.AI.GetAiAnalysis;
+﻿using BudgetAppBackend.Application.Features.AI.GetQuarterlyTransactionAnalysis;
+using BudgetAppBackend.Application.Features.AI.GetSpendingForecast;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,21 +9,34 @@ namespace BudgetAppBackend.API.Controllers
     [ApiController]
     public class AiAnalysisController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly ISender _sender;
+            
 
-        public AiAnalysisController(IMediator mediator)
+        public AiAnalysisController(ISender sender)
         {
-            _mediator = mediator;
+            _sender = sender; 
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetAiAnalysis(Guid userId)
+        [HttpGet("QuarterlyTransactionAnalysis/{userId}")]
+        public async Task<IActionResult> GetQuarterlyTransactionAnalysis(Guid userId)
         {
 
           
-            var result = await _mediator.Send(new GetAiAnalysisQuery
+            var result = await _sender.Send(new GetQuarterlyTransactionAnalysisQuery
             {
                 UserId = userId
+            });
+            return Ok(result);
+        }
+
+        [HttpGet("ForecastSpendingTrends/{UserId}")]
+        public async Task<IActionResult> GetForecastSpendingTrends(Guid UserId)
+        {
+
+
+            var result = await _sender.Send(new GetSpendingForecastQuery
+            {
+                userId = UserId
             });
             return Ok(result);
         }

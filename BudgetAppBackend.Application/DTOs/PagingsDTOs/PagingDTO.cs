@@ -4,6 +4,6 @@
     {
         private int rowCount1 = 4;
         public int rowCount { get => rowCount1; set => rowCount1 = Math.Min(20, value); }
-        public int pagNumber { get; set; } = 1;
+        public int pageNumber { get; set; } = 1;
     }
 }

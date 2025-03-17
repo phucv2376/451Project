@@ -7,9 +7,7 @@ namespace BudgetAppBackend.Application.Contracts
 {
     public interface IPlaidTransactionRepository
     {
-        Task<PlaidTransaction?> GetByPlaidIdAsync(string plaidTransactionId);
-        Task<List<PlaidTransaction>> GetUserTransactionsAsync(UserId userId, DateTime startDate, DateTime endDate); // is not being used
-        Task<List<PlaidTransaction>> GetTransactionsByUserAndCategoryAsync(UserId userId, string category, DateTime budgetCreatedDate, CancellationToken cancellationToken);
+      
         Task AddTransactionsAsync(IEnumerable<PlaidTransaction> transactions);
         Task UpdateTransactionsAsync(IEnumerable<PlaidTransaction> transactions);
         Task MarkTransactionsAsRemovedAsync(IEnumerable<string> plaidTransactionIds);
@@ -20,5 +18,11 @@ namespace BudgetAppBackend.Application.Contracts
         Task<decimal> GetTotalExpensesForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken);
         Task<IQueryable<TransactionDto>> GetUserTransactionsQueryAsync(UserId userId, CancellationToken cancellationToken);
         Task<List<TransactionDto>> GetRecentTransactionsByUserAsync(UserId userId, CancellationToken cancellationToken);
+        Task<PlaidTransaction?> GetByPlaidIdAsync(string plaidTransactionId);
+        Task<List<PlaidTransaction>> GetUserTransactionsAsync(UserId userId, DateTime startDate, DateTime endDate); // is not being used
+        Task<List<PlaidTransaction>> GetTransactionsByUserAndCategoryAsync(UserId userId, string category, DateTime budgetCreatedDate, CancellationToken cancellationToken);
+
+        //Ai
+        Task<IEnumerable<TransactionDto>> GetThreeMonthTransactionsByUserIdAsync(UserId userId);
     }
 }

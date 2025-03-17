@@ -51,7 +51,7 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetUserTransactions
                 {
                     UserId = request.UserId,
                     rowCount = request.Paging!.rowCount,
-                    pageNumber = request.Paging.pagNumber + 1
+                    pageNumber = request.Paging.pageNumber + 1
                 });
             }
 
@@ -61,7 +61,7 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetUserTransactions
                 {
                     UserId = request.UserId,
                     rowCount = request.Paging!.rowCount,
-                    pageNumber = request.Paging.pagNumber - 1
+                    pageNumber = request.Paging.pageNumber - 1
                 });
             }
 

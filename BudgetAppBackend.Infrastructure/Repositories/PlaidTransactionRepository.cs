@@ -2,7 +2,6 @@
 using BudgetAppBackend.Application.DTOs.TransactionDTOs;
 using BudgetAppBackend.Domain.PlaidTransactionAggregate;
 using BudgetAppBackend.Domain.PlaidTransactionAggregate.Entities;
-using BudgetAppBackend.Domain.TransactionAggregate;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -84,10 +83,10 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 .Take(5)
                 .Select(t => new TransactionDto(
                     t.Id.Id,
-                    t.Amount,
                     t.Date,
-                    t.Category,
-                    t.Name))
+                    t.Amount,
+                    t.Name,
+                    t.Category))
                 .ToListAsync(cancellationToken);
 
             return transactions;
@@ -121,10 +120,10 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 .OrderByDescending(t => t.Date)
                 .Select(t => new TransactionDto(
                     t.Id.Id,
-                    t.Amount,
                     t.Date,
-                    t.Category,
-                    t.Name
+                    t.Amount,
+                    t.Name,
+                    t.Category
                 ))
                 .AsQueryable();
 
@@ -244,6 +243,22 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<IEnumerable<TransactionDto>> GetThreeMonthTransactionsByUserIdAsync(UserId userId)
+        {
+            var cutoffDate = DateTime.UtcNow.AddDays(-90);
+            var transactions = await _context.PlaidTransactions
+                                    .Where(t => t.UserId == userId && t.Date >= cutoffDate)
+                                    .ToListAsync();
+
+            return transactions.Select(t => new TransactionDto(
+                t.Id.Id,
+                t.Date,
+                t.Amount,
+                t.Name,
+                t.Category
+            ));
         }
     }
 }
