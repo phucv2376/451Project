@@ -153,23 +153,34 @@ export default function BankIntegration({
                 Disconnect Bank
               </button> */}
 
-            <button
-              onClick={() => loadAllTransactions(plaidAccessToken!)}
-              disabled={isSyncing}
-              className="px-1 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all text-xs flex items-center justify-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ArrowPathIcon className={`w-4 h-4 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'Syncing...' : 'Sync Transactions'}
-            </button>
-            {/* </div> */}
+            <div className="relative after:content-[''] after:block after:w-full after:h-px after:bg-gray-200 after:absolute after:bottom-0 after:left-0 flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-3">
+                <AccountBalanceIcon className="w-5 h-5 mr-2 text-blue-500" />
+                Linked Accounts
+              </h3>
+              <button
+                onClick={() => loadAllTransactions(plaidAccessToken!)}
+                disabled={isSyncing}
+                className="mb-3 "
+              >
+                <ArrowPathIcon className={`w-5 h-5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                {/* {isSyncing ? 'Syncing...' : 'Sync Transactions'} */}
+              </button>
+
+              <span className="
+    absolute -bottom-7 left-1/2 -translate-x-1/2 
+    bg-gray-800 text-white text-xs px-2 py-1 rounded 
+    opacity-0 group-hover:opacity-100 transition-opacity
+    whitespace-nowrap
+  ">
+    {isSyncing ? 'Syncing...' : 'Sync Transactions'}
+  </span>
+              {/* </div> */}
+            </div>
 
             {/* Connected Accounts Section */}
             {accounts.length > 0 && (
               <div className="mt-4">
-                <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-3 relative after:content-[''] after:block after:w-full after:h-px after:bg-gray-200 after:absolute after:bottom-0 after:left-0">
-                  <AccountBalanceIcon className="w-5 h-5 mr-2 text-blue-500" />
-                  Linked Accounts
-                </h3>
 
                 <div className="space-y-3">
                   {accounts.map((account) => (

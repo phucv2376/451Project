@@ -35,15 +35,6 @@ const Dashboard = () => {
     // Memoized variable for checking bank connection
     const isBankConnected = useMemo(() => !!plaidAccessToken, [plaidAccessToken]);
 
-    // //Automatically sync transactions every 7 sec
-    // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //       console.log('This will be called every 2 seconds');
-    //     }, 70000);
-
-    //     return () => clearInterval(interval);
-    //   }, []);
-
     // Fetch Transactions and Financial Data
     const updateTransactions = async () => {
         const storedUserId = localStorage.getItem("userId");
