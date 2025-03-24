@@ -11,7 +11,8 @@ import {
     TableHead, 
     TableRow, 
     Paper, 
-    TablePagination 
+    TablePagination,
+    Chip, Stack 
 } from "@mui/material";
 
 type Props = {
@@ -101,8 +102,25 @@ const TransactionTable = (props: Props) => {
                                     {formatDate(transaction.transactionDate)}                               
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-sm text-gray-900">
-                                    {transaction.category}
+                                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                                        {transaction.categories.length > 0 && (
+                                            <Chip
+                                                label={transaction.categories[0]}
+                                                size="small"
+                                                color="primary"
+                                            />
+                                        )}
+                                        {transaction.categories.slice(1).map((subcategory, index) => (
+                                            <Chip
+                                                key={index}
+                                                label={subcategory}
+                                                size="small"
+                                                variant="outlined"
+                                            />
+                                        ))}
+                                    </Stack>
                                 </TableCell>
+
                                 <TableCell className="px-6 py-4 text-sm text-gray-900">
                                     {transaction.payee}
                                 </TableCell>
