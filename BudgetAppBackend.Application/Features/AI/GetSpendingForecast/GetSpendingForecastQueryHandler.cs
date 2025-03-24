@@ -1,43 +1,51 @@
 ﻿using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.DTOs.AiAnalysisDTOS;
 using BudgetAppBackend.Application.DTOs.TransactionDTOs;
-using BudgetAppBackend.Application.Service;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using MediatR;
 
 namespace BudgetAppBackend.Application.Features.AI.GetSpendingForecast
 {
-    public class GetSpendingForecastQueryHandler : IRequestHandler<GetSpendingForecastQuery, SpendingForecast>
+    public class GetSpendingForecastQueryHandler : IRequestHandler<GetSpendingForecastQuery, DailySpendingForecastResult>
     {
-        private readonly IAIAnalysisService _aiService;
+        private readonly IDailySpendingForecaster _dailySpendingForecaster;
         private readonly ITransactionRepository _transactionRepository;
         private readonly IPlaidTransactionRepository _plaidTransactionRepository;
 
         public GetSpendingForecastQueryHandler(
-            IAIAnalysisService aiService,
+            IDailySpendingForecaster dailySpendingForecaster,
             ITransactionRepository transactionRepository,
             IPlaidTransactionRepository plaidTransactionRepository)
         {
-            _aiService = aiService;
+            _dailySpendingForecaster = dailySpendingForecaster;
             _transactionRepository = transactionRepository;
             _plaidTransactionRepository = plaidTransactionRepository;
         }
-        public async Task<SpendingForecast> Handle(GetSpendingForecastQuery request, CancellationToken cancellationToken)
+        public async Task<DailySpendingForecastResult> Handle(GetSpendingForecastQuery request, CancellationToken cancellationToken)
         {
             var userId = UserId.Create(request.userId);
 
-            //var manualTransactions = (await _transactionRepository.GetThreeMonthTransactionsByUserIdAsync(userId)) ?? Enumerable.Empty<TransactionDto>();
             var plaidTransactions = (await _plaidTransactionRepository.GetThreeMonthTransactionsByUserIdAsync(userId)) ?? Enumerable.Empty<TransactionDto>();
 
-            //var transactions = manualTransactions.Concat(plaidTransactions);
             if (!plaidTransactions.Any())
             {
                 throw new KeyNotFoundException("No transactions to analyze");
             }
 
-            var ForecastSpendingTrends = await _aiService.ForecastSpendingTrends(plaidTransactions);
+            var dailyExpenses = plaidTransactions
+               .Where(t => t.Categories.FirstOrDefault() != "Payment")
+               .GroupBy(t => t.TransactionDate.Date)
+               .OrderBy(g => g.Key)
+               .Select(g => new { Date = g.Key, Total = g.Sum(t => t.Amount) })
+               .ToList();
 
-            return ForecastSpendingTrends;
+            float[] dailyAmounts = dailyExpenses.Select(g => (float)g.Total).ToArray();
+            var lastKnownDate = dailyExpenses.Last().Date;
+
+            var forecast = await _dailySpendingForecaster.ForecastAsync(dailyAmounts, lastKnownDate, 30);
+
+            return forecast;
         }
+
     }
 }

@@ -2,19 +2,19 @@
 {
     public class TransactionDto
     {
-        public TransactionDto(Guid id, DateTime date, decimal amount, string payee, string category)
+        public TransactionDto(Guid id, DateTime date, decimal amount, string payee, IReadOnlyList<string> categories)
         {
             TransactionId = id;
             TransactionDate = date;
             Amount = amount;
             Payee = payee;
-            Category = category;
+            Categories = new List<string>(categories);
         }
 
         public Guid TransactionId { get; set; }
         public decimal Amount { get; set; }
         public DateTime TransactionDate { get; set; }
-        public string Category { get; set; }
-        public string Payee { get; set; }
+        public List<string> Categories { get; set; } = new();
+        public string Payee { get; set; } = string.Empty;
     }
 }

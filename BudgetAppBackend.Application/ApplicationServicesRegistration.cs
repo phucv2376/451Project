@@ -18,3 +18,4 @@ namespace BudgetAppBackend.Application
         }
     }
 }
+

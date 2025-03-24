@@ -98,8 +98,8 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
             {
                 if (transaction.TransactionDate.Month == CreatedDate.Month &&
                     transaction.TransactionDate.Year == CreatedDate.Year &&
-                    transaction.Category != null &&
-                    transaction.Category.Contains(Category, StringComparison.OrdinalIgnoreCase))
+                    transaction.Categories.FirstOrDefault() != null &&
+                    transaction.Categories.FirstOrDefault().Contains(Category, StringComparison.OrdinalIgnoreCase))
                 {
                     ApplyTransaction(transaction.Amount);
                 }
@@ -113,8 +113,8 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
 
                 if (plaidTransaction.Date.Month == CreatedDate.Month &&
                     plaidTransaction.Date.Year == CreatedDate.Year &&
-                    !string.IsNullOrWhiteSpace(plaidTransaction.Category) &&
-                    plaidTransaction.Category.Contains(Category, StringComparison.OrdinalIgnoreCase))
+                    !string.IsNullOrWhiteSpace(plaidTransaction.Categories.FirstOrDefault()) &&
+                    plaidTransaction.Categories.FirstOrDefault().Contains(Category, StringComparison.OrdinalIgnoreCase))
                 {
                     ApplyTransaction(plaidTransaction.Amount);
                 }

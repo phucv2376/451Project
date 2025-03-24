@@ -179,6 +179,10 @@ namespace BudgetAppBackend.Infrastructure.Services
                     pfcElement.TryGetProperty("confidence_level", out var confLevel) ? confLevel.GetString() : null)
                 : null;
 
+            var iconUrl = t.TryGetProperty("personal_finance_category_icon_url", out var iconElement) && iconElement.ValueKind == JsonValueKind.String
+                    ? iconElement.GetString()
+                    : null;
+
             var counterparties = t.TryGetProperty("counterparties", out var counterpartiesElement) && counterpartiesElement.ValueKind != JsonValueKind.Array
                 ? counterpartiesElement.EnumerateArray()
                     .Select(c => new Counterparty(
@@ -199,9 +203,10 @@ namespace BudgetAppBackend.Infrastructure.Services
                         Amount: Math.Abs(t.GetProperty("amount").GetDecimal()),
                         Name: t.GetProperty("name").GetString()!,
                         Date: DateTime.Parse(t.GetProperty("date").GetString()!).ToUniversalTime(),
-                        Category: t.TryGetProperty("category", out var category) && category.ValueKind != JsonValueKind.Null
-                            ? category[0].GetString()
-                            : null,
+                        Categories: t.TryGetProperty("category", out var categoryElement) && categoryElement.ValueKind == JsonValueKind.Array
+                        ? categoryElement.EnumerateArray().Select(c => c.GetString()!).ToList()
+                        : new List<string>(),
+
                         CategoryId: t.TryGetProperty("category_id", out var categoryId)
                             ? categoryId.GetString()
                             : null,

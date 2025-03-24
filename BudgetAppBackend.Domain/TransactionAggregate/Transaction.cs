@@ -9,7 +9,10 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
     public sealed class Transaction : AggregateRoot<TransactionId>
     {
         public UserId UserId { get; private set; }
-        public string Category { get; private set; }
+        private List<string> _categories = new();
+
+        public IReadOnlyList<string> Categories => _categories.AsReadOnly();
+
         public decimal Amount { get; private set; }
         public DateTime TransactionDate { get; private set; }
         public DateTime CreatedDate { get; private set; }
@@ -18,7 +21,7 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
 
         private Transaction() : base(default!) { }
 
-        private Transaction(TransactionId id, UserId userId, string category, decimal amount, DateTime transactionDate, string payee, TransactionType type)
+        private Transaction(TransactionId id, UserId userId, List<string> categories, decimal amount, DateTime transactionDate, string payee, TransactionType type)
             : base(id)
         {
             if (amount <= 0)
@@ -27,7 +30,7 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
                 throw new TransactionPayeeException("Payee name cannot be empty.");
 
             UserId = userId;
-            Category = category;
+            _categories = categories;
             Amount = amount;
             TransactionDate = transactionDate;
             CreatedDate = DateTime.UtcNow;
@@ -35,10 +38,10 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
             Type = type;
         }
 
-        public static Transaction Create(UserId userId, string category, decimal amount, DateTime transactionDate, string payee, TransactionType type)
+        public static Transaction Create(UserId userId, List<string> newCategories, decimal amount, DateTime transactionDate, string payee, TransactionType type)
         {
-            var transaction = new Transaction(TransactionId.CreateId(), userId, category, amount, transactionDate, payee, type);
-            transaction.RaiseDomainEvent(new TransactionCreatedEvent(userId.Id, category, amount, transactionDate));
+            var transaction = new Transaction(TransactionId.CreateId(), userId, newCategories, amount, transactionDate, payee, type);
+            transaction.RaiseDomainEvent(new TransactionCreatedEvent(userId.Id, newCategories.FirstOrDefault(), amount, transactionDate));
             return transaction;
         }
 
@@ -62,7 +65,7 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
 
         public void DeleteTransaction()
         {
-            RaiseDomainEvent(new TransactionDeletedEvent(UserId.Id, Category, Amount, TransactionDate));
+            RaiseDomainEvent(new TransactionDeletedEvent(UserId.Id, _categories.FirstOrDefault(), Amount, TransactionDate));
         }
     }
 }

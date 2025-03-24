@@ -14,7 +14,8 @@ namespace BudgetAppBackend.Domain.PlaidTransactionAggregate
         public decimal Amount { get; private set; }
         public string Name { get; private set; }
         public DateTime Date { get; private set; }
-        public string? Category { get; private set; }
+        private List<string> _categories = new();
+        public IReadOnlyList<string> Categories => _categories.AsReadOnly();
         public string? CategoryId { get; private set; }
         public string? MerchantName { get; private set; }
         public bool IsRemoved { get; private set; }
@@ -23,7 +24,7 @@ namespace BudgetAppBackend.Domain.PlaidTransactionAggregate
 
         private PlaidTransaction() : base(default!) { }
 
-        private PlaidTransaction(PlaidTranId id, UserId userId, string plaidTransactionId, string accountId, decimal amount, string name, DateTime date, string? category, string? categoryId, string? merchantName)
+        private PlaidTransaction(PlaidTranId id, UserId userId, string plaidTransactionId, string accountId, decimal amount, string name, DateTime date, List<string> categories, string? categoryId, string? merchantName)
             : base(id)
         {
             UserId = userId;
@@ -32,7 +33,7 @@ namespace BudgetAppBackend.Domain.PlaidTransactionAggregate
             Amount = amount;
             Name = name;
             Date = date;
-            Category = category;
+            _categories = categories ?? new();
             CategoryId = categoryId;
             MerchantName = merchantName;
             IsRemoved = false;
@@ -44,8 +45,8 @@ namespace BudgetAppBackend.Domain.PlaidTransactionAggregate
             string plaidTransactionId, 
             string accountId, decimal amount, 
             string name, 
-            DateTime date, 
-            string? category, 
+            DateTime date,
+            List<string> categories, 
             string? categoryId, 
             string? merchantName)
         {
@@ -57,13 +58,13 @@ namespace BudgetAppBackend.Domain.PlaidTransactionAggregate
                 accountId, 
                 amount, 
                 name, 
-                date, 
-                category, 
+                date,
+                categories, 
                 categoryId, 
                 merchantName
             );
 
-            plaidTransaction.RaiseDomainEvent(new PlaidTransactionCreatedEvent(transactionId.Id,userId.Id, plaidTransactionId, accountId, amount, category, date));
+            plaidTransaction.RaiseDomainEvent(new PlaidTransactionCreatedEvent(transactionId.Id,userId.Id, plaidTransactionId, accountId, amount, categories.FirstOrDefault(), date));
             return plaidTransaction;
         }
 
@@ -78,41 +79,28 @@ namespace BudgetAppBackend.Domain.PlaidTransactionAggregate
                     Id.Id,
                     UserId.Id,
                     Amount,
-                    Category,
+                    Categories.FirstOrDefault(),
                     Date));
             }
         }
 
-        public void Update(decimal amount,
-        string name,
-        DateTime date,
-        string? category,
-        string? categoryId,
-        string? merchantName)
+        public void Update(decimal amount,string name, DateTime date, List<string> categories, string? categoryId, string? merchantName)
         {
             var oldAmount = Amount;
-            var oldCategory = Category;
+            var oldCategories = new List<string>(_categories);
 
             Amount = amount;
             Name = name;
-            Category = category;
+            _categories = categories ?? new();
             CategoryId = categoryId;
             MerchantName = merchantName;
             LastModifiedAt = DateTime.UtcNow;
 
-            if (oldAmount != Amount || oldCategory != Category)
+            if (oldAmount != Amount || !oldCategories.SequenceEqual(_categories))
             {
-                RaiseDomainEvent(new PlaidTransactionModifiedDomainEvent(
-                    Id.Id,
-                    UserId.Id,
-                    oldAmount,
-                    Amount,
-                    oldCategory,
-                    Category,
-                    Date)
-                );
+
+               RaiseDomainEvent(new PlaidTransactionModifiedDomainEvent(Id.Id,UserId.Id,oldAmount,Amount, oldCategories.FirstOrDefault(), _categories.FirstOrDefault(),Date));
             }
         }
-
     }
 }

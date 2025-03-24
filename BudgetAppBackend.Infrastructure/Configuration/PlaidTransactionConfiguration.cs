@@ -42,8 +42,14 @@ namespace BudgetAppBackend.Infrastructure.Configuration
             builder.Property(t => t.Date)
                 .IsRequired();
 
-            builder.Property(t => t.Category)
-                .HasMaxLength(100);
+            builder.Property<List<string>>("_categories")
+                .HasColumnName("Categories")
+                .HasConversion(
+                    v => string.Join(";", v),
+                    v => v.Split(';', StringSplitOptions.None).ToList()
+                )
+                .HasMaxLength(300);
+
 
             builder.Property(t => t.CategoryId)
                 .HasMaxLength(100);
@@ -70,7 +76,6 @@ namespace BudgetAppBackend.Infrastructure.Configuration
             builder.HasIndex(t => t.PlaidTransactionId).IsUnique();
             builder.HasIndex(t => new { t.UserId, t.Date });
             builder.HasIndex(t => t.AccountId);
-            builder.HasIndex(t => t.Category);
         }
     }
 }

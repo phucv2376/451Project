@@ -47,7 +47,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                     t.TransactionDate,
                     t.Amount,
                     t.Payee,
-                    t.Category))
+                    t.Categories))
                 .ToListAsync(cancellationToken);
 
             return transactions;
@@ -58,7 +58,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             var lowerCategory = category.ToLower();
             var transactions = await _dbContext.Transactions
                 .Where(t => t.UserId == userId &&
-                            t.Category.ToLower().Contains(lowerCategory) &&
+                            t.Categories.FirstOrDefault().ToLower().Contains(lowerCategory) &&
                             t.TransactionDate.Month == budgetCreatedDate.Month &&
                             t.TransactionDate.Year == budgetCreatedDate.Year)
                 .ToListAsync(cancellationToken);
@@ -100,7 +100,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                     t.TransactionDate,
                     t.Amount,
                     t.Payee,
-                    t.Category
+                    t.Categories
                 ))
                 .AsQueryable();
 
@@ -127,7 +127,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                  t.TransactionDate,
                  t.Amount,
                  t.Payee,
-                 t.Category)).ToList();
+                 t.Categories)).ToList();
         }
 
     }

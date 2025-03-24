@@ -24,6 +24,7 @@ namespace BudgetAppBackend.Infrastructure.Services
 
         public async Task<QuarterlyTransactionAnalysis> AnalyzeSpendingPatternsForLastThreeMonth(IEnumerable<TransactionDto> transactions)
         {
+            DateTime threeMonthsAgo = DateTime.UtcNow.AddDays(-90);
             var promptBuilder = new StringBuilder();
 
             promptBuilder.AppendLine("You are a highly skilled financial data analyst with expertise in transaction monitoring and anomaly detection.");
@@ -31,31 +32,79 @@ namespace BudgetAppBackend.Infrastructure.Services
             promptBuilder.AppendLine("The response must be a single, complete JSON object with no trailing text.");
             promptBuilder.AppendLine("Do not include arrays for anomaliesOrRedFlags and recommendations - they should be string fields.");
             promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Analyze the following transactions to identify any unusual or suspicious spending patterns, trends, or anomalies.");
+            promptBuilder.AppendLine("Provide a detailed, comprehensive analysis of the transactions from the last 3 months (from" + threeMonthsAgo.ToString() + " to" + DateTime.Now.ToString() + ". For each section, provide extensive analysis with specific examples and detailed explanations:");
 
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Transactions (Date, Amount, Payee, Category):");
-            foreach (var tx in transactions)
+            var totalSpending = transactions.Sum(t => t.Amount);
+            var averageTransaction = transactions.Average(t => t.Amount);
+            var maxTransaction = transactions.Max(t => t.Amount);
+            var minTransaction = transactions.Min(t => t.Amount);
+            var transactionCount = transactions.Count();
+
+            promptBuilder.AppendLine("\nLast 3 Months Transaction Summary:");
+            promptBuilder.AppendLine($"- Total Transactions: {transactionCount}");
+            promptBuilder.AppendLine($"- Total Spending: ${totalSpending:F2}");
+            promptBuilder.AppendLine($"- Average Transaction: ${averageTransaction:F2}");
+            promptBuilder.AppendLine($"- Highest Transaction: ${maxTransaction:F2}");
+            promptBuilder.AppendLine($"- Lowest Transaction: ${minTransaction:F2}");
+
+            var categoryBreakdown = transactions
+                .GroupBy(t => t.Categories.FirstOrDefault())
+                .Select(g => new {
+                    Category = g.Key,
+                    Total = g.Sum(t => t.Amount),
+                    Count = g.Count(),
+                    Percentage = (g.Sum(t => t.Amount) / totalSpending) * 100
+                })
+                .OrderByDescending(x => x.Total);
+
+            promptBuilder.AppendLine("\nCategory Breakdown (Last 3 Months):");
+            foreach (var category in categoryBreakdown)
             {
-                promptBuilder.AppendLine($"- Date: {tx.TransactionDate:yyyy-MM-dd}, Amount: {tx.Amount}, Payee: {tx.Payee}, Type: {tx.Category}");
+                promptBuilder.AppendLine($"- {category.Category}: ${category.Total:F2} ({category.Count} transactions, {category.Percentage:F1}% of total)");
             }
 
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Required JSON Response Structure (EXACTLY as shown):");
+            var dailySpending = transactions
+                .GroupBy(t => t.TransactionDate.Date)
+                .Select(g => new { Date = g.Key, Total = g.Sum(t => t.Amount) })
+                .OrderBy(x => x.Date);
+
+            promptBuilder.AppendLine("\nDaily Spending Pattern (Last 3 Months):");
+            foreach (var day in dailySpending)
+            {
+                promptBuilder.AppendLine($"- {day.Date:yyyy-MM-dd}: ${day.Total:F2}");
+            }
+
+            promptBuilder.AppendLine("\nDetailed Transactions (Last 3 Months):");
+            foreach (var tx in transactions.OrderByDescending(t => t.TransactionDate))
+            {
+                promptBuilder.AppendLine($"- Date: {tx.TransactionDate:yyyy-MM-dd}, Amount: ${tx.Amount:F2}, Payee: {tx.Payee}, Category: {tx.Categories}");
+            }
+
+            promptBuilder.AppendLine("\nRequired JSON Response Structure (EXACTLY as shown):");
             promptBuilder.AppendLine("{");
-            promptBuilder.AppendLine("  \"overview\": \"A summary of overall spending patterns\",");
-            promptBuilder.AppendLine("  \"anomaliesOrRedFlags\": \"A description of suspicious transactions\",");
-            promptBuilder.AppendLine("  \"recommendations\": \"2-3 actionable tips for improvement\",");
+            promptBuilder.AppendLine("  \"overview\": \"A comprehensive summary of spending patterns (minimum 300 words)\",");
+            promptBuilder.AppendLine("  \"spendingTrends\": \"Detailed analysis of spending trends and patterns (minimum 300 words)\",");
+            promptBuilder.AppendLine("  \"categoryAnalysis\": \"In-depth analysis of spending by category with specific examples (minimum 300 words)\",");
+            promptBuilder.AppendLine("  \"anomaliesOrRedFlags\": \"Detailed identification of unusual transactions or patterns with explanations (minimum 200 words)\",");
+            promptBuilder.AppendLine("  \"timeBasedInsights\": \"Comprehensive analysis of spending patterns over time with trend identification (minimum 300 words)\",");
+            promptBuilder.AppendLine("  \"recommendations\": \"Detailed, actionable recommendations for improvement with specific examples (minimum 300 words)\",");
+            promptBuilder.AppendLine("  \"riskAssessment\": \"Thorough assessment of financial risks and concerns with mitigation strategies (minimum 200 words)\",");
+            promptBuilder.AppendLine("  \"opportunities\": \"Detailed analysis of potential opportunities for optimization (minimum 200 words)\",");
+            promptBuilder.AppendLine("  \"futureProjections\": \"Analysis of future spending patterns and potential impacts (minimum 200 words)\",");
+            promptBuilder.AppendLine("  \"comparativeAnalysis\": \"Comparison with typical spending patterns and benchmarks (minimum 200 words)\",");
             promptBuilder.AppendLine("  \"disclaimer\": \"This is not financial advice\"");
             promptBuilder.AppendLine("}");
+
+            promptBuilder.AppendLine("\nIMPORTANT: For each section, provide detailed analysis with specific examples, data points, and actionable insights. " +
+                "Use the transaction data provided to support your analysis.");
 
             var prompt = promptBuilder.ToString();
             var requestBody = new
             {
                 model = _ollamaSettings.Model,
                 prompt = prompt,
-                max_tokens = 5000,
-                temperature = 0.8,
+                max_tokens = 10000,
+                temperature = 0.5,
                 format = "json"
             };
 
@@ -68,6 +117,7 @@ namespace BudgetAppBackend.Infrastructure.Services
             var ollamaEndpoint = _ollamaSettings.Endpoint;
 
             var response = await _httpClient.PostAsync($"{ollamaEndpoint}/v1/completions", jsonContent);
+          
             response.EnsureSuccessStatusCode();
 
             var responseContent = await response.Content.ReadAsStringAsync();
@@ -138,8 +188,15 @@ namespace BudgetAppBackend.Infrastructure.Services
                 var cleanedObject = new
                 {
                     overview = tempRoot.GetProperty("overview").GetString()?.Trim() ?? "",
+                    spendingTrends = tempRoot.GetProperty("spendingTrends").GetString()?.Trim() ?? "",
+                    categoryAnalysis = tempRoot.GetProperty("categoryAnalysis").GetString()?.Trim() ?? "",
                     anomaliesOrRedFlags = ConvertToString(tempRoot.GetProperty("anomaliesOrRedFlags")),
+                    timeBasedInsights = tempRoot.GetProperty("timeBasedInsights").GetString()?.Trim() ?? "",
                     recommendations = ConvertToString(tempRoot.GetProperty("recommendations")),
+                    riskAssessment = tempRoot.GetProperty("riskAssessment").GetString()?.Trim() ?? "",
+                    opportunities = tempRoot.GetProperty("opportunities").GetString()?.Trim() ?? "",
+                    futureProjections = tempRoot.GetProperty("futureProjections").GetString()?.Trim() ?? "",
+                    comparativeAnalysis = tempRoot.GetProperty("comparativeAnalysis").GetString()?.Trim() ?? "",
                     disclaimer = tempRoot.GetProperty("disclaimer").GetString()?.Trim() ?? ""
                 };
 
@@ -152,10 +209,17 @@ namespace BudgetAppBackend.Infrastructure.Services
                 var analysisRoot = analysisDocument.RootElement;
 
                 return new QuarterlyTransactionAnalysis(
-                    Overview: analysisRoot.GetProperty("overview").GetString() ?? "No overview provided",
-                    AnomaliesOrRedFlags: analysisRoot.GetProperty("anomaliesOrRedFlags").GetString() ?? "No anomalies detected",
-                    Recommendations: analysisRoot.GetProperty("recommendations").GetString() ?? "No recommendations provided",
-                    Disclaimer: analysisRoot.GetProperty("disclaimer").GetString() ?? "This analysis is for informational purposes only and not financial advice"
+                    Overview: analysisRoot.GetProperty("overview").GetString()?.Trim() ?? "No overview provided",
+                    SpendingTrends: analysisRoot.GetProperty("spendingTrends").GetString()?.Trim() ?? "No spending trends identified",
+                    CategoryAnalysis: analysisRoot.GetProperty("categoryAnalysis").GetString()?.Trim() ?? "No category analysis available",
+                    AnomaliesOrRedFlags: ConvertToString(analysisRoot.GetProperty("anomaliesOrRedFlags")) ?? "No anomalies detected",
+                    TimeBasedInsights: analysisRoot.GetProperty("timeBasedInsights").GetString()?.Trim() ?? "No time-based insights available",
+                    Recommendations: ConvertToString(analysisRoot.GetProperty("recommendations")) ?? "No recommendations provided",
+                    RiskAssessment: analysisRoot.GetProperty("riskAssessment").GetString()?.Trim() ?? "No risk assessment available",
+                    Opportunities: analysisRoot.GetProperty("opportunities").GetString()?.Trim() ?? "No opportunities identified",
+                    FutureProjections: analysisRoot.GetProperty("futureProjections").GetString()?.Trim() ?? "No future projections available",
+                    ComparativeAnalysis: analysisRoot.GetProperty("comparativeAnalysis").GetString()?.Trim() ?? "No comparative analysis available",
+                    Disclaimer: analysisRoot.GetProperty("disclaimer").GetString()?.Trim() ?? "This analysis is for informational purposes only and not financial advice"
                 );
             }
             catch (JsonException ex)
@@ -165,87 +229,7 @@ namespace BudgetAppBackend.Infrastructure.Services
         }
 
 
-        public async Task<SpendingForecast> ForecastSpendingTrends(IEnumerable<TransactionDto> transactions)
-        {
-
-            var historicalData = transactions.OrderBy(t => t.TransactionDate).ToList();
-            var monthlyTotals = historicalData
-                .GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month })
-                .Select(g => new { Month = $"{g.Key.Year}-{g.Key.Month}", Total = g.Sum(t => t.Amount) })
-                .ToList();
-
-            var promptBuilder = new StringBuilder();
-            promptBuilder.AppendLine("You are a financial analysis system. Analyze the transaction data and return ONLY a JSON object with numerical calculations.");
-            promptBuilder.AppendLine("CRITICAL REQUIREMENTS:");
-            promptBuilder.AppendLine("1. Return ONLY a valid JSON object with NO comments");
-            promptBuilder.AppendLine("2. All numerical values must be plain numbers (no currency symbols or formatting)");
-            promptBuilder.AppendLine("3. Use these EXACT property names:");
-            promptBuilder.AppendLine("   - totalForecastedSpending");
-            promptBuilder.AppendLine("   - averageMonthlySpending");
-            promptBuilder.AppendLine("   - trendDirection");
-            promptBuilder.AppendLine("   - percentageChange");
-            promptBuilder.AppendLine();
-
-            promptBuilder.AppendLine("Monthly Spending Summary:");
-            foreach (var month in monthlyTotals)
-            {
-                promptBuilder.AppendLine($"{month.Month}: {month.Total:F2}");
-            }
-
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Recent Transactions:");
-            foreach (var tx in historicalData.TakeLast(10))
-            {
-                promptBuilder.AppendLine($"{tx.TransactionDate:yyyy-MM-dd}: {tx.Amount:F2} ({tx.Category})");
-            }
-
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Example of REQUIRED response format:");
-            promptBuilder.AppendLine("{");
-            promptBuilder.AppendLine("  \"totalForecastedSpending\": 1234.56,");
-            promptBuilder.AppendLine("  \"averageMonthlySpending\": 411.52,");
-            promptBuilder.AppendLine("  \"trendDirection\": \"increasing\",");
-            promptBuilder.AppendLine("  \"percentageChange\": 15.5");
-            promptBuilder.AppendLine("}");
-
-            var prompt = promptBuilder.ToString();
-            var requestBody = new
-            {
-                model = _ollamaSettings.Model,
-                prompt = prompt,
-                max_tokens = 150,
-                temperature = 0,
-                format = "json",
-            };
-
-            var jsonContent = new StringContent(
-                JsonSerializer.Serialize(requestBody),
-                Encoding.UTF8,
-                "application/json"
-            );
-
-            try
-            {
-                var ollamaEndpoint = _ollamaSettings.Endpoint;
-                var response = await _httpClient.PostAsync($"{ollamaEndpoint}/v1/completions", jsonContent);
-                response.EnsureSuccessStatusCode();
-
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var forecast = ParseForecastResponse(responseContent);
-
-                if (!IsValidForecast(forecast))
-                {
-                    throw new InvalidOperationException("Generated forecast contains invalid values");
-                }
-
-                return forecast;
-            }
-            catch (Exception ex)
-            {
-
-                throw new InvalidOperationException("Generated forecast contains invalid values");
-            }
-        }
+       
 
         //not yet tested
         public async Task<string> GetBudgetRecommendations(IEnumerable<Budget> budgets, IEnumerable<TransactionDto> transactions)
@@ -263,7 +247,7 @@ namespace BudgetAppBackend.Infrastructure.Services
             promptBuilder.AppendLine("Recent Transactions:");
             foreach (var tx in transactions.OrderByDescending(t => t.TransactionDate).Take(5))
             {
-                promptBuilder.AppendLine($"- Date: {tx.TransactionDate:yyyy-MM-dd}, Amount: {tx.Amount}, Payee: {tx.Payee}, Type: {tx.Category}");
+                promptBuilder.AppendLine($"- Date: {tx.TransactionDate:yyyy-MM-dd}, Amount: {tx.Amount}, Payee: {tx.Payee}, Type: {tx.Categories}");
             }
             string prompt = promptBuilder.ToString();
 
@@ -418,6 +402,28 @@ namespace BudgetAppBackend.Infrastructure.Services
                 return string.Join(". ", desc);
             }
             return "";
+        }
+
+        private string DetermineTrendDirection(IEnumerable<dynamic> monthlyTotals)
+        {
+            if (!monthlyTotals.Any() || monthlyTotals.Count() < 2) return "stable";
+            
+            var lastMonth = (decimal)monthlyTotals.Last().Total;
+            var previousMonth = (decimal)monthlyTotals.ElementAt(monthlyTotals.Count() - 2).Total;
+            
+            if (lastMonth > previousMonth) return "increasing";
+            if (lastMonth < previousMonth) return "decreasing";
+            return "stable";
+        }
+
+        private double CalculatePercentageChange(IEnumerable<dynamic> monthlyTotals)
+        {
+            if (!monthlyTotals.Any() || monthlyTotals.Count() < 2) return 0;
+            
+            var lastMonth = (decimal)monthlyTotals.Last().Total;
+            var previousMonth = (decimal)monthlyTotals.ElementAt(monthlyTotals.Count() - 2).Total;
+            
+            return ((double)(lastMonth - previousMonth) / (double)previousMonth) * 100;
         }
     }
 

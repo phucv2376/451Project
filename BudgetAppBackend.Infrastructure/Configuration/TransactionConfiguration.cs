@@ -32,8 +32,13 @@ namespace BudgetAppBackend.Infrastructure.Configuration
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Property(t => t.Category)
-                .IsRequired();
+            builder.Property<List<string>>("_categories")
+                .HasColumnName("Categories")
+                .HasConversion(
+                    v => string.Join(";", v),
+                    v => v.Split(';', StringSplitOptions.None).ToList()
+                )
+                .HasMaxLength(300);
 
             builder.Property(t => t.Amount)
                 .IsRequired()
@@ -55,7 +60,6 @@ namespace BudgetAppBackend.Infrastructure.Configuration
                 .IsRequired();
 
             builder.HasIndex(t => t.UserId);
-            builder.HasIndex(t => t.Category);
             builder.HasIndex(t => t.CreatedDate);
             builder.HasIndex(t => t.Type);
 

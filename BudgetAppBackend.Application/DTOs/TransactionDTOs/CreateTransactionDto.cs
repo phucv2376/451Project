@@ -4,7 +4,7 @@
         decimal Amount,
         DateTime TransactionDate,
         Guid UserId,
-        string Category,
+        List<string> Categories,
         string payee,
         string transactionType
     );

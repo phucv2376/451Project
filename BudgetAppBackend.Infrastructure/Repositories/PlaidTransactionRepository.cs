@@ -79,7 +79,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                     t.Date,
                     t.Amount,
                     t.Name,
-                    t.Category))
+                    t.Categories))
                 .ToListAsync(cancellationToken);
 
             return transactions;
@@ -87,22 +87,29 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
         public async Task<decimal> GetTotalExpensesForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken)
         {
-            return await _context.PlaidTransactions
-                .Where(t => t.UserId == userId &&
-                            t.Date.Year == currentDate.Year &&
-                            t.Date.Month == currentDate.Month &&
-                            t.Category != "PlaidTransactions")
-                .SumAsync(t => (decimal?)t.Amount ?? 0, cancellationToken);
+            var transactions = await _context.PlaidTransactions
+            .Where(t => t.UserId == userId &&
+                        t.Date.Year == currentDate.Year &&
+                        t.Date.Month == currentDate.Month)
+            .ToListAsync(cancellationToken);
+
+                    return transactions
+                .Where(t => !(t.Categories?.Contains("Payment") ?? false) &&
+                            !(t.Categories?.Contains("PlaidTransactions") ?? false))
+                .Sum(t => t.Amount);
         }
 
         public async Task<decimal> GetTotalIncomeForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken)
         {
-            return await _context.PlaidTransactions
-                .Where(t => t.UserId == userId &&
-                            t.Date.Year == currentDate.Year &&
-                            t.Date.Month == currentDate.Month &&
-                            t.Category == "Payment")
-                .SumAsync(t => (decimal?)t.Amount ?? 0, cancellationToken);
+            var transactions = await _context.PlaidTransactions
+            .Where(t => t.UserId == userId &&
+                        t.Date.Year == currentDate.Year &&
+                        t.Date.Month == currentDate.Month)
+            .ToListAsync(cancellationToken); // query happens here
+
+                return transactions
+                    .Where(t => t.Categories?.Contains("Payment") ?? false)
+                    .Sum(t => t.Amount);
         }
 
         public Task<IQueryable<TransactionDto>> GetUserTransactionsQueryAsync(UserId userId, CancellationToken cancellationToken)
@@ -116,7 +123,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                     t.Date,
                     t.Amount,
                     t.Name,
-                    t.Category
+                    t.Categories
                 ))
                 .AsQueryable();
 
@@ -128,7 +135,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
             var trans = await _context.PlaidTransactions
                 .Where(t => t.UserId == userId &&
-                            t.Category == category &&
+                            t.Categories.FirstOrDefault() == category &&
                             t.Date.Month == budgetCreatedDate.Month &&
                             t.Date.Year == budgetCreatedDate.Year)
                 .ToListAsync(cancellationToken);
@@ -231,7 +238,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 t.Date,
                 t.Amount,
                 t.Name,
-                t.Category
+                t.Categories
             ));
         }
     }

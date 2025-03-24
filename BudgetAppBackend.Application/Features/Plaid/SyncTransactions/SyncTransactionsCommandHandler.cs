@@ -150,7 +150,7 @@ namespace BudgetAppBackend.Application.Features.Plaid.SyncTransactions
                                         Math.Abs(dto.Amount),
                                         dto.Name,
                                         dto.Date,
-                                        dto.Category,
+                                        dto.Categories,
                                         dto.CategoryId,
                                         dto.MerchantName);
 
@@ -308,7 +308,7 @@ namespace BudgetAppBackend.Application.Features.Plaid.SyncTransactions
                 Math.Abs(dto.Amount),
                 dto.Name ?? string.Empty,
                 dto.Date,
-                dto.Category ?? string.Empty,
+                dto.Categories ?? [],
                 dto.CategoryId ?? string.Empty,
                 dto.MerchantName ?? string.Empty);
         }

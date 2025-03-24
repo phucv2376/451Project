@@ -33,7 +33,7 @@
        decimal Amount,
        string Name,
        DateTime Date,
-       string? Category,
+       List<string> Categories,
        string? CategoryId,
        string? MerchantName);
 
