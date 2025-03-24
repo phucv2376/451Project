@@ -7,7 +7,7 @@ export interface Transaction {
     amount: number; 
     payee: string; //was description
     type?: TransactionType; //type of transaction income or expense
-    category: string; //was category
+    categories: string[]; // changed from single category to list of categories with subcategory
 }
 
 export interface TransactionListResponse {
