@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { PlaidLinkWrapper } from './PlaidLinkWrapper';
 import { usePlaidContext } from '../../contexts/PlaidContext';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 
 const BATCH_SIZE = 5;
 
@@ -19,12 +20,14 @@ interface BankIntegrationProps {
   onDisconnect: () => void;
   isConnected: boolean;
   onPlaidSuccess: (publicToken: string) => Promise<void>;
+  setTotalBalance: (totalBalance: number) => void;
 }
 
-export default function BankIntegration({ 
-  onDisconnect, 
+export default function BankIntegration({
+  onDisconnect,
   isConnected,
-  onPlaidSuccess 
+  onPlaidSuccess,
+  setTotalBalance
 }: BankIntegrationProps) {
   const { isPlaidInitialized } = usePlaidContext();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -42,7 +45,13 @@ export default function BankIntegration({
     setMounted(true);
     const storedUserId = localStorage.getItem('userId');
     setUserId(storedUserId);
+    handleUpdateBalance();
   }, []);
+
+  useEffect(() => {
+    handleUpdateBalance();
+  }, [accounts]);
+
 
   const loadAllTransactions = useCallback(
     async (token: string) => {
@@ -53,7 +62,7 @@ export default function BankIntegration({
         let hasMore = true;
         let cursor: string | undefined;
         let allTransactions: Transaction[] = [];
-        
+
         while (hasMore) {
           const result: TransactionSyncResponse | null = await syncTransactions(
             userId,
@@ -61,16 +70,16 @@ export default function BankIntegration({
             cursor,
             BATCH_SIZE
           );
-          
+
           if (!result) {
             console.error('No result from syncTransactions');
             break;
           }
-          
+
           if (result.added && result.added.length > 0) {
             allTransactions = [...allTransactions, ...result.added];
           }
-          
+
           // Handle modified transactions
           if (result.modified && result.modified.length > 0) {
             allTransactions = allTransactions.map(t => {
@@ -78,20 +87,20 @@ export default function BankIntegration({
               return modified || t;
             });
           }
-          
+
           // Handle removed transactions
           if (result.removed && result.removed.length > 0) {
             const removedIds = result.removed.map(t => t.id);
             allTransactions = allTransactions.filter(t => !removedIds.includes(t.id));
           }
-          
+
           if (!result.hasMore) {
             hasMore = false;
             break;
           }
           cursor = result.nextCursor;
         }
-        
+
         setTransactions(allTransactions);
         setHasLoadedTransactions(true);
       } catch (error) {
@@ -103,11 +112,20 @@ export default function BankIntegration({
     [mounted, syncTransactions, userId]
   );
 
+  const handleUpdateBalance = () => {
+    let totalBalance = 0;
+    accounts.forEach((account) => {
+      totalBalance += account.currentBalance;
+    });
+    setTotalBalance(totalBalance);
+  }
+
   // Load transactions when access token is available
   useEffect(() => {
     if (plaidAccessToken && userId && !hasLoadedTransactions && !isSyncing) {
       loadAllTransactions(plaidAccessToken);
     }
+    handleUpdateBalance();
   }, [plaidAccessToken, userId, hasLoadedTransactions, isSyncing, loadAllTransactions]);
 
   const formatCurrency = useCallback((amount: number, currency: string = 'USD') => {
@@ -123,51 +141,53 @@ export default function BankIntegration({
 
   return (
     <div className="max-w-4xl w-full">
-      <div className="bg-white rounded-xl border border-gray-200 shadow-md p-3">
+      <div className="">
         {isConnected ? (
           <>
-            <div className="flex justify-between items-center mb-4">
-              <button
+            {/* <div className="flex justify-between items-center mb-4"> */}
+            {/* <button
                 onClick={onDisconnect}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm flex items-center justify-center font-medium"
               >
                 <ArrowPathIcon className="w-5 h-5 mr-2" />
                 Disconnect Bank
-              </button>
+              </button> */}
 
-              <button
-                onClick={() => loadAllTransactions(plaidAccessToken!)}
-                disabled={isSyncing}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all text-sm flex items-center justify-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ArrowPathIcon className={`w-5 h-5 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Syncing...' : 'Sync Transactions'}
-              </button>
-            </div>
-  
+            <button
+              onClick={() => loadAllTransactions(plaidAccessToken!)}
+              disabled={isSyncing}
+              className="px-1 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all text-xs flex items-center justify-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ArrowPathIcon className={`w-4 h-4 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Syncing...' : 'Sync Transactions'}
+            </button>
+            {/* </div> */}
+
             {/* Connected Accounts Section */}
             {accounts.length > 0 && (
               <div className="mt-4">
-                <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-3">
-                  <BanknotesIcon className="w-5 h-5 mr-2 text-blue-500" />
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-3 relative after:content-[''] after:block after:w-full after:h-px after:bg-gray-200 after:absolute after:bottom-0 after:left-0">
+                  <AccountBalanceIcon className="w-5 h-5 mr-2 text-blue-500" />
                   Linked Accounts
                 </h3>
-                
+
                 <div className="space-y-3">
                   {accounts.map((account) => (
                     <div
                       key={account.accountId}
-                      className="p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm flex flex-col gap-2"
+                      className=""
                     >
                       <div className="flex justify-between items-center">
-                        <span className="text-base font-medium text-gray-800 flex items-center">
-                          <WalletIcon className="w-5 h-5 mr-2 text-purple-500" />
-                          {account.name}
+                        <span className="text-base font-medium text-gray-800 flex items-center text-sm">
+                          <CreditCardIcon className="w-5 h-5 mr-2 text-purple-500" />
+                          {account.name} Balance:
                         </span>
-                        <span className="text-xs text-gray-500">{account.type}</span>
+                        <span className="text-blue-600 font-semibold text-sm">
+                          {account.currentBalance != null ? formatCurrency(account.currentBalance) : 'N/A'}
+                        </span>
                       </div>
-  
-                      <div className="mt-2">
+
+                      {/* <div className="mt-2">
                         <div className="flex justify-between items-center">
                           <span className="flex items-center text-sm text-gray-600">
                             <CurrencyDollarIcon className="w-4 h-4 mr-2 text-green-500" />
@@ -187,7 +207,7 @@ export default function BankIntegration({
                             {account.currentBalance != null ? formatCurrency(account.currentBalance) : 'N/A'}
                           </span>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   ))}
                 </div>
@@ -197,7 +217,7 @@ export default function BankIntegration({
           </>
         ) : (
           <div className="py-3">
-            <PlaidLinkWrapper onSuccess={onPlaidSuccess} onExit={() => {}} />
+            <PlaidLinkWrapper onSuccess={onPlaidSuccess} onExit={() => { }} />
           </div>
         )}
       </div>

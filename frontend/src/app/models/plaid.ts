@@ -1,3 +1,6 @@
+import { useCallback } from "react";
+import { usePlaid } from "../hooks/usePlaid";
+
 export interface Transaction {
     id: string;
     name: string;
@@ -31,5 +34,3 @@ export interface Transaction {
   export interface AccountsResponse {
     accounts: PlaidAccount[];
   }
-  
-  

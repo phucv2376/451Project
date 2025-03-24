@@ -13,6 +13,7 @@ import {
     getMonthlyIncome,
     getMonthlyExpenses,
 } from "../services/transactionService";
+import BalanceSummary from "../components/BalanceSummary";
 
 const Dashboard = () => {
     const { logout } = useAuth();
@@ -33,6 +34,15 @@ const Dashboard = () => {
 
     // Memoized variable for checking bank connection
     const isBankConnected = useMemo(() => !!plaidAccessToken, [plaidAccessToken]);
+
+    // //Automatically sync transactions every 7 sec
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //       console.log('This will be called every 2 seconds');
+    //     }, 70000);
+
+    //     return () => clearInterval(interval);
+    //   }, []);
 
     // Fetch Transactions and Financial Data
     const updateTransactions = async () => {
@@ -94,8 +104,8 @@ const Dashboard = () => {
                 {/* Bank Integration & Financial Summary */}
                 <div className="flex flex-col lg:flex-row gap-4">
                     <div className="w-full lg:w-2/3">
-                        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-                            <BankIntegration
+                        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 justify-between flex flex-col lg:flex-row">
+                            <BalanceSummary
                                 onDisconnect={disconnectBank}
                                 isConnected={isBankConnected}
                                 onPlaidSuccess={handlePlaidSuccess}
@@ -118,8 +128,8 @@ const Dashboard = () => {
                     />
                     <BudgetOverview />
                 </div>
-                 {/* 🔥 Spending Breakdown Section Added Back */}
-                 <SpendingBreakdown />
+                {/* 🔥 Spending Breakdown Section Added Back */}
+                <SpendingBreakdown />
             </div>
         </div>
     );
@@ -129,10 +139,24 @@ const Dashboard = () => {
  * Financial Summary Component
  */
 const FinancialSummary = ({ monthlyIncome, monthlyExpenses, isLoading }: { monthlyIncome: number; monthlyExpenses: number; isLoading: boolean }) => (
-    <div className="w-full lg:w-1/3">
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-            <h3 className="text-md font-semibold mb-2 text-gray-800">Financial Summary</h3>
+    <div className="w-full lg:w-1/3 bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+        {/* <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <h3 className="text-md font-semibold mb-2 text-gray-800">Cashflow Summary</h3>
             <div className="flex flex-col gap-3">
+                <SummaryItem label="Cash In:" value={monthlyIncome} isLoading={isLoading} positive />
+                <SummaryItem label="Cash Out:" value={monthlyExpenses} isLoading={isLoading} />
+            </div>
+        </div> */}
+        <div className='flex justify-between flex-row h-[100%]'>
+            <div className="pr-7 flex w-1/2 max-h-[100%] flex-col justify-center items-center border-r border-gray-300">
+                <h2 className="text-gray-600 text-2xl pb-2">Net Cashflow </h2>
+                <span className=
+                    {`text-5xl ${monthlyIncome - monthlyExpenses >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                >
+                    {`${monthlyIncome - monthlyExpenses >= 0 ? '+' : '-'}`}
+                    ${monthlyIncome - monthlyExpenses} </span>
+            </div>
+            <div className="flex pl-7 w-1/2 justify-center flex-col">
                 <SummaryItem label="Cash In:" value={monthlyIncome} isLoading={isLoading} positive />
                 <SummaryItem label="Cash Out:" value={monthlyExpenses} isLoading={isLoading} />
             </div>
@@ -196,7 +220,7 @@ const SpendingBreakdown = () => (
             <Box sx={{ width: "100%", height: "30px", borderRadius: "5px", overflow: "hidden", position: "relative" }}>
                 <LinearProgress
                     variant="determinate"
-                    value={100} 
+                    value={100}
                     sx={{
                         height: "100%",
                         backgroundColor: "#e0e0e0",
