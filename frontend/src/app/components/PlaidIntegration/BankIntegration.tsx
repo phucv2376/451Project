@@ -14,7 +14,7 @@ import { PlaidLinkWrapper } from './PlaidLinkWrapper';
 import { usePlaidContext } from '../../contexts/PlaidContext';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 
-const BATCH_SIZE = 5;
+const BATCH_SIZE = 100;
 
 interface BankIntegrationProps {
   onDisconnect: () => void;
@@ -165,16 +165,22 @@ export default function BankIntegration({
               >
                 <ArrowPathIcon className={`w-5 h-5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
                 {/* {isSyncing ? 'Syncing...' : 'Sync Transactions'} */}
+
+                {/* Tooltip */}
+                <span className="
+    absolute -top-8 left-1/2 -translate-x-1/2
+    bg-gray-800 text-black text-xs px-2 py-1 rounded
+    opacity-0 group-hover:opacity-100 transition-opacity duration-200
+    pointer-events-none whitespace-nowrap
+    before:absolute before:top-full before:left-1/2 before:-translate-x-1/2
+    before:border-4 before:border-transparent before:border-t-gray-800
+  ">
+                  {isSyncing ? 'Syncing transactions...' : 'Sync transactions'}
+                </span>
               </button>
 
-              <span className="
-    absolute -bottom-7 left-1/2 -translate-x-1/2 
-    bg-gray-800 text-white text-xs px-2 py-1 rounded 
-    opacity-0 group-hover:opacity-100 transition-opacity
-    whitespace-nowrap
-  ">
-    {isSyncing ? 'Syncing...' : 'Sync Transactions'}
-  </span>
+
+
               {/* </div> */}
             </div>
 
