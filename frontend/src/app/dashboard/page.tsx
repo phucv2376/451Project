@@ -145,7 +145,7 @@ const FinancialSummary = ({ monthlyIncome, monthlyExpenses, isLoading }: { month
                     {`text-5xl ${monthlyIncome - monthlyExpenses >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 >
                     {`${monthlyIncome - monthlyExpenses >= 0 ? '+' : '-'}`}
-                    ${monthlyIncome - monthlyExpenses} </span>
+                    ${Math.abs(Math.round(monthlyIncome - monthlyExpenses))} </span>
             </div>
             <div className="flex pl-7 w-1/2 justify-center flex-col">
                 <SummaryItem label="Cash In:" value={monthlyIncome} isLoading={isLoading} positive />
