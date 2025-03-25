@@ -53,20 +53,31 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByUserAndCategoryAsync(UserId userId, string category, DateTime budgetCreatedDate, CancellationToken cancellationToken)
+
+        public async Task<IEnumerable<Transaction>> GetTransactionsByUserAndCategoryAsync(
+            UserId userId,
+            string category,
+            DateTime budgetCreatedDate,
+            CancellationToken cancellationToken)
         {
             var lowerCategory = category.ToLower();
+
+            // Step 1: Filter by EF-translateable properties
             var transactions = await _dbContext.Transactions
                 .Where(t => t.UserId == userId &&
-                            t.Categories.FirstOrDefault().ToLower().Contains(lowerCategory) &&
                             t.TransactionDate.Month == budgetCreatedDate.Month &&
                             t.TransactionDate.Year == budgetCreatedDate.Year)
                 .ToListAsync(cancellationToken);
 
-            return transactions;
+            // Step 2: Filter by category in memory
+            var filtered = transactions
+                .Where(t => t.Categories.FirstOrDefault() != null &&
+                            t.Categories.FirstOrDefault()!.ToLower().Contains(lowerCategory))
+                .ToList();
 
-            
+            return filtered;
         }
+
 
 
         public async Task<decimal> GetTotalExpensesForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken)

@@ -147,7 +147,7 @@ namespace BudgetAppBackend.Application.Features.Plaid.SyncTransactions
                                 if (existingTransaction != null)
                                 {
                                     existingTransaction.Update(
-                                        Math.Abs(dto.Amount),
+                                        dto.Amount,
                                         dto.Name,
                                         dto.Date,
                                         dto.Categories,
@@ -305,7 +305,7 @@ namespace BudgetAppBackend.Application.Features.Plaid.SyncTransactions
                 UserId.Create(dto.userId),
                 dto.PlaidTransactionId,
                 dto.AccountId ?? string.Empty,
-                Math.Abs(dto.Amount),
+                dto.Amount,
                 dto.Name ?? string.Empty,
                 dto.Date,
                 dto.Categories ?? [],

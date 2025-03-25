@@ -200,7 +200,7 @@ namespace BudgetAppBackend.Infrastructure.Services
                         userId: userId,
                         PlaidTransactionId: t.GetProperty("transaction_id").GetString()!,
                         AccountId: t.GetProperty("account_id").GetString()!,
-                        Amount: Math.Abs(t.GetProperty("amount").GetDecimal()),
+                        Amount: t.GetProperty("amount").GetDecimal(),
                         Name: t.GetProperty("name").GetString()!,
                         Date: DateTime.Parse(t.GetProperty("date").GetString()!).ToUniversalTime(),
                         Categories: t.TryGetProperty("category", out var categoryElement) && categoryElement.ValueKind == JsonValueKind.Array

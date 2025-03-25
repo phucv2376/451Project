@@ -41,7 +41,7 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
         public static Transaction Create(UserId userId, List<string> newCategories, decimal amount, DateTime transactionDate, string payee, TransactionType type)
         {
             var transaction = new Transaction(TransactionId.CreateId(), userId, newCategories, amount, transactionDate, payee, type);
-            transaction.RaiseDomainEvent(new TransactionCreatedEvent(userId.Id, newCategories.FirstOrDefault(), amount, transactionDate));
+            transaction.RaiseDomainEvent(new TransactionCreatedEvent(userId.Id, newCategories.FirstOrDefault(), Math.Abs(amount), transactionDate));
             return transaction;
         }
 
@@ -55,17 +55,17 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
             var oldAmount = Amount;
             var oldType = Type;
 
-            Amount = newAmount;
+            Amount = -newAmount;
             TransactionDate = newTransactionDate;
             Payee = newPayee;
             Type = newType;
 
-            RaiseDomainEvent(new TransactionUpdatedEvent(UserId.Id, category, oldAmount, newAmount, TransactionDate));
+            RaiseDomainEvent(new TransactionUpdatedEvent(UserId.Id, category, Math.Abs(oldAmount), Math.Abs(newAmount), TransactionDate));
         }
 
         public void DeleteTransaction()
         {
-            RaiseDomainEvent(new TransactionDeletedEvent(UserId.Id, _categories.FirstOrDefault(), Amount, TransactionDate));
+            RaiseDomainEvent(new TransactionDeletedEvent(UserId.Id, _categories.FirstOrDefault(), Math.Abs(Amount), TransactionDate));
         }
     }
 }

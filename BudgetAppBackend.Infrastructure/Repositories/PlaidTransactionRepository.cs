@@ -93,10 +93,9 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                         t.Date.Month == currentDate.Month)
             .ToListAsync(cancellationToken);
 
-                    return transactions
-                .Where(t => !(t.Categories?.Contains("Payment") ?? false) &&
-                            !(t.Categories?.Contains("PlaidTransactions") ?? false))
-                .Sum(t => t.Amount);
+            return transactions
+                        .Where(t => t.Amount < 0)
+                        .Sum(t => Math.Abs(t.Amount));
         }
 
         public async Task<decimal> GetTotalIncomeForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken)
@@ -107,9 +106,9 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                         t.Date.Month == currentDate.Month)
             .ToListAsync(cancellationToken); // query happens here
 
-                return transactions
-                    .Where(t => t.Categories?.Contains("Payment") ?? false)
-                    .Sum(t => t.Amount);
+            return transactions
+             .Where(t => t.Amount > 0)
+             .Sum(t => t.Amount);
         }
 
         public Task<IQueryable<TransactionDto>> GetUserTransactionsQueryAsync(UserId userId, CancellationToken cancellationToken)
@@ -130,18 +129,30 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             return Task.FromResult(transactionsQuery);
         }
 
-        public async Task<List<PlaidTransaction>> GetTransactionsByUserAndCategoryAsync(UserId userId, string category, DateTime budgetCreatedDate, CancellationToken cancellationToken)
+        public async Task<List<PlaidTransaction>> GetTransactionsByUserAndCategoryAsync(
+             UserId userId,
+             string category,
+             DateTime budgetCreatedDate,
+             CancellationToken cancellationToken)
         {
+            var lowerCategory = category.ToLower();
 
-            var trans = await _context.PlaidTransactions
+            // Step 1: Fetch what EF Core can translate
+            var transactions = await _context.PlaidTransactions
                 .Where(t => t.UserId == userId &&
-                            t.Categories.FirstOrDefault() == category &&
                             t.Date.Month == budgetCreatedDate.Month &&
                             t.Date.Year == budgetCreatedDate.Year)
                 .ToListAsync(cancellationToken);
 
-            return trans;
+            // Step 2: Filter category in memory (case-insensitive)
+            var filtered = transactions
+                .Where(t => t.Categories.FirstOrDefault() != null &&
+                            t.Categories.FirstOrDefault()!.ToLower().Contains(lowerCategory))
+                .ToList();
+
+            return filtered;
         }
+
 
         public async Task<List<PlaidTransaction>> GetUserTransactionsAsync(UserId userId, DateTime startDate, DateTime endDate)
         {

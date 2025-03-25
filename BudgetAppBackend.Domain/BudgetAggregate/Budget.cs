@@ -45,8 +45,14 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
 
         public void ApplyTransaction(decimal amount)
         {
-            ValidateAmount(amount);
-            _spentAmount += amount;
+            //onsider negative amounts (expenses)
+            if (amount >= 0)
+                return;
+
+            var absAmount = Math.Abs(amount);
+            ValidateAmount(absAmount);
+
+            _spentAmount += absAmount;
 
             if (_spentAmount > TotalAmount)
             {
@@ -54,14 +60,22 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
             }
         }
 
+
+
         public void RollbackTransaction(decimal amount)
         {
-            ValidateAmount(amount);
-            if (amount > _spentAmount)
-                throw new BudgetRollbackException(amount, _spentAmount);
+            if (amount >= 0)
+                return;
 
-            _spentAmount -= amount;
+            var absAmount = Math.Abs(amount);
+            ValidateAmount(absAmount);
+
+            if (absAmount > _spentAmount)
+                throw new BudgetRollbackException(absAmount, _spentAmount);
+
+            _spentAmount -= absAmount;
         }
+
 
         public decimal GetRemainingBalance() => TotalAmount - _spentAmount;
 
