@@ -16,7 +16,7 @@ import { Transaction } from './Transaction';
 export const categories: TransactionCategory[] = [
     {
         category: "Bank Fees",
-        color: "#FF9A5A", // Muted orange
+        color:"#840404", // Muted orange
         Icon: AccountBalanceOutlinedIcon
     },
     {
