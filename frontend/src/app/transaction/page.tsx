@@ -249,7 +249,6 @@ const TransactionPage = () => {
                                     paging={transactionPaging}
                                     transactions={transactions}
                                     enablePagination={true}
-                                    enableSubCat={true}
                                     enableCheckbox={true}
                                     page={currentPage}
                                     rowsPerPage={rowsPerPage}
