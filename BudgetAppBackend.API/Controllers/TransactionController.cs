@@ -26,12 +26,16 @@ namespace BudgetAppBackend.API.Controllers
 
         [HttpGet("user/{userId}/list-of-transactions")]
         public async Task<ActionResult<PagedResponse<TransactionDto>>> GetUserTransactions(
-            Guid userId, [FromQuery] PagingDTO pagingDto, CancellationToken cancellationToken)
+            Guid userId,
+            [FromQuery] PagingDTO pagingDto,
+            [FromQuery] TransactionFilterDto filterDto,
+            CancellationToken cancellationToken)
         {
             var transactions = await _sender.Send(new GetUserTransactionsWithPaginationQuery
             {
                 UserId = userId,
-                Paging = pagingDto
+                Paging = pagingDto,
+                Filter = filterDto
             }, cancellationToken);
 
             return Ok(transactions);
