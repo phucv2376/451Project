@@ -13,6 +13,7 @@ namespace BudgetAppBackend.Application.Contracts
         Task MarkTransactionsAsRemovedAsync(IEnumerable<string> plaidTransactionIds);
         Task<decimal> GetTotalIncomeForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken);
         Task<decimal> GetTotalExpensesForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken);
+        Task<IEnumerable<DetailedDailyCashFlowDto>> GetDetailedDailyCashFlowAsync(UserId userId,DateTime monthStartDate,CancellationToken cancellationToken);
         Task<IQueryable<TransactionDto>> GetUserTransactionsQueryAsync(UserId userId, CancellationToken cancellationToken);
         Task<List<TransactionDto>> GetRecentTransactionsByUserAsync(UserId userId, CancellationToken cancellationToken);
         Task<PlaidTransaction?> GetByPlaidIdAsync(string plaidTransactionId);

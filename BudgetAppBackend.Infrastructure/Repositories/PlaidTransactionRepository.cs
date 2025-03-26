@@ -252,5 +252,57 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 t.Categories
             ));
         }
+
+        public async Task<IEnumerable<DetailedDailyCashFlowDto>> GetDetailedDailyCashFlowAsync(
+            UserId userId,
+            DateTime monthStartDate,
+            CancellationToken cancellationToken)
+        {
+            var monthEndDate = monthStartDate.AddMonths(1).AddDays(-1);
+
+            var transactions = await _context.PlaidTransactions
+                .Where(t => t.UserId == userId &&
+                            t.Date >= monthStartDate &&
+                            t.Date <= monthEndDate &&
+                            !t.IsRemoved)
+                .ToListAsync(cancellationToken);
+
+            var grouped = transactions
+                .GroupBy(t => t.Date.Date)
+                .ToDictionary(
+                    g => g.Key,
+                    g =>
+                    {
+                        var income = g.Where(t => t.Amount > 0).Sum(t => t.Amount);
+                        var expense = g.Where(t => t.Amount < 0).Sum(t => Math.Abs(t.Amount));
+                        var net = income - expense;
+                        return new { Income = income, Expense = expense, Net = net };
+                    });
+
+            var allDates = Enumerable.Range(0, (monthEndDate - monthStartDate).Days + 1)
+                .Select(offset => monthStartDate.AddDays(offset));
+
+            var results = new List<DetailedDailyCashFlowDto>();
+            decimal runningTotal = 0;
+
+            foreach (var date in allDates)
+            {
+                var income = grouped.TryGetValue(date, out var data) ? data.Income : 0;
+                var expense = grouped.TryGetValue(date, out var data2) ? data2.Expense : 0;
+                var net = income - expense;
+                runningTotal += net;
+
+                results.Add(new DetailedDailyCashFlowDto(
+                    Date: date,
+                    Income: income,
+                    Expense: expense,
+                    NetCashFlow: net,
+                    CumulativeCashFlow: runningTotal
+                ));
+            }
+
+            return results;
+        }
+
     }
 }
