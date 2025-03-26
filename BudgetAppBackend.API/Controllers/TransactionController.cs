@@ -2,11 +2,13 @@
 using BudgetAppBackend.Application.DTOs.TransactionDTOs;
 using BudgetAppBackend.Application.Features.Transactions.CreateTransaction;
 using BudgetAppBackend.Application.Features.Transactions.DeleteTransaction;
+using BudgetAppBackend.Application.Features.Transactions.GetDetailedDailyCashFlow;
 using BudgetAppBackend.Application.Features.Transactions.GetMonthExpense;
 using BudgetAppBackend.Application.Features.Transactions.GetMonthIncome;
 using BudgetAppBackend.Application.Features.Transactions.GetRecentTransactions;
 using BudgetAppBackend.Application.Features.Transactions.GetUserTransactionsWithPagination;
 using BudgetAppBackend.Application.Features.Transactions.UpdateTransaction;
+using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -90,6 +92,17 @@ namespace BudgetAppBackend.API.Controllers
 
             await _sender.Send(command, cancellationToken);
             return NoContent();
+        }
+
+        [HttpGet("users/{userId}/month-cashflow")]
+        public async Task<IActionResult> GetCashFlow(Guid userId, [FromQuery] DateTime monthStartDate)
+        {
+            var result = await _sender.Send(new GetDetailedDailyCashFlowQuery(
+                userId,
+                monthStartDate
+            ));
+
+            return Ok(result);
         }
 
     }
