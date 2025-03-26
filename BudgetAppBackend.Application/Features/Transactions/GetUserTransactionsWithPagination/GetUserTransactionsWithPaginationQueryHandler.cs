@@ -34,7 +34,6 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetUserTransactions
             var manualTransactions = await _transactionReadRepository.GetUserTransactionsQueryAsync(userId, cancellationToken);
             var plaidTransactions = await _plaidTransactionRepository.GetUserTransactionsQueryAsync(userId, cancellationToken);
 
-
             var manualTransactionsList = manualTransactions.ToList();
             var plaidTransactionsList = plaidTransactions.ToList();
 
@@ -42,8 +41,12 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetUserTransactions
                                          .OrderByDescending(t => t.TransactionDate)
                                          .AsQueryable();
 
-            var pagedResponse = new PagedResponse<TransactionDto>(allTransactions, request.Paging!);
+            if (request.Filter != null)
+            {
+                allTransactions = FilterTransactions(allTransactions, request.Filter);
+            }
 
+            var pagedResponse = new PagedResponse<TransactionDto>(allTransactions, request.Paging!);
 
             if (pagedResponse.Paging.HasNextPage)
             {
@@ -66,6 +69,28 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetUserTransactions
             }
 
             return pagedResponse;
+        }
+        private IQueryable<TransactionDto> FilterTransactions(IQueryable<TransactionDto> query, TransactionFilterDto filter)
+        {
+            if (filter.MinAmount.HasValue)
+                query = query.Where(t => t.Amount >= filter.MinAmount.Value);
+
+            if (filter.MaxAmount.HasValue)
+                query = query.Where(t => t.Amount <= filter.MaxAmount.Value);
+
+            if (filter.StartDate.HasValue)
+                query = query.Where(t => t.TransactionDate >= filter.StartDate.Value);
+
+            if (filter.EndDate.HasValue)
+                query = query.Where(t => t.TransactionDate <= filter.EndDate.Value);
+
+            if (!string.IsNullOrEmpty(filter.Payee))
+                query = query.Where(t => t.Payee.Contains(filter.Payee));
+
+            if (!string.IsNullOrEmpty(filter.Category))
+                query = query.Where(t => t.Categories.Contains(filter.Category));
+
+            return query;
         }
     }
 }

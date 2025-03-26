@@ -2,24 +2,26 @@
 
 import React, { useState } from "react";
 import { Transaction, TransactionListResponse } from "../models/Transaction";
-import { 
-    Checkbox, 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableContainer, 
-    TableHead, 
-    TableRow, 
-    Paper, 
+import {
+    Checkbox,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
     TablePagination,
-    Chip, Stack 
+    Chip, Stack
 } from "@mui/material";
+import { getCategory } from "../models/TransactionCategory";
 
 type Props = {
     transactions: Transaction[];
     paging?: TransactionListResponse;
-    enablePagination?: boolean; 
+    enablePagination?: boolean;
     enableCheckbox?: boolean;
+    enableSubCat?: boolean;
     page?: number;
     rowsPerPage?: number;
     onPageChange?: (event: unknown, newPage: number) => void;
@@ -99,25 +101,27 @@ const TransactionTable = (props: Props) => {
                                     </TableCell>
                                 )}
                                 <TableCell className="px-6 py-4 text-sm text-gray-900">
-                                    {formatDate(transaction.transactionDate)}                               
+                                    {formatDate(transaction.transactionDate)}
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-sm text-gray-900">
                                     <Stack direction="row" spacing={1} flexWrap="wrap">
                                         {transaction.categories.length > 0 && (
                                             <Chip
+                                                icon={React.createElement(getCategory(transaction).Icon)}
                                                 label={transaction.categories[0]}
                                                 size="small"
                                                 color="primary"
                                             />
                                         )}
-                                        {transaction.categories.slice(1).map((subcategory, index) => (
+                                        {props.enableSubCat && (
+                                            transaction.categories.slice(1).map((subcategory, index) => (
                                             <Chip
                                                 key={index}
                                                 label={subcategory}
                                                 size="small"
                                                 variant="outlined"
                                             />
-                                        ))}
+                                        )))}
                                     </Stack>
                                 </TableCell>
 
@@ -138,10 +142,10 @@ const TransactionTable = (props: Props) => {
                     <TablePagination
                         component="div"
                         count={props.paging.paging.totalRows}
-                        page={(props.page || 1)-1}
+                        page={(props.page || 1) - 1}
                         rowsPerPage={props.rowsPerPage || 10}
-                        onPageChange={props.onPageChange || (() => {})}
-                        onRowsPerPageChange={props.onRowsPerPageChange || (() => {})}
+                        onPageChange={props.onPageChange || (() => { })}
+                        onRowsPerPageChange={props.onRowsPerPageChange || (() => { })}
                         rowsPerPageOptions={[5, 10, 25, 50]}
                         sx={{ borderTop: 1, borderColor: 'divider' }}
                     />

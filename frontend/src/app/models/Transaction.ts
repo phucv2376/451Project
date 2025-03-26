@@ -9,6 +9,15 @@ export interface Transaction {
     type?: TransactionType; //type of transaction income or expense
     categories: string[]; // changed from single category to list of categories with subcategory
 }
+export interface AddEditTransaction{
+    amount: number,
+    transactionDate: Date | null;
+    userId: string;
+    categories: string[];
+    payee: string;
+    transactionType: string;
+    transactionId?: string;
+}
 
 export interface TransactionListResponse {
     paging: {

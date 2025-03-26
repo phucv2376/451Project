@@ -38,7 +38,7 @@ const NavBar: FC = () => {
   const navItems: NavItem[] = useMemo(() => [
     { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
     { label: 'Transactions', path: '/transaction', icon: <TransactionsIcon /> },
-    { label: 'Goals', path: '/goals', icon: <GoalsIcon /> },
+    { label: 'Budget', path: '/budget', icon: <GoalsIcon /> },
     { label: 'Analytics', path: '/analytics', icon: <AnalyticsIcon /> },
   ], []);
 

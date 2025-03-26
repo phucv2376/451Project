@@ -1,5 +1,5 @@
 import API_BASE_URL from "@/app/config";
-import { Transaction, TransactionListResponse } from "../models/Transaction";
+import { AddEditTransaction, Transaction, TransactionListResponse } from "../models/Transaction";
 
 
 /**
@@ -60,7 +60,7 @@ export const getTransactions = async (userId: string, rowCount?: number, page?: 
                 "Content-Type": "application/json",
             },
         });
-        
+
         if (!response.ok) {
             let errorMessage = "An unexpected error occurred. Please try again.";
             try {
@@ -76,7 +76,7 @@ export const getTransactions = async (userId: string, rowCount?: number, page?: 
         //console.log("data Info:", data.data);
 
         return { success: true, data };
-        
+
     } catch (error) {
         console.error("Network error:", error);
         return { success: false, message: "A network error occurred. Please check your connection and try again." };
@@ -90,35 +90,114 @@ export const getTransactions = async (userId: string, rowCount?: number, page?: 
 * @returns A success response or an error message.
 */
 export const deleteTransaction = async (transactionId: string, userId: string) => {
-   try {
-       const response = await fetch(`${API_BASE_URL}/Transaction/delete/${transactionId}`, {
-           method: "DELETE",
-           headers: {
-               "Content-Type": "application/json",
-           },
-           body: JSON.stringify({ transactionId, userId }), // Include userId in the request body
-       });
+    try {
+        const response = await fetch(`${API_BASE_URL}/Transaction/delete/${transactionId}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transactionId, userId }), // Include userId in the request body
+        });
 
-       if (!response.ok) {
-           let errorMessage = "An unexpected error occurred. Please try again.";
-           try {
-               const errorData = await response.json();
-               errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
-           } catch (parseError) {
-               console.error("Error parsing error response:", parseError);
-           }
-           return { success: false, message: errorMessage };
-       }
+        if (!response.ok) {
+            let errorMessage = "An unexpected error occurred. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
 
-       const data = await response.json();
-       return { success: true, data };
-       
-   } catch (error) {
-       console.error("Network error:", error);
-       return { success: false, message: "A network error occurred. Please check your connection and try again." };
-   }
+        const data = await response.json();
+        return { success: true, data };
+
+    } catch (error) {
+        console.error("Network error:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+    }
 };
 
+/**
+ * Creates a new transaction.
+ * @param transactionData - The transaction data to create.
+ * @returns A success response with the created transaction or an error message.
+ */
+export const createTransaction = async (transactionData: AddEditTransaction) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Transaction/create`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(transactionData),
+        });
+
+        if (!response.ok) {
+            let errorMessage = "Failed to create transaction. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+
+        const data = await response.json();
+        return { success: true, data };
+
+    } catch (error) {
+        console.error("Network error:", error);
+        return {
+            success: false,
+            message: "A network error occurred. Please check your connection and try again."
+        };
+    }
+}
+
+/**
+* Updates an existing transaction.
+* @param transactionId - The ID of the transaction to update.
+* @param transactionData - The updated transaction data.
+* @returns A success response with the updated transaction or an error message.
+*/
+export const updateTransaction = async (transactionData: AddEditTransaction) => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/Transaction/update/${transactionData.transactionId}`,
+            {
+                method: "PUT", // or "PATCH" depending on your API design
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(transactionData),
+            }
+        );
+
+        if (!response.ok) {
+            let errorMessage = "Failed to update transaction. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+
+        const data = await response.json();
+        return { success: true, data };
+
+    } catch (error) {
+        console.error("Network error:", error);
+        return {
+            success: false,
+            message: "A network error occurred. Please check your connection and try again.",
+        };
+    }
+};
 
 /**
  * Fetches the monthly expenses for a user.
@@ -136,7 +215,7 @@ export const getMonthlyExpenses = async (userId: string, token: string) => {
             },
             credentials: "include"
         });
-        
+
         if (!response.ok) {
             let errorMessage = "An unexpected error occurred. Please try again.";
             try {
@@ -147,7 +226,7 @@ export const getMonthlyExpenses = async (userId: string, token: string) => {
             }
             return { success: false, message: errorMessage };
         }
-        
+
         const data = await response.json();
         return { success: true, data };
     } catch (error) {
@@ -170,9 +249,9 @@ export const getMonthlyIncome = async (userId: string, token: string) => {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
-            credentials : "include"
+            credentials: "include"
         });
-        
+
         if (!response.ok) {
             let errorMessage = "An unexpected error occurred. Please try again.";
             try {
@@ -183,7 +262,7 @@ export const getMonthlyIncome = async (userId: string, token: string) => {
             }
             return { success: false, message: errorMessage };
         }
-        
+
         const data = await response.json();
         return { success: true, data };
     } catch (error) {

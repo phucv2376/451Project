@@ -22,24 +22,59 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import Collapse from '@mui/material/Collapse';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
+import dayjs, { Dayjs } from 'dayjs';
 
-import { Transaction, TransactionListResponse } from '../models/Transaction';
+import { Transaction, TransactionListResponse, AddEditTransaction } from '../models/Transaction';
 import { transactionTypes } from '../models/TransactionType';
-import { deleteTransaction, getTransactions } from '../services/transactionService';
+import { categories } from '../models/TransactionCategory';
+import {
+    deleteTransaction,
+    getTransactions,
+    createTransaction,
+    updateTransaction
+}
+    from '../services/transactionService';
 
 const TransactionPage = () => {
     const [category, setCategory] = useState('');
+    const [amount, setAmount] = useState('');
+    const [description, setDescription] = useState('');
+    const [transactionType, setTransactionType] = useState('');
+    const [date, setDate] = useState<Dayjs | null>(dayjs());
+
     const [showAddTransaction, setShowAddTransaction] = useState(false);
     const [showEditTransaction, setShowEditTransaction] = useState(false);
-    const [transactionType, setTransactionType] = useState('');
+
+    const [categoryFilter, setCategoryFilter] = useState('');
+    const [transactionTypeFilter, setTransactionTypeFilter] = useState('');
+
     const [userId, setUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [errorTransaction, setErrorTransaction] = useState<string | null>(null);
+
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [showFilters, setShowFilters] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
 
+    const [newTransaction, setNewTransaction] = useState<AddEditTransaction>({
+        userId: "",
+        transactionDate: null,
+        amount: 0,
+        payee: "",
+        transactionType: "",
+        categories: []
+    });
+    const [editTransaction, setEditTransaction] = useState<AddEditTransaction>({
+        userId: "",
+        transactionDate: null,
+        amount: 0,
+        payee: "",
+        transactionType: "",
+        categories: [],
+        transactionId: ""
+    });
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [transactionPaging, setTransactionPaging] = useState<TransactionListResponse>({
         paging: {
@@ -87,15 +122,22 @@ const TransactionPage = () => {
         const storedUserId = localStorage.getItem('userId');
         if (storedUserId) {
             setUserId(storedUserId);
+            setNewTransaction(prev => ({
+                ...prev,
+                userId: storedUserId // Use storedUserId directly
+            }));
             loadTransactions(0); // Load first page when userId is set
         }
     }, []);
+    useEffect(() => {
+        loadTransactions(currentPage);
+    }, [rowsPerPage]); // Add rowsPerPage as a dependency
 
     const handlePageChange = (event: unknown, newPage: number) => {
         if (event) {
             // @ts-ignore
             event.preventDefault?.();
-        }   
+        }
         newPage = newPage + 1;
         setCurrentPage(newPage);
         loadTransactions(newPage);
@@ -118,10 +160,31 @@ const TransactionPage = () => {
     const handleCancel = () => {
         setShowAddTransaction(false);
         setShowEditTransaction(false);
+        setAmount('');
+        setDescription('');
+        setTransactionType('');
+        setCategory('');
+        setDate(null);
+        setErrorTransaction(null);
     };
 
     const handleShowAddTransaction = () => {
         setShowAddTransaction(true);
+    };
+
+    const handleAddTransaction = async () => {
+        const result = await createTransaction(newTransaction);
+
+        if (result.success) {
+            console.log("Transaction created:", result.data);
+            handleCancel();
+            loadTransactions(currentPage);
+            // Refresh transactions list or show success message
+        } else {
+            console.error("Error:", result.message);
+            // Show error to user
+            setErrorTransaction(result.message || "Failed.");
+        }
     };
 
     const handleShowEditTransaction = () => {
@@ -130,18 +193,57 @@ const TransactionPage = () => {
         }
     };
 
+    const handleEditTransaction = async () => {
+        const result = await updateTransaction(editTransaction);
+        if (result.success) {
+            console.log("Transaction updated:", result.data);
+            handleCancel();
+            loadTransactions(currentPage);
+            // Refresh transactions list or show success message
+        } else {
+            console.error("Error:", result.message);
+            // Show error to user
+            setErrorTransaction(result.message || "Failed.");
+        }
+    }
+
+    // For TextFields
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setNewTransaction(prev => ({ ...prev, [name]: value }));
+    };
+
+    // For Selects
+    const handleSelectChange = (event: SelectChangeEvent<string | string[]>) => {
+        const { name, value } = event.target;
+
+        setNewTransaction(prev => ({
+            ...prev,
+            [name]: name === "categories" ? (Array.isArray(value) ? value : [value]) : value
+        }));
+    };
+
+    // For DateField
+    const handleDateChange = (newValue: Dayjs | null) => {
+        setNewTransaction(prev => ({
+            ...prev,
+            transactionDate: newValue ? newValue.toDate() : null
+        }));
+    };
+
     const handleTransactionType = (event: SelectChangeEvent) => {
         setTransactionType(event.target.value as string);
     };
 
     const handleDeleteTransaction = async () => {
+        console.log(selectedTransaction);
         if (selectedTransaction && userId) {
             const result = await deleteTransaction(selectedTransaction, userId);
             if (result.success) {
                 loadTransactions(currentPage); // Reload current page after deletion
                 setSelectedTransaction(null);
             } else {
-                setError(result.message || "Failed to delete transaction");
+                setErrorTransaction(result.message || "Failed to delete transaction");
             }
         }
     };
@@ -172,16 +274,16 @@ const TransactionPage = () => {
                                     </Button>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <IconButton 
-                                        aria-label="delete" 
+                                    <IconButton
+                                        aria-label="delete"
                                         color="error"
                                         disabled={!selectedTransaction}
                                         onClick={handleDeleteTransaction}
                                     >
                                         <DeleteIcon />
                                     </IconButton>
-                                    <IconButton 
-                                        aria-label="edit" 
+                                    <IconButton
+                                        aria-label="edit"
                                         color="primary"
                                         disabled={!selectedTransaction}
                                         onClick={handleShowEditTransaction}
@@ -205,7 +307,7 @@ const TransactionPage = () => {
                                     <FormControl size="small" fullWidth>
                                         <InputLabel>Transaction Type</InputLabel>
                                         <Select
-                                            value={transactionType}
+                                            value={transactionTypeFilter}
                                             onChange={handleTransactionType}
                                             label="Transaction Type"
                                         >
@@ -219,11 +321,16 @@ const TransactionPage = () => {
                                     <FormControl size="small" fullWidth>
                                         <InputLabel>Category</InputLabel>
                                         <Select
-                                            value={category}
+                                            value={categoryFilter}
                                             onChange={handleCategoryChange}
                                             label="Category"
                                         >
-                                            {/* Add your categories here */}
+                                            {categories.map((cat, index) => (
+                                                <MenuItem key={index} value={cat.category}>
+                                                    <cat.Icon style={{ marginRight: '6px' }} />
+                                                    {cat.category}
+                                                </MenuItem>
+                                            ))}
                                         </Select>
                                     </FormControl>
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -249,6 +356,7 @@ const TransactionPage = () => {
                                     paging={transactionPaging}
                                     transactions={transactions}
                                     enablePagination={true}
+                                    enableSubCat={true}
                                     enableCheckbox={true}
                                     page={currentPage}
                                     rowsPerPage={rowsPerPage}
@@ -271,17 +379,19 @@ const TransactionPage = () => {
                             <h2 className="text-xl font-bold mb-6">
                                 {showAddTransaction ? 'Add Transaction' : 'Edit Transaction'}
                             </h2>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                                 <FormControl fullWidth>
                                     <InputLabel>Transaction Type</InputLabel>
                                     <Select
-                                        value={transactionType}
-                                        onChange={handleTransactionType}
+                                        //value={transactionType}
+                                        //onChange={handleTransactionType}
+                                        onChange={handleSelectChange}
+                                        value={newTransaction.transactionType || ""} // Ensure controlled component
                                         label="Transaction Type"
+                                        name="transactionType"
                                     >
                                         {transactionTypes.map((type, index) => (
-                                            <MenuItem key={index} value={type}>
+                                            <MenuItem key={type} value={type.toString()}>
                                                 {type}
                                             </MenuItem>
                                         ))}
@@ -291,24 +401,36 @@ const TransactionPage = () => {
                                 <FormControl fullWidth>
                                     <InputLabel>Category</InputLabel>
                                     <Select
-                                        value={category}
-                                        onChange={handleCategoryChange}
+                                        //value={category}
+                                        onChange={handleSelectChange}
+                                        value={newTransaction.categories || []} // Ensure controlled component
                                         label="Category"
+                                        name="categories"
                                     >
-                                        {/* Add your categories here */}
+                                        {categories.map((cat, index) => (
+                                            <MenuItem key={index} value={cat.category.toString()}>
+                                                <cat.Icon style={{ marginRight: '6px' }} />
+                                                {cat.category}
+                                            </MenuItem>
+                                        ))}
                                     </Select>
                                 </FormControl>
 
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DateField
                                         label="Date"
+                                        name="transactionDate"
                                         sx={{ width: '100%' }}
+                                        
+                                        onChange={handleDateChange}
                                     />
                                 </LocalizationProvider>
 
                                 <TextField
                                     label="Amount"
-                                    placeholder="0.00"
+                                    name="amount"
+                                    placeholder="00.00"
+                                    onChange={handleInputChange}
                                     InputProps={{
                                         startAdornment: <InputAdornment position="start">$</InputAdornment>,
                                     }}
@@ -317,12 +439,19 @@ const TransactionPage = () => {
 
                                 <TextField
                                     label="Description"
+                                    name="payee"
+                                    //value={showAddTransaction ?  : ""}
+                                    onChange={handleInputChange}
                                     placeholder="e.g., Groceries at Walmart"
                                     fullWidth
                                     className="md:col-span-2"
                                 />
                             </div>
-
+                            {errorTransaction && (
+                                <div className='w-full'>
+                                    <div className="text-red-500">{errorTransaction}</div>
+                                </div>
+                            )}
                             <div className="flex justify-end gap-3">
                                 <Button
                                     variant="outlined"
@@ -333,6 +462,7 @@ const TransactionPage = () => {
                                 <Button
                                     variant="contained"
                                     color="primary"
+                                    onClick={showAddTransaction ? handleAddTransaction : handleEditTransaction}
                                 >
                                     {showAddTransaction ? 'Add' : 'Save Changes'}
                                 </Button>

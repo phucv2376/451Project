@@ -1,101 +1,93 @@
-/*import LunchDiningOutlinedIcon from '@mui/icons-material/LunchDiningOutlined';
-import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined';
-import TheaterComedyOutlinedIcon from '@mui/icons-material/TheaterComedyOutlined';
-import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
-import FaceRetouchingNaturalOutlinedIcon from '@mui/icons-material/FaceRetouchingNaturalOutlined';
-import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
-import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
-import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
-import WaterDamageOutlinedIcon from '@mui/icons-material/WaterDamageOutlined';
-import CottageOutlinedIcon from '@mui/icons-material/CottageOutlined';
+import LunchDiningOutlinedIcon from '@mui/icons-material/LunchDiningOutlined';
+import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import LocalHospitalOutlinedIcon from '@mui/icons-material/LocalHospitalOutlined';
+import SavingsOutlinedIcon from '@mui/icons-material/SavingsOutlined';
+import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
+import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import MiscellaneousServicesOutlinedIcon from '@mui/icons-material/MiscellaneousServicesOutlined';
+import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
+import SportsFootballOutlinedIcon from '@mui/icons-material/SportsFootballOutlined';
+import PercentOutlinedIcon from '@mui/icons-material/PercentOutlined';
+import SwapHorizOutlinedIcon from '@mui/icons-material/SwapHorizOutlined';
 import FlightTakeoffOutlinedIcon from '@mui/icons-material/FlightTakeoffOutlined';
 import { Transaction } from './Transaction';
 
 export const categories: TransactionCategory[] = [
     {
-        categoryId:"550e8400-e29b-41d4-a716-446655440001",
-        category: "Food & Dining",
-        color: "#c7522a", //red
+        category: "Bank Fees",
+        color:"#840404", // Muted orange
+        Icon: AccountBalanceOutlinedIcon
+    },
+    {
+        category: "Cash Advance",
+        color: "#FF6B6B", // Muted red
+        Icon: AttachMoneyOutlinedIcon
+    },
+    {
+        category: "Community",
+        color: "#FF8EFF", // Muted pink (variant of red)
+        Icon: PeopleOutlinedIcon
+    },
+    {
+        category: "Food and Drink",
+        color: "#FFD166", // Muted yellow
         Icon: LunchDiningOutlinedIcon
     },
     {
-        categoryId:"550e8400-e29b-41d4-a716-446655440002",
-        category: "Transportation",
-        color:"#e5c185",// beige
-        Icon: DirectionsCarFilledOutlinedIcon
-    },
-    {
-        categoryId:"550e8400-e29b-41d4-a716-446655440003",
-        category: "Entertainment",
-        color:"#fbf2c4", //yellow
-        Icon: TheaterComedyOutlinedIcon
-
-    },
-    {
-        categoryId:"550e8400-e29b-41d4-a716-446655440008",
-        category: "Education",
-        color: "#ffa600", //orange
-        Icon: SchoolOutlinedIcon
-    },
-    {
-        categoryId:"550e8400-e29b-41d4-a716-446655440009",
-        category: "Personal Care",
-        color:"#74a892", //green
-        Icon: FaceRetouchingNaturalOutlinedIcon
-    },
-    {
-        categoryId:"550e8400-e29b-41d4-a716-446655440010",
-        category: "Payroll",
-        color:"#008585", //blue
-        Icon:PaymentsOutlinedIcon
-    },
-    {
-        categoryId:"550e8400-e29b-41d4-a716-446655440007",
-        category: "Shopping",
-        color: "#004343",
-        Icon: ShoppingBagOutlinedIcon
-    },
-    {   
-        categoryId:"550e8400-e29b-41d4-a716-446655440011",
-        category: "Other",
-        color: "#8a508f", //purple
-        Icon: PendingOutlinedIcon
-    },
-    {
-        categoryId:"550e8400-e29b-41d4-a716-446655440006",
-        category: "Utilities",
-        color:"#6f12fa", // darker purple
-        Icon: WaterDamageOutlinedIcon
-    },
-    {
-        categoryId: "550e8400-e29b-41d4-a716-446655440005",
-        category: "Housing",
-        color: "#2f9f99", //cyan
-        Icon: CottageOutlinedIcon
-    }, 
-    {
-        categoryId: "550e8400-e29b-41d4-a716-446655440004",
         category: "Healthcare",
-        color:"#9c2700", //red
+        color: "#06D6A0", // Muted green
         Icon: LocalHospitalOutlinedIcon
     },
     {
-        categoryId: "550e8400-e29b-41d4-a716-446655440012",
+        category: "Interest",
+        color: "#118AB2", // Muted blue
+        Icon: SavingsOutlinedIcon
+    },
+    {
+        category: "Payment",
+        color: "#5E4FA2", // Muted indigo
+        Icon: PaymentsOutlinedIcon
+    },
+    {
+        category: "Recreation",
+        color: "#9B5DE5", // Muted violet
+        Icon: SportsFootballOutlinedIcon
+    },
+    {
+        category: "Service",
+        color: "#EF476F", // Muted red-violet (complementary)
+        Icon: MiscellaneousServicesOutlinedIcon
+    },
+    {
+        category: "Shops",
+        color: "#83C5BE", // Muted teal (extension of green)
+        Icon: ShoppingCartOutlinedIcon
+    },
+    {
+        category: "Tax",
+        color: "#FFDD59", // Muted gold (yellow variant)
+        Icon: PercentOutlinedIcon
+    },
+    {
+        category: "Transfer",
+        color: "#7FB3D5", // Muted sky blue
+        Icon: SwapHorizOutlinedIcon
+    },
+    {
         category: "Travel",
-        color: "#00af34", //green
+        color: "#B388EB", // Muted lavender (violet variant)
         Icon: FlightTakeoffOutlinedIcon
     }
-] 
+]
 
 export interface TransactionCategory {
-    categoryId: string;
     category: string;
-    color: string; 
+    color: string;
     Icon: any
 }
 
 export const getCategory = (transaction: Transaction): TransactionCategory => {
-    const category = categories.find((cat) => cat.categoryId === transaction.categoryId);
-    return category || categories[7];
-}*/
+    const category = categories.find((cat) => cat.category === transaction.categories[0]);
+    return category || categories[0];
+}
