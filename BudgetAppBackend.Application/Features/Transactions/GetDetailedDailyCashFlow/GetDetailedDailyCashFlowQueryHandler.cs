@@ -19,7 +19,7 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetDetailedDailyCas
         public async Task<IEnumerable<DetailedDailyCashFlowDto>> Handle(GetDetailedDailyCashFlowQuery request, CancellationToken cancellationToken)
         {
             var userId = UserId.Create(request.UserId);
-            var monthStartDate = request.MonthStartDate;
+            var monthStartDate = DateTime.UtcNow.AddDays(-30);  // from today go back 30 days.
             //var manualTransactions = await _transactionReadRepository.GetUserTransactionsQueryAsync(userId, cancellationToken);
             var plaidTransactions = await _plaidTransactionRepository.GetDetailedDailyCashFlowAsync(userId, monthStartDate, cancellationToken);
             // Combine and process transactions here

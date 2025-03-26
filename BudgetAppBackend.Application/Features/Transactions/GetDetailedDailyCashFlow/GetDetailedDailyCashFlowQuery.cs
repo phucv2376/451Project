@@ -3,4 +3,4 @@ using MediatR;
 
 namespace BudgetAppBackend.Application.Features.Transactions.GetDetailedDailyCashFlow;
 
-public sealed record GetDetailedDailyCashFlowQuery(Guid UserId, DateTime MonthStartDate) : IRequest<IEnumerable<DetailedDailyCashFlowDto>>;
+public sealed record GetDetailedDailyCashFlowQuery(Guid UserId) : IRequest<IEnumerable<DetailedDailyCashFlowDto>>;

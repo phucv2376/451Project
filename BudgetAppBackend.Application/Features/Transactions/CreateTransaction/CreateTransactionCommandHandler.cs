@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Domain.TransactionAggregate;
+using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using MediatR;
 
 namespace BudgetAppBackend.Application.Features.Transactions.CreateTransaction
@@ -16,18 +17,26 @@ namespace BudgetAppBackend.Application.Features.Transactions.CreateTransaction
         }
         public async Task<Unit> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
         {
-            var mappedTransaction = _mapper.Map<Transaction>(request.createTransactionDto);
+            var dto = request.createTransactionDto;
+
+            var userId = UserId.Create(dto.UserId);
+
+            if (!Enum.TryParse<TransactionType>(dto.transactionType, true, out var transactionType))
+                throw new ArgumentException($"Invalid transaction type: {dto.transactionType}");
+
             var newTransaction = Transaction.Create(
-                mappedTransaction.UserId,
-                (List<string>)mappedTransaction.Categories,
-                mappedTransaction.Amount,
-                mappedTransaction.TransactionDate,
-                mappedTransaction.Payee,
-                mappedTransaction.Type
+                userId,
+                dto.Categories,
+                dto.Amount,
+                dto.TransactionDate,
+                dto.payee,
+                transactionType
             );
+
             await _transactionRepository.AddAsync(newTransaction, cancellationToken);
 
             return Unit.Value;
         }
+
     }
 }

@@ -13,9 +13,8 @@ namespace BudgetAppBackend.Application.AutoMapper
     public class ConfigAutoMapper : Profile
     {
         public ConfigAutoMapper()
-        {            
+        {
             CreateMap<AddUserDto, User>().ReverseMap();
-
 
             CreateMap<CreateTransactionDto, Transaction>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => UserId.Create(src.UserId)));
@@ -30,7 +29,6 @@ namespace BudgetAppBackend.Application.AutoMapper
                 .ForMember(dest => dest.BudgetId, opt => opt.MapFrom(src => src.Id.Id))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.Id))
                 .ForMember(dest => dest.SpentAmount, opt => opt.MapFrom(src => src.SpendAmount));
-
         }
     }
 }

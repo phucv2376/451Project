@@ -1,4 +1,5 @@
-﻿using BudgetAppBackend.Application.Contracts;
+﻿using System.Linq;
+using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.DTOs.TransactionDTOs;
 using BudgetAppBackend.Domain.PlaidTransactionAggregate;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
@@ -254,9 +255,9 @@ namespace BudgetAppBackend.Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<DetailedDailyCashFlowDto>> GetDetailedDailyCashFlowAsync(
-            UserId userId,
-            DateTime monthStartDate,
-            CancellationToken cancellationToken)
+             UserId userId,
+             DateTime monthStartDate,
+             CancellationToken cancellationToken)
         {
             var monthEndDate = monthStartDate.AddMonths(1).AddDays(-1);
 
@@ -268,7 +269,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
 
             var grouped = transactions
-                .GroupBy(t => t.Date.Date)
+                .GroupBy(t => DateTime.SpecifyKind(t.Date.Date, DateTimeKind.Utc))
                 .ToDictionary(
                     g => g.Key,
                     g =>
@@ -280,7 +281,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                     });
 
             var allDates = Enumerable.Range(0, (monthEndDate - monthStartDate).Days + 1)
-                .Select(offset => monthStartDate.AddDays(offset));
+                .Select(offset => DateTime.SpecifyKind(monthStartDate.AddDays(offset).Date, DateTimeKind.Utc));
 
             var results = new List<DetailedDailyCashFlowDto>();
             decimal runningTotal = 0;
@@ -303,6 +304,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
             return results;
         }
+
 
     }
 }

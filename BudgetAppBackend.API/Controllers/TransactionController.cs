@@ -95,11 +95,10 @@ namespace BudgetAppBackend.API.Controllers
         }
 
         [HttpGet("users/{userId}/month-cashflow")]
-        public async Task<IActionResult> GetCashFlow(Guid userId, [FromQuery] DateTime monthStartDate)
+        public async Task<IActionResult> GetCashFlow(Guid userId)
         {
             var result = await _sender.Send(new GetDetailedDailyCashFlowQuery(
-                userId,
-                monthStartDate
+                userId
             ));
 
             return Ok(result);
