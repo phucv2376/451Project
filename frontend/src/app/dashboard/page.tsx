@@ -170,7 +170,12 @@ const TransactionSection = ({ transactions, error, isLoading }: { transactions: 
                 ) : transactions.length === 0 ? (
                     <p>No transactions found</p>
                 ) : (
-                    <TransactionTable transactions={transactions} enablePagination={false} enableCheckbox={false} />
+                    <TransactionTable 
+                        transactions={transactions} 
+                        enablePagination={false} 
+                        enableCheckbox={false} 
+                        enableSubCat={false}
+                    />
                 )}
             </div>
         </div>
