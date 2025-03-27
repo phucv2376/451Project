@@ -37,6 +37,7 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetSpendingBreakdow
             var spendingPerCategory = allTransactions.
                         Where(t => t.TransactionDate >= monthStartDate)
                         .Where(t => t.Categories.Any())
+                        .Where (t => t.Amount < 0)
                         .GroupBy(t => t.Categories.First()) // Group by the primary category
                         .Select(g => new CategoryTotalDto { Category = g.Key, TotalAmount = g.Sum(t => t.Amount) })
                         .ToList();
