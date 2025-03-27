@@ -16,6 +16,7 @@
     "@microsoft/signalr": "^8.0.7",
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.6",
+    "@mui/x-charts": "^7.28.0",
     "@mui/x-date-pickers": "^7.27.3",
     "axios": "^1.7.9",
     "cookie": "^1.0.2",

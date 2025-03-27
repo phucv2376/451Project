@@ -38,3 +38,13 @@ export interface TransactionListResponse {
     }
     data: Transaction[]
 }
+
+export interface CategorySpendingResponse {
+    success: boolean;
+    data: CategorySpending[];
+}
+
+export interface CategorySpending {
+    category: string;
+    totalAmount: number;
+}
