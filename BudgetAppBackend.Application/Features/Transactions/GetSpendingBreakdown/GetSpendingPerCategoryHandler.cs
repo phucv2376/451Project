@@ -27,10 +27,7 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetSpendingPerCateg
             var manualTransactions = await _transactionReadRepository.GetUserTransactionsByDateRangeAsync(userId, monthStartDate, true, cancellationToken);
             var plaidTransactions = await _plaidTransactionRepository.GetUserTransactionsByDateRangeAsync(userId, monthStartDate, true, cancellationToken);
 
-            var manualTransactionsList = manualTransactions.ToList();
-            var plaidTransactionsList = plaidTransactions.ToList();
-
-            var allTransactions = manualTransactionsList.Concat(plaidTransactionsList)
+            var allTransactions = manualTransactions.Concat(plaidTransactions)
                                          .OrderByDescending(t => t.TransactionDate)
                                          .AsQueryable();
 
