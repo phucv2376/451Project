@@ -6,6 +6,7 @@ using BudgetAppBackend.Application.Features.Transactions.GetDetailedDailyCashFlo
 using BudgetAppBackend.Application.Features.Transactions.GetMonthExpense;
 using BudgetAppBackend.Application.Features.Transactions.GetMonthIncome;
 using BudgetAppBackend.Application.Features.Transactions.GetRecentTransactions;
+using BudgetAppBackend.Application.Features.Transactions.GetSpendingBreakdown;
 using BudgetAppBackend.Application.Features.Transactions.GetUserTransactionsWithPagination;
 using BudgetAppBackend.Application.Features.Transactions.UpdateTransaction;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
@@ -108,5 +109,14 @@ namespace BudgetAppBackend.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("users/{userId}/spending-breakdown")]
+        public async Task<IActionResult> GetSpendingBreakdown(Guid userId)
+        {
+            var result = await _sender.Send(new GetSpendingBreakdownQuery(
+                userId
+            ));
+
+            return Ok(result);
+        }
     }
 }
