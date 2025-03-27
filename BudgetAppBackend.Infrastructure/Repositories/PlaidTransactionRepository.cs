@@ -305,6 +305,26 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             return results;
         }
 
+        public async Task<IEnumerable<TransactionDto>> GetUserTransactionsByDateRangeAsync(UserId userId, DateTime startDate, bool onlyWithCategory, CancellationToken cancellationToken)
+        {
 
+            var query = await _context.PlaidTransactions
+                .Where(t => t.UserId == userId)
+                .Where(t => t.Date >= startDate)
+                .ToListAsync(cancellationToken);
+
+            if (onlyWithCategory)
+            {
+                query = query.Where(t => t.Categories.FirstOrDefault() != null).ToList();
+
+            }
+
+            return query.Select(t => new TransactionDto(
+                 t.Id.Id,
+                 t.Date,
+                 t.Amount,
+                 t.Name,
+                 t.Categories)).ToList();
+        }
     }
 }
