@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { Box, LinearProgress, Stack } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
 import { usePlaid } from "../hooks/usePlaid";
 import NavBar from "../components/NavBar";
-import BankIntegration from "../components/PlaidIntegration/BankIntegration";
 import TransactionTable from "../components/TransactionTable";
 import { Transaction } from "../models/Transaction";
 import {
@@ -14,6 +12,7 @@ import {
     getMonthlyExpenses,
 } from "../services/transactionService";
 import BalanceSummary from "../components/BalanceSummary";
+import SpendingBreakdown from "../components/SpendingBreakdown";
 
 const Dashboard = () => {
     const { logout } = useAuth();
@@ -206,35 +205,6 @@ const SummaryItem = ({ label, value, isLoading, positive = false }: { label: str
     </div>
 );
 
-/**
- * Spending Breakdown Component (RESTORED ✅)
- */
-const SpendingBreakdown = () => (
-    <div className="bg-white rounded-lg border border-gray-200 p-5 mt-6 shadow-sm">
-        <h2 className="font-bold text-md mb-4">Spending Breakdown</h2>
-        <Box sx={{ width: "100%" }}>
-            <Box sx={{ width: "100%", height: "30px", borderRadius: "5px", overflow: "hidden", position: "relative" }}>
-                <LinearProgress
-                    variant="determinate"
-                    value={100}
-                    sx={{
-                        height: "100%",
-                        backgroundColor: "#e0e0e0",
-                        position: "absolute",
-                        width: "100%",
-                    }}
-                />
-                <Box sx={{ display: "flex", height: "100%", position: "absolute", width: "100%" }}>
-                    {/* Spending breakdown data will be added here */}
-                </Box>
-            </Box>
-
-            <Stack direction="row" justifyContent="flex-start" spacing={7} sx={{ mt: 2 }}>
-                {/* Category labels will be added here */}
-            </Stack>
-        </Box>
-    </div>
-);
 
 
 export default Dashboard;

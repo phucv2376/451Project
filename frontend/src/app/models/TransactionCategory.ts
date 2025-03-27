@@ -91,3 +91,8 @@ export const getCategory = (transaction: Transaction): TransactionCategory => {
     const category = categories.find((cat) => cat.category === transaction.categories[0]);
     return category || categories[0];
 }
+
+export const getCategoryByName = (categoryName: string): TransactionCategory => {
+    const category = categories.find((cat) => cat.category === categoryName);
+    return category || categories[0];
+}
