@@ -140,9 +140,9 @@ const FinancialSummary = ({ monthlyIncome, monthlyExpenses, isLoading }: { month
         </div> */}
         <div className='flex justify-between flex-row h-[100%]'>
             <div className="pr-7 flex w-1/2 max-h-[100%] flex-col justify-center items-center border-r border-gray-300">
-                <h2 className="text-gray-600 text-2xl pb-2">Net Cashflow </h2>
+                <h2 className="text-gray-600 text-2xl md:text-xl pb-2">Net Cashflow </h2>
                 <span className=
-                    {`text-5xl ${monthlyIncome - monthlyExpenses >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                    {`text-5xl md:text-4xl ${monthlyIncome - monthlyExpenses >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 >
                     {`${monthlyIncome - monthlyExpenses >= 0 ? '+' : '-'}`}
                     ${Math.abs(Math.round(monthlyIncome - monthlyExpenses))} </span>

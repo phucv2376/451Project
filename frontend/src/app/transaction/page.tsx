@@ -8,6 +8,7 @@ import TransactionTable from "../components/TransactionTable";
 
 import IconButton from '@mui/material/IconButton';
 import TextField from '@mui/material/TextField';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -24,7 +25,12 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import dayjs, { Dayjs } from 'dayjs';
 
-import { Transaction, TransactionListResponse, AddEditTransaction } from '../models/Transaction';
+import {
+    Transaction,
+    TransactionListResponse,
+    AddEditTransaction,
+    FilteredTransaction
+} from '../models/Transaction';
 import { transactionTypes } from '../models/TransactionType';
 import { categories } from '../models/TransactionCategory';
 import {
@@ -32,8 +38,7 @@ import {
     getTransactions,
     createTransaction,
     updateTransaction
-}
-    from '../services/transactionService';
+} from '../services/transactionService';
 
 const TransactionPage = () => {
     const [category, setCategory] = useState('');
@@ -44,9 +49,6 @@ const TransactionPage = () => {
 
     const [showAddTransaction, setShowAddTransaction] = useState(false);
     const [showEditTransaction, setShowEditTransaction] = useState(false);
-
-    const [categoryFilter, setCategoryFilter] = useState('');
-    const [transactionTypeFilter, setTransactionTypeFilter] = useState('');
 
     const [userId, setUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -75,6 +77,13 @@ const TransactionPage = () => {
         categories: [],
         transactionId: ""
     });
+    const [filterTransaction, setFilterTransaction] = useState<FilteredTransaction>({
+        MinAmount: null,
+        MaxAmount: null,
+        StartDate: null,
+        EndDate: null,
+        Category: null
+    });
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [transactionPaging, setTransactionPaging] = useState<TransactionListResponse>({
         paging: {
@@ -99,7 +108,7 @@ const TransactionPage = () => {
         }
         setLoading(true);
         try {
-            const result = await getTransactions(storedUserId, rowsPerPage, page);
+            const result = await getTransactions(storedUserId, rowsPerPage, page, filterTransaction);
             if (result.success && result.data) {
                 setTransactions(result.data.data);
                 setTransactionPaging(result.data);
@@ -163,10 +172,25 @@ const TransactionPage = () => {
         setAmount('');
         setDescription('');
         setTransactionType('');
-        setCategory('');
+        setNewTransaction(prev => ({
+            ...prev,
+            categories: [],
+            transactionType: ''
+        }));
+
         setDate(null);
         setErrorTransaction(null);
     };
+    const handleClear = () => {
+        setFilterTransaction(prev => ({
+            ...prev,
+            Category: null,
+            MinAmount: null,
+            MaxAmount: null,
+            StartDate: null,
+            EndDate: null
+        }));
+    }
 
     const handleShowAddTransaction = () => {
         setShowAddTransaction(true);
@@ -206,35 +230,38 @@ const TransactionPage = () => {
             setErrorTransaction(result.message || "Failed.");
         }
     }
-
-    // For TextFields
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  
+    // Generalized handler for TextFields
+    const handleInputChange = <T extends Record<string, any>>(
+        setter: React.Dispatch<React.SetStateAction<T>>
+    ) => (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setNewTransaction(prev => ({ ...prev, [name]: value }));
+        setter(prev => ({ ...prev, [name]: value }));
     };
 
-    // For Selects
-    const handleSelectChange = (event: SelectChangeEvent<string | string[]>) => {
+    // Generalized handler for Selects
+    const handleSelectChange = <T extends Record<string, any>>(
+        setter: React.Dispatch<React.SetStateAction<T>>
+    ) => (event: SelectChangeEvent<string | string[]>) => {
         const { name, value } = event.target;
-
-        setNewTransaction(prev => ({
+        setter(prev => ({
             ...prev,
             [name]: name === "categories" ? (Array.isArray(value) ? value : [value]) : value
         }));
     };
-
-    // For DateField
-    const handleDateChange = (newValue: Dayjs | null) => {
-        setNewTransaction(prev => ({
+    const handleDateChange = <T extends Record<string, any>>(
+        setter: React.Dispatch<React.SetStateAction<T>>,
+        fieldName: keyof T  // Dynamic field name
+    ) => (newValue: Dayjs | null) => {
+        setter(prev => ({
             ...prev,
-            transactionDate: newValue ? newValue.toDate() : null
+            [fieldName]: newValue ? newValue.toDate() : null
         }));
     };
 
-    const handleTransactionType = (event: SelectChangeEvent) => {
-        setTransactionType(event.target.value as string);
-    };
-
+    // const handleTransactionType = (event: SelectChangeEvent) => {
+    //     setTransactionType(event.target.value as string);
+    // };
     const handleDeleteTransaction = async () => {
         console.log(selectedTransaction);
         if (selectedTransaction && userId) {
@@ -243,11 +270,10 @@ const TransactionPage = () => {
                 loadTransactions(currentPage); // Reload current page after deletion
                 setSelectedTransaction(null);
             } else {
-                setErrorTransaction(result.message || "Failed to delete transaction");
+                setError(result.message || "Failed to delete transaction");
             }
         }
     };
-
     const handleTransactionSelect = (transactionId: string) => {
         setSelectedTransaction(transactionId === selectedTransaction ? null : transactionId);
     };
@@ -303,43 +329,83 @@ const TransactionPage = () => {
 
                             {/* Filters Section */}
                             <Collapse in={showFilters}>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                                    <FormControl size="small" fullWidth>
-                                        <InputLabel>Transaction Type</InputLabel>
-                                        <Select
-                                            value={transactionTypeFilter}
-                                            onChange={handleTransactionType}
-                                            label="Transaction Type"
-                                        >
-                                            {transactionTypes.map((type, index) => (
-                                                <MenuItem key={index} value={type}>
-                                                    {type}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl size="small" fullWidth>
-                                        <InputLabel>Category</InputLabel>
-                                        <Select
-                                            value={categoryFilter}
-                                            onChange={handleCategoryChange}
-                                            label="Category"
-                                        >
-                                            {categories.map((cat, index) => (
-                                                <MenuItem key={index} value={cat.category}>
-                                                    <cat.Icon style={{ marginRight: '6px' }} />
-                                                    {cat.category}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
+                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <DateField
-                                            label="Date"
+                                            label="Start Date"
+                                            //value={filterTransaction.StartDate || null}
+                                            value={filterTransaction.StartDate ? dayjs(filterTransaction.StartDate) : null}
+                                            onChange={handleDateChange(setFilterTransaction, "StartDate")}
                                             size="small"
                                             sx={{ width: '100%' }}
                                         />
                                     </LocalizationProvider>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DateField
+                                            label="End Date"
+                                            value={filterTransaction.EndDate ? dayjs(filterTransaction.EndDate) : null}
+                                            //value={endDateFilter}
+                                            onChange={handleDateChange(setFilterTransaction, "EndDate")}
+                                            size="small"
+                                            sx={{ width: '100%' }}
+                                        />
+                                    </LocalizationProvider>
+
+                                        <FormControl size="small" fullWidth>
+                                            <InputLabel>Category</InputLabel>
+                                            <Select
+                                                onChange={handleSelectChange(setFilterTransaction)}
+                                                value={filterTransaction.Category|| []} // Ensure controlled component
+                                                label="Category"
+                                                name="Category"
+                                            >
+                                                {categories.map((cat, index) => (
+                                                    <MenuItem key={index} value={cat.category}>
+                                                        <cat.Icon style={{ marginRight: '6px' }} />
+                                                        {cat.category}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel htmlFor="min-amount">Min</InputLabel>
+                                        <OutlinedInput
+                                            id="min-amount"
+                                            value={filterTransaction.MinAmount || ""}
+                                            onChange={handleInputChange(setFilterTransaction)}
+                                            name="MinAmount"
+                                            label="Min"
+                                            placeholder="00.00"
+                                            startAdornment={<InputAdornment position="start">$</InputAdornment>}
+                                        />
+                                    </FormControl>
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel htmlFor="max-amount">Max</InputLabel>
+                                        <OutlinedInput
+                                            id="max-amount"
+                                            value={filterTransaction.MaxAmount || ""}
+                                            onChange={handleInputChange(setFilterTransaction)}
+                                            name="MaxAmount"
+                                            label="Max"
+                                            placeholder="00.00"
+                                            startAdornment={<InputAdornment position="start">$</InputAdornment>}
+                                        />
+                                    </FormControl>
+
+                                </div>
+                                <div className='flex justify-start mt-2 gap-3'>
+                                    <Button 
+                                        variant="outlined"
+                                        onClick={() => loadTransactions(0)} 
+                                        >
+                                        Filter
+                                    </Button>
+                                    <Button
+                                        variant='outlined'
+                                        onClick={handleClear}
+                                    >
+                                        Clear
+                                    </Button>
                                 </div>
                             </Collapse>
                         </div>
@@ -385,7 +451,7 @@ const TransactionPage = () => {
                                     <Select
                                         //value={transactionType}
                                         //onChange={handleTransactionType}
-                                        onChange={handleSelectChange}
+                                        onChange={handleSelectChange(setNewTransaction)}
                                         value={newTransaction.transactionType || ""} // Ensure controlled component
                                         label="Transaction Type"
                                         name="transactionType"
@@ -402,7 +468,7 @@ const TransactionPage = () => {
                                     <InputLabel>Category</InputLabel>
                                     <Select
                                         //value={category}
-                                        onChange={handleSelectChange}
+                                        onChange={handleSelectChange(setNewTransaction)}
                                         value={newTransaction.categories || []} // Ensure controlled component
                                         label="Category"
                                         name="categories"
@@ -421,8 +487,7 @@ const TransactionPage = () => {
                                         label="Date"
                                         name="transactionDate"
                                         sx={{ width: '100%' }}
-                                        
-                                        onChange={handleDateChange}
+                                        onChange={handleDateChange(setNewTransaction, "transactionDate")}
                                     />
                                 </LocalizationProvider>
 
@@ -430,7 +495,7 @@ const TransactionPage = () => {
                                     label="Amount"
                                     name="amount"
                                     placeholder="00.00"
-                                    onChange={handleInputChange}
+                                    onChange={handleInputChange(setNewTransaction)}
                                     InputProps={{
                                         startAdornment: <InputAdornment position="start">$</InputAdornment>,
                                     }}
@@ -441,7 +506,7 @@ const TransactionPage = () => {
                                     label="Description"
                                     name="payee"
                                     //value={showAddTransaction ?  : ""}
-                                    onChange={handleInputChange}
+                                    onChange={handleInputChange(setNewTransaction)}
                                     placeholder="e.g., Groceries at Walmart"
                                     fullWidth
                                     className="md:col-span-2"

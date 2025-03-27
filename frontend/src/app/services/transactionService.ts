@@ -1,5 +1,5 @@
 import API_BASE_URL from "@/app/config";
-import { AddEditTransaction, Transaction, TransactionListResponse } from "../models/Transaction";
+import { AddEditTransaction, FilteredTransaction, Transaction, TransactionListResponse } from "../models/Transaction";
 
 
 /**
@@ -47,12 +47,36 @@ export const getRecentTransactions = async (userId: string, token: string) => {
  * @param rowCount - The number of transactions per page (optional).
  * @returns A success response with the list of transactions or an error message.
  */
-export const getTransactions = async (userId: string, rowCount?: number, page?: number) => {
+export const getTransactions = async (
+    userId: string,
+    rowCount?: number,
+    page?: number,
+    filtered?: FilteredTransaction
+) => {
     try {
         // Construct the URL with optional query parameters for pagination
         let url = `${API_BASE_URL}/Transaction/user/${userId}/list-of-transactions`;
         if (page !== undefined && rowCount !== undefined) {
             url += `?rowCount=${rowCount}&pageNumber=${page}`;
+        }
+        // Create query parameters object
+        const queryParams = new URLSearchParams();
+
+        if (filtered !== undefined) {
+            if (filtered.MinAmount !== undefined && filtered.MinAmount !== null)
+                queryParams.append("MinAmount", filtered.MinAmount.toString());
+            if (filtered.MaxAmount !== undefined && filtered.MaxAmount != null)
+                queryParams.append("MaxAmount", filtered.MaxAmount.toString());
+            if (filtered.StartDate !== undefined && filtered.StartDate !== null) 
+                queryParams.append("StartDate", (filtered.StartDate.toISOString()));
+            if (filtered.EndDate !== undefined && filtered.EndDate !== null)
+                queryParams.append("EndDate", (filtered.EndDate.toISOString()));
+            if (filtered.Category !== undefined && filtered.Category !== null)
+                queryParams.append("Category", filtered.Category);
+        }
+        // Append query parameters if any exist
+        if ([...queryParams].length > 0) {
+            url += `&${queryParams.toString()}`;
         }
         const response = await fetch(url, {
             method: "GET",
@@ -100,22 +124,22 @@ export const deleteTransaction = async (transactionId: string, userId: string) =
         });
 
         if (!response.ok) {
-            let errorMessage = "An unexpected error occurred. Please try again.";
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
-            } catch (parseError) {
-                console.error("Error parsing error response:", parseError);
-            }
+            // Handle 404 or other error statuses
+            const errorMessage = response.status === 404
+                ? "Transaction not found"
+                : "Failed to delete transaction";
             return { success: false, message: errorMessage };
         }
 
-        const data = await response.json();
-        return { success: true, data };
+        // Successful deletion (200 OK)
+        return { success: true };
 
     } catch (error) {
         console.error("Network error:", error);
-        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+        return {
+            success: false,
+            message: "A network error occurred. Please check your connection and try again."
+        };
     }
 };
 

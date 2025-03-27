@@ -18,6 +18,13 @@ export interface AddEditTransaction{
     transactionType: string;
     transactionId?: string;
 }
+export interface FilteredTransaction{
+    MinAmount?: number | null;
+    MaxAmount?: number | null;
+    StartDate?: Date | null; 
+    EndDate?: Date | null;   
+    Category?: string | null;
+}
 
 export interface TransactionListResponse {
     paging: {
