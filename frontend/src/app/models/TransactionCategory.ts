@@ -84,7 +84,7 @@ export const categories: TransactionCategory[] = [
 export interface TransactionCategory {
     category: string;
     color: string;
-    Icon: any
+    Icon: typeof import('@mui/material/SvgIcon').default;
 }
 
 export const getCategory = (transaction: Transaction): TransactionCategory => {

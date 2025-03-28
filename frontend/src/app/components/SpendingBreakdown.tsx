@@ -1,4 +1,3 @@
-import { Box, LinearProgress, Stack } from "@mui/material";
 import {
   CategorySpending,
   CategorySpendingResponse,
