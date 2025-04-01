@@ -39,7 +39,7 @@ const NavBar: FC = () => {
     { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
     { label: 'Transactions', path: '/transaction', icon: <TransactionsIcon /> },
     { label: 'Budget', path: '/budget', icon: <GoalsIcon /> },
-    { label: 'Analytics', path: '/analytics', icon: <AnalyticsIcon /> },
+    { label: 'Analytics', path: '/ai-analysis', icon: <AnalyticsIcon /> },
   ], []);
 
   const handleNavigation = useCallback((path: string) => {
