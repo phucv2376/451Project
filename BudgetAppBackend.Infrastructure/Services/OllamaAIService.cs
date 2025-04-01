@@ -95,7 +95,7 @@ namespace BudgetAppBackend.Infrastructure.Services
                 promptBuilder.AppendLine($"- Date: {tx.TransactionDate:yyyy-MM-dd}, Amount: ${Math.Abs(tx.Amount):F2}, Payee: {tx.Payee}, Category: {tx.Categories}");
             }
 
-            promptBuilder.AppendLine("\nRequired JSON Response Structure (EXACTLY as shown):");
+            promptBuilder.AppendLine("\nRequired JSON Response Structure (EXACTLY AS SHOWING DO NOT CHANGE PROPERTY NAMES EVEN DO NOT ADD ONE LETTER EXTRA):");
             promptBuilder.AppendLine("{");
             promptBuilder.AppendLine("  \"overview\": \"A comprehensive summary of spending patterns (minimum 300 words)\",");
             promptBuilder.AppendLine("  \"spendingTrends\": \"Detailed analysis of spending trends and patterns (minimum 300 words)\",");
@@ -110,7 +110,7 @@ namespace BudgetAppBackend.Infrastructure.Services
             promptBuilder.AppendLine("}");
 
             promptBuilder.AppendLine("\nIMPORTANT: For each section, provide detailed analysis with specific examples, data points, and actionable insights. " +
-                "Use the transaction data provided to support your analysis.");
+                "Use the transaction data provided to support your analysis. and please do not change the property names form overview to comparisonAnalysis");
 
             var prompt = promptBuilder.ToString();
             var requestBody = new
@@ -151,7 +151,7 @@ namespace BudgetAppBackend.Infrastructure.Services
                 // Strip possible formatting artifacts
                 llmResponse = Regex.Replace(llmResponse, @"<think>.*?</think>", "", RegexOptions.Singleline);
 
-                //Console.WriteLine($"Raw LLM Response: {llmResponse}");
+                Console.WriteLine($"Raw LLM Response: {llmResponse}");
 
                 // Extract clean JSON object from raw string
                 var jsonStart = llmResponse.IndexOf('{');
@@ -221,7 +221,7 @@ namespace BudgetAppBackend.Infrastructure.Services
                 // Convert back to JSON string
                 jsonString = JsonSerializer.Serialize(cleanedObject);
 
-                //Console.WriteLine($"Cleaned JSON string: {jsonString}");
+                Console.WriteLine($"Cleaned JSON string: {jsonString}");
 
                 // Re-parse and map to DTO
                 using var analysisDocument = JsonDocument.Parse(jsonString);
