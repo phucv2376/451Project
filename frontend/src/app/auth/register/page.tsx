@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import InputField from '../../components/InputField';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ import PiggyBankAnimation from "../../components/PiggyBankAnimation"; // Import 
 const Register = () => {
     const { registerNewUserAccount, verifyUserEmailAddress, sendUserEmailVerificationCode } = useAuth();
     const [showVerification, setShowVerification] = useState(false);
+    const [code, setUserCode] = useState('');
     const [userRegister, setUserRegister] = useState<UserRegister>({
         firstName: "",
         lastName: "",
@@ -28,6 +29,9 @@ const Register = () => {
         general: "",
         verificationCode: ""
     });
+
+    const [codes, setCodes] = useState<string[]>(Array(6).fill("")); // Array to store the verification codes
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]); // Refs for each input box
 
     const [verificationCode, setVerificationCode] = useState("");
     const [isResending, setIsResending] = useState(false);
@@ -61,6 +65,41 @@ const Register = () => {
             setErrors(prevErrors => ({ ...prevErrors, [fieldName]: '' }));
         }
     };
+
+    const handleCodeChange = (index: number, value: string) => {
+        if (/^\d$/.test(value)) { // Allow only single digits
+            const newCodes = [...codes];
+            newCodes[index] = value;
+            setCodes(newCodes);
+            setUserCode(newCodes.join(""));
+            if (index < 5 && inputRefs.current[index + 1]) {// Move focus to the next input box
+                inputRefs.current[index + 1]?.focus();
+            }
+        }
+    };
+    // Handle backspace key
+    const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Backspace") {
+            const newCodes = [...codes];
+            if (index > 0 && !codes[index]) {
+                // If the current box is empty, clear the previous box
+                newCodes[index - 1] = "";
+                setCodes(newCodes);
+                setUserCode(newCodes.join(""));
+                inputRefs.current[index - 1]?.focus(); // Move focus to the previous box
+            } else if (codes[index]) {
+                // If the current box is not empty, clear it
+                newCodes[index] = "";
+                setCodes(newCodes);
+                setUserCode(newCodes.join(""));
+            }
+        }
+    };
+    useEffect(() => {
+        if (inputRefs.current[0]) {
+            inputRefs.current[0].focus();
+        }
+    }, []);
 
     const handleSubmit = async () => {
         setIsProcessing(true); // Start processing
@@ -170,7 +209,7 @@ const Register = () => {
             {/* Left Section: Image */}
             <div className="w-full h-full flex justify-center items-center md:w-1/2">
                 <div className="w-full h-3/4 relative">
-                    <Image    
+                    <Image
                         src="/images/loginImage.jpg"
                         alt="Login Background"
                         fill
@@ -252,28 +291,54 @@ const Register = () => {
 
                     {/* Email Verification Modal */}
                     {showVerification && (
-                        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50">
-                            <div className="w-11/12 md:w-96 p-6 md:p-8 bg-white rounded-xl">
-                                <p className="text-center mb-4">Please verify your email address</p>
-                                <InputField
+                        <div className="fixed inset-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50">
+                            <div className="w-1/2 md:w-1/3 p-6 md:p-8 bg-white rounded-xl">
+                                <p className="mb-4 font-bold text-lg">Please verify your email address</p>
+                                <p className='flex justify-center mb-2'>Verification Code</p>
+                                <div className="flex justify-center gap-4">
+                                    {codes.map((code, index) => (
+                                        <input
+                                            key={index}
+                                            tabIndex={0}
+                                            type="text"
+                                            value={code}
+                                            maxLength={1}
+                                            onChange={(e) => handleCodeChange(index, e.target.value)}
+                                            onKeyDown={(e) => handleKeyDown(index, e)}
+                                            ref={(el) => { inputRefs.current[index] = el; }}
+                                            style={{
+                                                width: "40px",
+                                                height: "50px",
+                                                textAlign: "center",
+                                                fontSize: "18px",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "5px",
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                                {/* <InputField
                                     label="Verification Code"
                                     type="text"
                                     id="verificationCodeInput"
                                     name="verificationCode"
                                     onChange={(e) => setVerificationCode(e.target.value)}
                                     error={errors.verificationCode}
-                                />
-                                <div className="flex justify-center space-x-4 mt-4">
+                                /> */}
+                                <p className='text-red-600'>{errors.verificationCode}</p>
+                                <div className="flex justify-center space-x-4 mt-5">
                                     <button
-                                        className="bg-blue-500 text-white px-6 py-2 rounded-lg"
-                                        onClick={() => handleVerificationSubmit(verificationCode)}
+                                        className="bg-[#8996da] w-1/3 text-white px-6 py-2 
+                                            rounded-3xl hover:bg-[#6a7fcb] hover:shadow-lg transition-all duration-300"
+                                        onClick={() => handleVerificationSubmit(codes.join(''))}
                                         disabled={isProcessing} // Disable the button during verification
                                     >
                                         {isProcessing ? 'Verifying...' : 'Verify'}
                                     </button>
+
                                     <button
-                                        className="bg-gray-500 text-white px-6 py-2 rounded-lg"
-                                        onClick={() => setShowVerification(false)}
+                                        className="border-2 border-[#8996da] text-[#8996da] px-6 py-2 rounded-lg bg-transparent 
+                                        hover:bg-[#6a7fcb] hover:text-white hover:shadow-lg transition-all duration-300"                                        onClick={() => setShowVerification(false)}
                                     >
                                         Cancel
                                     </button>
@@ -302,13 +367,12 @@ const Register = () => {
 
                     {statusMessage && !isProcessing && (
                         <div
-                            className={`mt-4 text-center ${
-                                statusMessage.type === 'success'
-                                    ? 'text-green-500'
-                                    : statusMessage.type === 'error'
+                            className={`mt-4 text-center ${statusMessage.type === 'success'
+                                ? 'text-green-500'
+                                : statusMessage.type === 'error'
                                     ? 'text-red-500'
                                     : 'text-blue-500'
-                            }`}
+                                }`}
                         >
                             {statusMessage.message}
                         </div>
