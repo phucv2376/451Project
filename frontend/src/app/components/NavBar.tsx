@@ -16,7 +16,7 @@ import Avatar from '@mui/material/Avatar';
 import { red } from '@mui/material/colors';
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import NotificationBell from './NotificationBell';  // ✅ Keep it independent from NavBar
+import Link from 'next/link';
 
 interface NavItem {
   label: string;
@@ -42,11 +42,6 @@ const NavBar: FC = () => {
     { label: 'Analytics', path: '/ai-analysis', icon: <AnalyticsIcon /> },
   ], []);
 
-  const handleNavigation = useCallback((path: string) => {
-    router.push(path);
-    setIsMobileMenuOpen(false);
-  }, [router]);
-
   const handleLogout = useCallback(() => {
     setIsMobileMenuOpen(false);
     logout();
@@ -66,7 +61,7 @@ const NavBar: FC = () => {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setIsMobileMenuOpen(false)}
         />
@@ -86,8 +81,8 @@ const NavBar: FC = () => {
           </h1>
         </div>
 
-        <NavLinks navItems={navItems} pathname={pathname} onNavigate={handleNavigation} />
-        <UserSection onLogout={handleLogout} onNavigate={handleNavigation} />
+        <NavLinks navItems={navItems} pathname={pathname} />
+        <UserSection onLogout={handleLogout} />
       </nav>
 
       {/* Main Content Wrapper */}
@@ -101,20 +96,20 @@ const NavBar: FC = () => {
 /**
  * Navigation Links Component
  */
-const NavLinks: FC<{ navItems: NavItem[], pathname: string, onNavigate: (path: string) => void }> = ({ navItems, pathname, onNavigate }) => (
+const NavLinks: FC<{ navItems: NavItem[], pathname: string }> = ({ navItems, pathname }) => (
   <div className="flex-1">
     {navItems.map((item) => (
-      <button
-        key={item.path}
-        onClick={() => onNavigate(item.path)}
-        className={`w-full cursor-pointer my-2 flex items-center gap-2 px-3 py-4 rounded-lg transition-all duration-200 
-          ${pathname === item.path 
-            ? 'bg-blue-50 text-blue-600' 
-            : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'}`}
-      >
-        <span className="text-inherit">{item.icon}</span>
-        <span className="font-medium">{item.label}</span>
-      </button>
+      <Link href={item.path} key={item.path} passHref>
+        <button
+          className={`w-full cursor-pointer my-2 flex items-center gap-2 px-3 py-4 rounded-lg transition-all duration-200 
+            ${pathname === item.path
+              ? 'bg-blue-50 text-blue-600'
+              : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900 active:bg-gray-200'}`} // Added visual feedback
+        >
+          <span className="text-inherit">{item.icon}</span>
+          <span className="font-medium">{item.label}</span>
+        </button>
+      </Link>
     ))}
   </div>
 );
@@ -122,24 +117,25 @@ const NavLinks: FC<{ navItems: NavItem[], pathname: string, onNavigate: (path: s
 /**
  * User Section Component
  */
-const UserSection: FC<{ onLogout: () => void, onNavigate: (path: string) => void }> = ({ onLogout, onNavigate }) => {
+const UserSection: FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const username = typeof window !== 'undefined' ? localStorage.getItem('user') || 'User' : 'User';
 
   return (
     <div className="mt-auto space-y-4">
       <div className="border-t border-gray-200 pt-4">
-        <button
-          onClick={() => onNavigate('/profile')}
-          className="w-full cursor-pointer flex items-center gap-2 px-3 py-4 rounded-lg transition-all duration-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900"
-        >
-          <SettingsIcon />
-          <span className="font-medium">Settings</span>
-        </button>
+        <Link href="/profile" passHref>
+          <button
+            className="w-full cursor-pointer flex items-center gap-2 px-3 py-4 rounded-lg transition-all duration-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900 active:bg-gray-200"
+          >
+            <SettingsIcon />
+            <span className="font-medium">Settings</span>
+          </button>
+        </Link>
       </div>
 
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-3">
-          <Avatar 
+          <Avatar
             className="border-2 border-gray-100"
             alt="User Avatar"
             src="https://cdn-icons-png.flaticon.com/512/847/847969.png"

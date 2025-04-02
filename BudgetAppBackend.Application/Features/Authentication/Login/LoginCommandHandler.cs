@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.DTOs.AuthenticationDTOs;
+using BudgetAppBackend.Application.Models.PlaidModels;
 using BudgetAppBackend.Application.Service;
 using BudgetAppBackend.Domain.UserAggregate.Entities;
 using MediatR;
@@ -12,13 +13,16 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
         private readonly IAuthRepository _authRepository;
         private readonly IAuthService _authenticationService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly IPlaidAccountFingerprintRepository _plaidAccountFingerprintRepository;
 
         public LoginCommandHandler(IAuthRepository authRepository, IAuthService authenticationService,
-            IRefreshTokenRepository refreshTokenRepository)
+            IRefreshTokenRepository refreshTokenRepository,
+            IPlaidAccountFingerprintRepository plaidAccountFingerprintRepository)
         {
             _authRepository = authRepository;
             _authenticationService = authenticationService;
             _refreshTokenRepository = refreshTokenRepository;
+            _plaidAccountFingerprintRepository = plaidAccountFingerprintRepository;
         }
 
         public async Task<AuthResult> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -60,8 +64,10 @@ namespace BudgetAppBackend.Application.Features.Authentication.Login
             else
             {
                 await _refreshTokenRepository.SaveAsync(newRefreshToken, cancellationToken);
+                
             }
 
+            var plaidaccount = await _plaidAccountFingerprintRepository.GetByUserIdAsync(user.Id);
 
             return new AuthResult
             {

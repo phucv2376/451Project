@@ -88,7 +88,7 @@ const Register = () => {
                 // Show the email verification step after successful registration
                 setShowVerification(true);
                 setStatusMessage({ message: result.message, type: 'info' });
-                setTimeout(() => setStatusMessage(null), 5000); // Clear the message after 5 seconds
+                setTimeout(() => setStatusMessage(null), 3000); // Clear the message after 5 seconds
             } else {
                 setErrors(prevErrors => ({ ...prevErrors, general: result.message }));
             }
@@ -120,7 +120,7 @@ const Register = () => {
                 // Wait for 3 seconds before redirecting
                 setTimeout(() => {
                     router.push("/auth/login"); // Redirect to login page
-                }, 5000);
+                }, 1000);
             } else {
                 setErrors(prevErrors => ({ ...prevErrors, verificationCode: result.message }));
             }

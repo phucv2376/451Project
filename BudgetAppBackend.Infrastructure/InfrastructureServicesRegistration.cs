@@ -100,6 +100,7 @@ namespace BudgetAppBackend.Infrastructure
             });
 
             services.AddTransient<IEmailService, EmailService>();
+            services.AddTransient<IAIChatService, OllamaAIChatService>();
 
             return services;
         }

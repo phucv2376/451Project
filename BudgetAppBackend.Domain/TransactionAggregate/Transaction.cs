@@ -41,7 +41,7 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
         public static Transaction Create(UserId userId, List<string> newCategories, decimal amount, DateTime transactionDate, string payee, TransactionType type)
         {
             var transaction = new Transaction(TransactionId.CreateId(), userId, newCategories, amount, transactionDate, payee, type);
-            transaction.RaiseDomainEvent(new TransactionCreatedEvent(userId.Id, newCategories.FirstOrDefault(), Math.Abs(amount), transactionDate));
+            transaction.RaiseDomainEvent(new TransactionCreatedEvent(userId.Id, newCategories.FirstOrDefault(), Math.Abs(amount), transactionDate, payee));
             return transaction;
         }
 

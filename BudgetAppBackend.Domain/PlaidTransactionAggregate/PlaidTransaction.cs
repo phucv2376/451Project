@@ -86,7 +86,8 @@ namespace BudgetAppBackend.Domain.PlaidTransactionAggregate
                 accountId,
                 Math.Abs(normalizedAmount),
                 categories.FirstOrDefault(),
-                date
+                date,
+                name
             ));
 
             return plaidTransaction;

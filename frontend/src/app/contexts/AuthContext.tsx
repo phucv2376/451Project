@@ -112,7 +112,7 @@ const login = async (userLogin: UserLogin) => {
 // Function to reset the user's password by calling the resetPassword service
 const ResetPassword = async (passwordReset: PasswordReset) => {
   try {
-    const result = await resetUserPassword(passwordReset); // Call the resetPassword function from the authService
+    const result = await resetUserPassword(localStorage.getItem('accessToken') || "", passwordReset); // Call the resetPassword function from the authService
 
     if (result.success) {
       router.push('/auth/login'); // Redirect to login page after successful password reset
