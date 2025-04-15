@@ -218,19 +218,22 @@ const TransactionPage = () => {
     };
 
     const handleEditTransaction = async () => {
-        const result = await updateTransaction(editTransaction);
-        if (result.success) {
-            console.log("Transaction updated:", result.data);
-            handleCancel();
-            loadTransactions(currentPage);
-            // Refresh transactions list or show success message
-        } else {
-            console.error("Error:", result.message);
-            // Show error to user
-            setErrorTransaction(result.message || "Failed.");
+        if (selectedTransaction !== null) {
+            const result = await updateTransaction(selectedTransaction, newTransaction);
+
+            if (result.success) {
+                console.log("Transaction updated:", result.data);
+                handleCancel();
+                loadTransactions(currentPage);
+                // Refresh transactions list or show success message
+            } else {
+                console.error("Error:", result.message);
+                // Show error to user
+                setErrorTransaction(result.message || "Failed.");
+            }
         }
     }
-  
+
     // Generalized handler for TextFields
     const handleInputChange = <T extends Record<string, any>>(
         setter: React.Dispatch<React.SetStateAction<T>>
@@ -276,6 +279,7 @@ const TransactionPage = () => {
     };
     const handleTransactionSelect = (transactionId: string) => {
         setSelectedTransaction(transactionId === selectedTransaction ? null : transactionId);
+        console.log("Selected transactions", selectedTransaction);
     };
 
     return (
@@ -351,22 +355,22 @@ const TransactionPage = () => {
                                         />
                                     </LocalizationProvider>
 
-                                        <FormControl size="small" fullWidth>
-                                            <InputLabel>Category</InputLabel>
-                                            <Select
-                                                onChange={handleSelectChange(setFilterTransaction)}
-                                                value={filterTransaction.Category|| []} // Ensure controlled component
-                                                label="Category"
-                                                name="Category"
-                                            >
-                                                {categories.map((cat, index) => (
-                                                    <MenuItem key={index} value={cat.category}>
-                                                        <cat.Icon style={{ marginRight: '6px' }} />
-                                                        {cat.category}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel>Category</InputLabel>
+                                        <Select
+                                            onChange={handleSelectChange(setFilterTransaction)}
+                                            value={filterTransaction.Category || []} // Ensure controlled component
+                                            label="Category"
+                                            name="Category"
+                                        >
+                                            {categories.map((cat, index) => (
+                                                <MenuItem key={index} value={cat.category}>
+                                                    <cat.Icon style={{ marginRight: '6px' }} />
+                                                    {cat.category}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
                                     <FormControl size="small" fullWidth>
                                         <InputLabel htmlFor="min-amount">Min</InputLabel>
                                         <OutlinedInput
@@ -394,10 +398,10 @@ const TransactionPage = () => {
 
                                 </div>
                                 <div className='flex justify-start mt-2 gap-3'>
-                                    <Button 
+                                    <Button
                                         variant="outlined"
-                                        onClick={() => loadTransactions(0)} 
-                                        >
+                                        onClick={() => loadTransactions(0)}
+                                    >
                                         Filter
                                     </Button>
                                     <Button
@@ -452,7 +456,7 @@ const TransactionPage = () => {
                                         //value={transactionType}
                                         //onChange={handleTransactionType}
                                         onChange={handleSelectChange(setNewTransaction)}
-                                        value={newTransaction.transactionType || ""} // Ensure controlled component
+                                        value={newTransaction.transactionType || ""}
                                         label="Transaction Type"
                                         name="transactionType"
                                     >

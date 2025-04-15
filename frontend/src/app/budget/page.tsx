@@ -9,12 +9,16 @@ import { Gauge } from '@mui/x-charts/Gauge';
 import { Collapse } from "@mui/material";
 import { useState } from "react";
 import BudgetBarGraph from "../components/BudgetBarGraph";
-import TableContainer from "@mui/material/TableContainer";
-import Paper from "@mui/material/Paper";
-
+import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper, Typography } from '@mui/material';
 
 
 const BudgetPage = () => {
+	const transactions = [
+		{ description: 'Overdraft', date: 'April 2, 2025', amount: -22.50 },
+		{ description: 'Overdraft', date: 'April 2, 2025', amount: -9.99 },
+		{ description: 'Wire Transfer', date: 'April 1, 2025', amount: -5.75 },
+	];
+
 	const [showChart, setShowChart] = useState(false);
 	const [activeCategoryIndex, setActiveCategoryIndex] = useState<number | null>(null);
 
@@ -49,7 +53,7 @@ const BudgetPage = () => {
 					{categories.map((cat, index) => (
 						<div key={index}
 							className="bg-white rounded-lg border-gray-200 shadow-sm p-4 cursor-pointer"
-							onClick={() => setActiveCategoryIndex(activeCategoryIndex === index ? null : index)}						
+							onClick={() => setActiveCategoryIndex(activeCategoryIndex === index ? null : index)}
 						>
 							<div className="flex items-center">
 								<cat.Icon
@@ -79,10 +83,50 @@ const BudgetPage = () => {
 
 							</div>
 							<Collapse in={activeCategoryIndex === index}>
+							<div className="flex">
 								<BudgetBarGraph />
-								<TableContainer component={Paper} elevation={0}
-								/>
-
+								<TableContainer
+									component={Paper}
+									elevation={0}
+									sx={{
+										border: '1px solid #e0e0e0',
+										borderRadius: '8px',
+										boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+										maxWidth: 300,
+										ml: 2 // Add some margin to separate from the chart
+									}}
+								>
+									<Typography variant="subtitle2" sx={{ p: 2, pb: 1, fontWeight: 600 }}>
+										Top Transactions of the Month
+									</Typography>
+									<Table size="small">
+										
+										<TableBody>
+											{transactions.map((transaction, index) => (
+												<TableRow key={index} hover>
+													<TableCell>
+														<div>
+															<Typography variant="body2">{transaction.description}</Typography>
+															<Typography variant="caption" color="text.secondary">
+																{transaction.date}
+															</Typography>
+														</div>
+													</TableCell>
+													<TableCell align="right">
+														<Typography
+															variant="body2"
+															color={transaction.amount < 0 ? 'error.main' : 'success.main'}
+															fontWeight={500}
+														>
+															{transaction.amount < 0 ? '-' : ''}${Math.abs(transaction.amount).toFixed(2)}
+														</Typography>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</TableContainer>
+								</div>
 							</Collapse>
 						</div>
 
