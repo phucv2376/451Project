@@ -8,10 +8,13 @@ import {
   getCategoryByName,
   TransactionCategory,
 } from "../models/TransactionCategory";
+import { Tooltip } from "@mui/material";
 
 const SpendingBreakdown = () => {
   const [catSpendingData, setCatSpendingData] = useState<CategorySpending[]>();
   const [totalSpending, setTotalSpending] = useState<number>(0);
+
+  const [hoveredIndex, setHoveredIndex] = useState<null | number>(null);
 
   async function fetchSpendingPerCategory(): Promise<CategorySpendingResponse> {
     try {
@@ -59,20 +62,29 @@ const SpendingBreakdown = () => {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-5 mt-6 shadow-sm">
       <h2 className="font-bold text-md mb-4">Spending Breakdown</h2>
-      <div className="h-4 bg-gray-200 rounded-lg overflow-hidden flex">
+      <div className="h-7 rounded-lg overflow-hidden flex justify-center items-center">
         {catSpendingData &&
           catSpendingData.map((cat, i) => (
-            <div
-              key={i}
-              className={` h-full`}
-              style={{
-                width: `${Math.abs((cat.totalAmount / totalSpending) * 100)}%`,
-                backgroundColor: `${getCategoryByName(cat.category).color}`,
-              }}
-            ></div>
+            <Tooltip 
+            placement="top"
+            arrow
+            title={`${cat.category}: -$${Math.abs(cat.totalAmount)}`}>
+              <div
+                key={i}
+                className={`h-3/4`}
+                style={{
+                  width: `${Math.abs((cat.totalAmount / totalSpending) * 100)}%`,
+                  backgroundColor: `${getCategoryByName(cat.category).color}`,
+                  height: hoveredIndex === i ? '100%' : '75%',
+                  transition: 'height 0.2s ease',
+                }}
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
+              ></div>
+            </Tooltip>
           ))}
       </div>
-        <div className=" mt-5 grid-flow-col grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className=" mt-5 grid-flow-col grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {catSpendingData &&
           catSpendingData.map((cat, i) => (
             <Legends

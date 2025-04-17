@@ -13,6 +13,7 @@ import {
 import { PlaidLinkWrapper } from './PlaidLinkWrapper';
 import { usePlaidContext } from '../../contexts/PlaidContext';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import { Tooltip } from '@mui/material';
 
 const BATCH_SIZE = 100;
 
@@ -144,67 +145,46 @@ export default function BankIntegration({
       <div className="">
         {isConnected ? (
           <>
-            {/* <div className="flex justify-between items-center mb-4"> */}
-            {/* <button
-                onClick={onDisconnect}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm flex items-center justify-center font-medium"
-              >
-                <ArrowPathIcon className="w-5 h-5 mr-2" />
-                Disconnect Bank
-              </button> */}
-
-            <div className="relative after:content-[''] after:block after:w-full after:h-px after:bg-gray-200 after:absolute after:bottom-0 after:left-0 flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-3">
-                <AccountBalanceIcon className="w-5 h-5 mr-2 text-blue-500" />
-                Linked Accounts
-              </h3>
-              <button
-                onClick={() => loadAllTransactions(plaidAccessToken!)}
-                disabled={isSyncing}
-                className="mb-3 "
-              >
+          <div className="relative after:content-[''] after:block after:w-full after:h-px after:bg-gray-200 after:absolute after:bottom-0 after:left-0 flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center mb-3">
+              <AccountBalanceIcon className="w-5 h-5 mr-2 text-blue-500" />
+              Linked Accounts
+            </h3>
+            <button
+              onClick={() => loadAllTransactions(plaidAccessToken!)}
+              disabled={isSyncing}
+              className="mb-3 "
+            >
+              <Tooltip
+                title={isSyncing ? 'Syncing transactions...' : 'Sync transactions'}
+                arrow
+                placement="top">
                 <ArrowPathIcon className={`w-5 h-5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                {/* {isSyncing ? 'Syncing...' : 'Sync Transactions'} */}
-
-                {/* Tooltip */}
-                <span className="
-    absolute -top-8 left-1/2 -translate-x-1/2
-    bg-gray-800 text-black text-xs px-2 py-1 rounded
-    opacity-0 group-hover:opacity-100 transition-opacity duration-200
-    pointer-events-none whitespace-nowrap
-    before:absolute before:top-full before:left-1/2 before:-translate-x-1/2
-    before:border-4 before:border-transparent before:border-t-gray-800
-  ">
-                  {isSyncing ? 'Syncing transactions...' : 'Sync transactions'}
-                </span>
-              </button>
-
-
-
-              {/* </div> */}
-            </div>
+              </Tooltip>
+            </button>
+          </div>
 
             {/* Connected Accounts Section */}
-            {accounts.length > 0 && (
-              <div className="mt-4">
+        {accounts.length > 0 && (
+          <div className="mt-4">
 
-                <div className="space-y-3">
-                  {accounts.map((account) => (
-                    <div
-                      key={account.accountId}
-                      className=""
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="text-base font-medium text-gray-800 flex items-center text-sm">
-                          <CreditCardIcon className="w-5 h-5 mr-2 text-purple-500" />
-                          {account.name} Balance:
-                        </span>
-                        <span className="text-blue-600 font-semibold text-sm">
-                          {account.currentBalance != null ? formatCurrency(account.currentBalance) : 'N/A'}
-                        </span>
-                      </div>
+            <div className="space-y-3">
+              {accounts.map((account) => (
+                <div
+                  key={account.accountId}
+                  className=""
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="text-base font-medium text-gray-800 flex items-center text-sm">
+                      <CreditCardIcon className="w-5 h-5 mr-2 text-purple-500" />
+                      {account.name} Balance:
+                    </span>
+                    <span className="text-blue-600 font-semibold text-sm">
+                      {account.currentBalance != null ? formatCurrency(account.currentBalance) : 'N/A'}
+                    </span>
+                  </div>
 
-                      {/* <div className="mt-2">
+                  {/* <div className="mt-2">
                         <div className="flex justify-between items-center">
                           <span className="flex items-center text-sm text-gray-600">
                             <CurrencyDollarIcon className="w-4 h-4 mr-2 text-green-500" />
@@ -225,19 +205,19 @@ export default function BankIntegration({
                           </span>
                         </div>
                       </div> */}
-                    </div>
-                  ))}
                 </div>
+              ))}
+            </div>
 
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="py-3">
-            <PlaidLinkWrapper onSuccess={onPlaidSuccess} onExit={() => { }} />
           </div>
         )}
+      </>
+      ) : (
+      <div className="py-3">
+        <PlaidLinkWrapper onSuccess={onPlaidSuccess} onExit={() => { }} />
       </div>
+        )}
     </div>
+    </div >
   );
 }
