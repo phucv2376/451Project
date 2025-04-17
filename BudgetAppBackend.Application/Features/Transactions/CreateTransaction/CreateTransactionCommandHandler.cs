@@ -9,11 +9,9 @@ namespace BudgetAppBackend.Application.Features.Transactions.CreateTransaction
     public class CreateTransactionCommandHandler : IRequestHandler<CreateTransactionCommand, Unit>
     {
         private readonly ITransactionRepository _transactionRepository;
-        private readonly IMapper _mapper;
-        public CreateTransactionCommandHandler(ITransactionRepository transactionRepository, IMapper mapper)
+        public CreateTransactionCommandHandler(ITransactionRepository transactionRepository)
         {
             _transactionRepository = transactionRepository;
-            _mapper = mapper;
         }
         public async Task<Unit> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
         {
@@ -24,10 +22,12 @@ namespace BudgetAppBackend.Application.Features.Transactions.CreateTransaction
             if (!Enum.TryParse<TransactionType>(dto.transactionType, true, out var transactionType))
                 throw new ArgumentException($"Invalid transaction type: {dto.transactionType}");
 
+            var amount = transactionType == TransactionType.Expense ? -Math.Abs(dto.Amount): Math.Abs(dto.Amount);
+
             var newTransaction = Transaction.Create(
                 userId,
                 dto.Categories,
-                dto.Amount,
+                amount,
                 dto.TransactionDate,
                 dto.payee,
                 transactionType

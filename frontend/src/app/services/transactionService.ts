@@ -187,10 +187,10 @@ export const createTransaction = async (transactionData: AddEditTransaction) => 
 * @param transactionData - The updated transaction data.
 * @returns A success response with the updated transaction or an error message.
 */
-export const updateTransaction = async (transactionData: AddEditTransaction) => {
+export const updateTransaction = async (transactionId: string, transactionData:AddEditTransaction) => {
     try {
         const response = await fetch(
-            `${API_BASE_URL}/Transaction/update/${transactionData.transactionId}`,
+            `${API_BASE_URL}/Transaction/update/${transactionId}`,
             {
                 method: "PUT", // or "PATCH" depending on your API design
                 headers: {

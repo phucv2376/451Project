@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BudgetAppBackend.Infrastructure.SignalR
 {
-    public class NotificationHub : Hub<INotificationClient>
+    public class NotificationHub : Hub
     {
         private readonly ILogger<NotificationHub> _logger;
 
@@ -20,7 +20,7 @@ namespace BudgetAppBackend.Infrastructure.SignalR
 
             if (!string.IsNullOrEmpty(userId))
             {
-                await Clients.User(userId).ReceiveNotification($"🔔 Welcome, User {userId}!");
+                await Clients.User(userId).SendAsync("ReceiveNotification", $"🔔 Welcome, User {userId}!");
                 _logger.LogInformation($"User {userId} connected to SignalR Hub.");
             }
             else
@@ -45,18 +45,16 @@ namespace BudgetAppBackend.Infrastructure.SignalR
 
         public async Task SendNotification(Guid userId, string message)
         {
-            await Clients.User(userId.ToString()).ReceiveNotification(message);
+            await Clients.User(userId.ToString()).SendAsync("ReceiveNotification", message);
         }
 
-        /// <summary>
-        /// Sends a notification to a user when a new transaction occurs.
-        /// </summary>
+        [Authorize]
         public async Task NotifyNewTransaction(Guid userId, decimal amount, string category, DateTime transactionDate, string name)
         {
             var message = $"💰 New transaction: {amount:C} in {category} on {transactionDate:MMMM d, yyyy}";
             _logger.LogInformation($"📢 Sending transaction notification to User {userId}: {message}");
 
-            await Clients.User(userId.ToString()).ReceiveNewTransaction(transactionDate , category, amount, name);
+            await Clients.User(userId.ToString()).SendAsync("ReceiveNewTransaction", transactionDate, category, amount, name);
         }
     }
 

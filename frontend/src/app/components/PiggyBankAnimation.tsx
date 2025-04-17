@@ -7,7 +7,7 @@ const PiggyBankAnimation = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsVisible(false);
-        }, 4000);
+        }, 3000);
 
         return () => clearTimeout(timer);
     }, []);

@@ -112,7 +112,7 @@ const login = async (userLogin: UserLogin) => {
 // Function to reset the user's password by calling the resetPassword service
 const ResetPassword = async (passwordReset: PasswordReset) => {
   try {
-    const result = await resetUserPassword(passwordReset); // Call the resetPassword function from the authService
+    const result = await resetUserPassword(localStorage.getItem('accessToken') || "", passwordReset); // Call the resetPassword function from the authService
 
     if (result.success) {
       router.push('/auth/login'); // Redirect to login page after successful password reset
@@ -132,6 +132,8 @@ const ResetPassword = async (passwordReset: PasswordReset) => {
   const logout = () => {
     setAccessToken(null); // Clear the access token from the state
     localStorage.removeItem("accessToken"); // Remove the access token from local storage
+    localStorage.removeItem("plaid_access_token"); // Remove the plaid access token from local storage
+    localStorage.removeItem("email"); // Remove the email data from local storage
     localStorage.removeItem("user"); // Remove the user data from local storage
     localStorage.removeItem("userId"); // Remove the user email from local storage
     router.push('/auth/login'); // Redirect to the login page

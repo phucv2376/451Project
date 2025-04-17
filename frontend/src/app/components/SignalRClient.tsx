@@ -52,7 +52,6 @@ export default function SignalRClient() {
   useEffect(() => {
     // If there is no access token, log a warning and do not attempt to connect.
     if (!accessToken) {
-      console.warn("No JWT token found. Cannot connect to SignalR.");
       return;
     }
 
@@ -74,15 +73,21 @@ export default function SignalRClient() {
 
     // Set up an event handler for "ReceiveNotification" events from the server.
     connection.on("ReceiveNotification", (message) => {
-      // Dispatch a custom event on the window object with the received message as its detail.
-      console.log("[📩] New notification received:", message); // Debug log
       window.dispatchEvent(new CustomEvent("notification", { detail: message }));
+    });
+
+    // Add handler for new transactions
+    connection.on("ReceiveNewTransaction", (transactionDate, category, amount, name) => {
+      window.dispatchEvent(new CustomEvent("newTransaction", { 
+        detail: { transactionDate, category, amount, name } 
+      }));
     });
 
     // Cleanup: When the component unmounts or accessToken changes,
     // remove the event handler and stop the connection.
     return () => {
       connection.off("ReceiveNotification");
+      connection.off("ReceiveNewTransaction");
       connection.stop();
     };
   }, [accessToken]); // This effect runs whenever the accessToken changes.

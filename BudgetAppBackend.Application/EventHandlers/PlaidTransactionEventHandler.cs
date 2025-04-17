@@ -5,7 +5,7 @@ using MediatR;
 
 namespace BudgetAppBackend.Application.EventHandlers
 {
-    public sealed class PlaidTransactionEventHandler : INotificationHandler<PlaidTransactionCreatedEvent>,
+    public sealed class PlaidTransactionEventHandler :
     INotificationHandler<PlaidTransactionModifiedDomainEvent>,
     INotificationHandler<PlaidTransactionRemovedDomainEvent>
     {
@@ -14,17 +14,7 @@ namespace BudgetAppBackend.Application.EventHandlers
         {
             _budgetRepository = budgetRepository;
         }
-        public async Task Handle(PlaidTransactionCreatedEvent notification, CancellationToken cancellationToken)
-        {
-            var userId = UserId.Create(notification.UserId);
-            var budget = await _budgetRepository.GetByCategoryAsync(notification.Category, userId, notification.Date, cancellationToken);
-
-            if (budget is not null)
-            {
-                budget.ApplyTransaction(notification.Amount);
-                await _budgetRepository.UpdateAsync(budget, cancellationToken);
-            }
-        }
+       
 
         public async Task Handle(PlaidTransactionModifiedDomainEvent notification, CancellationToken cancellationToken)
         {

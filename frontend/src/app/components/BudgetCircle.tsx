@@ -9,7 +9,7 @@ type Props = {
 
 const BudgetCircle = (props: Props) => {
     return (
-        <div> 
+        <div className="flex flex-col items-center justify-center w-full h-full p-3"> 
             <Box position="relative" display="inline-flex">
                 {/* Gray Background (Remaining Progress) */}
                 <CircularProgress

@@ -8,5 +8,6 @@ public record PlaidTransactionCreatedEvent(
     string AccountId,
     decimal Amount,
     string Category,
-    DateTime Date) : IDomainEvent;
+    DateTime Date,
+    string Name) : IDomainEvent;
 
