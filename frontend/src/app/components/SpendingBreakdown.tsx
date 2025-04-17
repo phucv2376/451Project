@@ -67,6 +67,7 @@ const SpendingBreakdown = () => {
           catSpendingData.map((cat, i) => (
             <Tooltip 
             placement="top"
+            key={i}
             arrow
             title={`${cat.category}: -$${Math.abs(cat.totalAmount)}`}>
               <div
