@@ -63,7 +63,7 @@ const TransactionTable = (props: Props) => {
             <TableContainer component={Paper} elevation={0}>
                 <Table className="min-w-full">
                     <TableHead className="bg-gray-50">
-                        <TableRow>
+                        <TableRow >
                             {props.enableCheckbox && (
                                 <TableCell padding="checkbox" />
                             )}

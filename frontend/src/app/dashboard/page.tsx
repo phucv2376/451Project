@@ -14,6 +14,7 @@ import SpendingBreakdown from "../components/SpendingBreakdown";
 import CashflowSummary from "../components/CashflowSummary";
 import RecentTransactionTable from "../components/RecentTransactionTable";
 import BudgetOverview from "../components/BudgetOverview";
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
   const { plaidAccessToken, exchangePublicToken, disconnectBank } = usePlaid();
@@ -33,6 +34,8 @@ const Dashboard = () => {
 
   // Memoized variable for checking bank connection
   const isBankConnected = useMemo(() => !!plaidAccessToken, [plaidAccessToken]);
+
+  const router = useRouter();
 
   // Fetch Transactions and Financial Data
   const updateTransactions = async () => {
@@ -117,7 +120,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Transactions & Budget Overview */}
-        <div className="flex flex-col lg:flex-row gap-4 mt-6">
+        <div className="flex m-h-[24rem] flex-col lg:flex-row gap-4 mt-6">
           <RecentTransactionTable
             transactions={transactions}
             error={error}

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import TransactionTable from "./TransactionTable";
 import { Transaction } from "../models/Transaction";
+import { useRouter } from 'next/navigation';
 
 const RecentTransactionTable = ({ transactions: initialTransactions, error, isLoading }: { 
     transactions: Transaction[]; 
@@ -9,6 +10,7 @@ const RecentTransactionTable = ({ transactions: initialTransactions, error, isLo
     isLoading: boolean 
 }) => {
     const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+    const router = useRouter();
 
     useEffect(() => {
         // Update transactions when initialTransactions changes
@@ -42,7 +44,7 @@ const RecentTransactionTable = ({ transactions: initialTransactions, error, isLo
     }, []);
 
     return (
-        <div className="w-full lg:w-2/3">
+        <div className="w-full m-h-full mlg:w-2/3 cursor-pointer" onClick={() => {router.push("/transaction")}}>
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
                 <h2 className="text-md font-bold mb-4">Recent Transaction History</h2>
                 <div className="overflow-x-auto">
