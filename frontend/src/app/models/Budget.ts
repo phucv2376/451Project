@@ -1,10 +1,10 @@
 export interface Budget {
-    budgetId: string;
+    budgetId?: string;
     userId: string;
     title: string;
     totalAmount: number;
-    spentAmount: number;
+    spentAmount?: number;
     category: string;
-    isActive: boolean;
-    createdDate: string;
+    isActive?: boolean;
+    createdDate?: string;
   }
