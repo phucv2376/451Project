@@ -55,9 +55,9 @@ export const getTransactions = async (
 ) => {
     try {
         // Construct the URL with optional query parameters for pagination
-        let url = `${API_BASE_URL}/Transaction/user/${userId}/list-of-transactions`;
+        let url = `${API_BASE_URL}/Transaction/user/${userId}/list-of-transactions?`;
         if (page !== undefined && rowCount !== undefined) {
-            url += `?rowCount=${rowCount}&pageNumber=${page}`;
+            url += `rowCount=${rowCount}&pageNumber=${page}`;
         }
         // Create query parameters object
         const queryParams = new URLSearchParams();

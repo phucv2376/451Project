@@ -1,7 +1,7 @@
 "use client";
 import NavBar from "../components/NavBar";
 import { categories } from "../models/TransactionCategory";
-import { createBudget, getBudgetList } from "../services/budgetService";
+import { createBudget, deleteBudget, getBudgetList } from "../services/budgetService";
 
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
@@ -37,6 +37,10 @@ const BudgetPage = () => {
         title: "test",
         category: ""
     });
+    const [delBudget, setDelBudget] = useState<Budget>({
+        userId: "",
+        budgetId: ""
+    })
     const [budgetList, setBudgetList] = useState<Budget[]>([]);
 
     const [showChart, setShowChart] = useState(false);
@@ -71,13 +75,13 @@ const BudgetPage = () => {
             fetchBudgets(storedUserId);
         }
     }, []);
-    // Add this useEffect to track budgetList changes
-    useEffect(() => {
-        console.log("Updated budget list: ", budgetList);
-    }, [budgetList]); // This runs whenever budgetList changes
+
 
     const handleShowAddBudget = () => {
         setShowAddBudget(true);
+    }
+    const handleShowDeleteBudget = () => {
+        
     }
     const handleCancel = () => {
         setShowAddBudget(false);
@@ -88,11 +92,26 @@ const BudgetPage = () => {
         if (result.success) {
             console.log("Budget created successfully");
             handleCancel();
+            fetchBudgets(userId);
         } else {
             console.error("Error creating budget:", result.message);
             setErrorBudget(result.message || "Failed to create budget.");
         }
     };
+
+    const handleDeleteBudget = async (delBudget: Budget) => {
+        const result = await deleteBudget(delBudget);
+
+        if (result.success) {
+            console.log("Budget deleted successfully");
+            // Refresh budgets list or update UI
+            fetchBudgets(userId);
+        } else {
+            console.error("Error:", result.message);
+            setErrorBudget(result.message || "Failed to delete budget");
+        }
+    }
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setNewBudget(prev => ({
@@ -111,7 +130,7 @@ const BudgetPage = () => {
     return (
         <div className="flex bg-[#F1F5F9] min-h-screen w-full">
             <NavBar />
-            <div className="w-full lg:ml-[5%] lg:w-3/4 h-full">
+            <div className="w-full lg:ml-[5%] lg:w-3/4 h-full mb-5">
                 {/* <div className="flex justify-center">
 					<Gauge
 						width={300}
@@ -125,14 +144,13 @@ const BudgetPage = () => {
 
                 {/*heading*/}
                 <div className="mt-16 flex justify-between mb-3">
-                    <p>Budgets</p>
+                    <p>Monthly Budgets</p>
                     <div className="flex items-center gap-2">
 
                         <IconButton
                             aria-label="delete"
                             color="error"
-                        //disabled={!selectedTransaction}
-                        //onClick={handleDeleteTransaction}
+                            onClick={handleShowDeleteBudget}
                         >
                             <DeleteIcon />
                         </IconButton>
@@ -240,11 +258,11 @@ const BudgetPage = () => {
                                             height: "35px"
                                         }}
                                     />
-                                    <div className="text-md flex-1">
+                                    <div className="text-md flex flex-col mr-4">
                                         {budget.category}
                                         <div className="text-sm text-gray-500 mt-1">
-                                            ${budget.totalAmount.toFixed(2)} Budgeted
-                                            ${(budget.spentAmount ?? 0).toFixed(2)} Spent
+                                            <div>${(budget.totalAmount ?? 0).toFixed(2)} Budgeted </div>
+                                            <div>${(budget.spentAmount ?? 0).toFixed(2)} Spent</div>
                                         </div>
                                     </div>
                                     {/* Budget Progress Bar */}
@@ -273,7 +291,10 @@ const BudgetPage = () => {
                                 </div>
                                 <Collapse in={activeCategoryIndex === index}>
                                     <div className="flex">
-                                        <BudgetBarGraph />
+                                        <BudgetBarGraph 
+                                            userId={userId}
+                                            category={budget.category || 'Uncategorized'}
+                                        />
                                         <TableContainer
                                             component={Paper}
                                             elevation={0}
