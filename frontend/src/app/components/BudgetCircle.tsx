@@ -54,7 +54,7 @@ const BudgetCircle = (props: Props) => {
                         sx={{
                             color: 'black',
                             fontWeight: 'bold',
-                            fontSize: '1rem' // equivalent to text-lg
+                            fontSize: '1rem', // equivalent to text-lg
                         }}
                     >
                         {`${calculateProgress()}%`}
@@ -62,7 +62,7 @@ const BudgetCircle = (props: Props) => {
 
                 </Box>
             </Box>
-            <p className="text-sm">{props.label}</p>
+            <p className="text-sm text-center">{props.label}</p>
         </div>
     );
 };

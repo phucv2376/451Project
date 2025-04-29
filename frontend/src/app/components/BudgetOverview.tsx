@@ -64,7 +64,7 @@ const BudgetOverview = () => {
                     ) : !loadingState && budgets && budgets.map ((budget, index) => (
                         <BudgetCircle
                             key={index}
-                            label={budget.title}
+                            label={budget.category}
                             budgetAmount={budget.totalAmount}
                             budgetSpent={budget.spentAmount}
                             color={categories[index % categories.length].color}
