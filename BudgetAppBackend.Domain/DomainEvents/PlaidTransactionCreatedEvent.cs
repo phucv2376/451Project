@@ -9,5 +9,6 @@ public record PlaidTransactionCreatedEvent(
     decimal Amount,
     string Category,
     DateTime Date,
-    string Name) : IDomainEvent;
+    string Name,
+    decimal normalizedAmount) : IDomainEvent;
 

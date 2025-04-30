@@ -1,4 +1,6 @@
-﻿using BudgetAppBackend.Application.Contracts;
+﻿using System.Globalization;
+using BudgetAppBackend.Application.Contracts;
+using BudgetAppBackend.Application.DTOs.BudgetDTOs;
 using BudgetAppBackend.Application.DTOs.TransactionDTOs;
 using BudgetAppBackend.Domain.TransactionAggregate;
 using BudgetAppBackend.Domain.TransactionAggregate.ValueObjects;
@@ -161,6 +163,73 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                  t.Amount,
                  t.Payee,
                  t.Categories)).ToList();
+        }
+
+        public async Task<IEnumerable<DetailedDailyCashFlowDto>> GetDetailedDailyCashFlowAsync(
+             UserId userId,
+             DateTime monthStartDate,
+             CancellationToken cancellationToken)
+        {
+            var monthEndDate = monthStartDate.AddMonths(1).AddDays(-1);
+
+            var transactions = await _dbContext.Transactions
+                .Where(t => t.UserId == userId &&
+                            t.TransactionDate >= monthStartDate &&
+                            t.TransactionDate <= monthEndDate)
+                .ToListAsync(cancellationToken);
+
+            var grouped = transactions
+                .GroupBy(t => DateTime.SpecifyKind(t.TransactionDate.Date, DateTimeKind.Utc))
+                .ToDictionary(
+                    g => g.Key,
+                    g =>
+                    {
+                        var income = g.Where(t => t.Amount > 0).Sum(t => t.Amount);
+                        var expense = g.Where(t => t.Amount < 0).Sum(t => Math.Abs(t.Amount));
+                        var net = income - expense;
+                        return new { Income = income, Expense = expense, Net = net };
+                    });
+
+            var allDates = Enumerable.Range(0, (monthEndDate - monthStartDate).Days + 1)
+                .Select(offset => DateTime.SpecifyKind(monthStartDate.AddDays(offset).Date, DateTimeKind.Utc));
+
+            var results = new List<DetailedDailyCashFlowDto>();
+            decimal runningTotal = 0;
+
+            foreach (var date in allDates)
+            {
+                var income = grouped.TryGetValue(date, out var data) ? data.Income : 0;
+                var expense = grouped.TryGetValue(date, out var data2) ? data2.Expense : 0;
+                var net = income - expense;
+                runningTotal += net;
+
+                results.Add(new DetailedDailyCashFlowDto(
+                    Date: date,
+                    Income: income,
+                    Expense: expense,
+                    NetCashFlow: net,
+                    CumulativeCashFlow: runningTotal
+                ));
+            }
+
+            return results;
+        }
+
+        public async Task<List<MonthlyCategoryTotalDto>> GetCategoryTotalsForLastFourMonthsAsync(string categoryName, UserId userId, CancellationToken cancellationToken)
+        {
+            var fromDate = DateTime.UtcNow.AddMonths(-3); 
+            var monthlyCategoryTotal = await _dbContext.Transactions
+                .Where(t => t.UserId == userId && t.Categories.FirstOrDefault() == categoryName && t.TransactionDate >= fromDate)
+                .GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month })
+                .Select(g => new MonthlyCategoryTotalDto
+                {
+                    Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
+                    Total = g.Sum(t => t.Amount)
+                })
+                .OrderBy(dto => DateTime.ParseExact(dto.Month, "MMMM", CultureInfo.CurrentCulture))
+                .ToListAsync(cancellationToken);
+
+            return monthlyCategoryTotal;
         }
     }
 }

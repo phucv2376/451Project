@@ -18,7 +18,7 @@ namespace BudgetAppBackend.Application.EventHandlers
             var userId = UserId.Create(notification.UserId);
             var budget = await _budgetRepository.GetByCategoryAsync(notification.category, userId, notification.Date,  cancellationToken);
 
-            if (budget is not null)
+            if (budget is not null )
             {
                 budget.RollbackTransaction(notification.Amount);
 

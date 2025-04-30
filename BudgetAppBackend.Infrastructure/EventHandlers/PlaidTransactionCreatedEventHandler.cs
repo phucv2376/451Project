@@ -42,7 +42,7 @@ namespace BudgetAppBackend.Infrastructure.EventHandlers
                        .SendAsync("ReceiveNewTransaction",
                            notification.Date,
                            notification.Category,
-                           notification.Amount,
+                           notification.normalizedAmount,
                            notification.Name ?? "Unknown",
                            cancellationToken);
 

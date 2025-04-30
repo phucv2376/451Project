@@ -33,7 +33,7 @@ namespace BudgetAppBackend.Infrastructure.EventHandlers
                 var userId = UserId.Create(notification.UserId);
                 var budget = await _budgetRepository.GetByCategoryAsync(notification.category, userId, notification.Date, cancellationToken);
 
-                if (budget is not null)
+                if (budget is not null && notification.Type.ToString() == "Expense")
                 {
                     budget.ApplyTransaction(notification.amount);
                     await _budgetRepository.UpdateAsync(budget, cancellationToken);

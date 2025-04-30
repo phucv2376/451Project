@@ -32,7 +32,7 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var budget = Budget.Create(UserId.CreateId(), "Test Budget", 500, "Travel", DateTime.UtcNow);
-            decimal transactionAmount = 200;
+            decimal transactionAmount = -200;
 
             // Act
             budget.ApplyTransaction(transactionAmount);
@@ -46,7 +46,7 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var budget = Budget.Create(UserId.CreateId(), "Over Budget", 100, "Travel", DateTime.UtcNow);
-            decimal transactionAmount = 150;
+            decimal transactionAmount = -150;
 
             // Act
             budget.ApplyTransaction(transactionAmount);
@@ -60,10 +60,10 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var budget = Budget.Create(UserId.CreateId(), "Rollback Budget", 500, "Travel", DateTime.UtcNow);
-            budget.ApplyTransaction(200);
+            budget.ApplyTransaction(-200);
 
             // Act
-            budget.RollbackTransaction(100);
+            budget.RollbackTransaction(-100);
 
             // Assert
             Assert.Equal(400, budget.GetRemainingBalance());
@@ -74,10 +74,10 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var budget = Budget.Create(UserId.CreateId(), "Rollback Fail Budget", 500, "Travel", DateTime.UtcNow);
-            budget.ApplyTransaction(100);
+            budget.ApplyTransaction(-100);
 
             // Act & Assert
-            Assert.Throws<BudgetRollbackException>(() => budget.RollbackTransaction(150));
+            Assert.Throws<BudgetRollbackException>(() => budget.RollbackTransaction(-150));
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var budget = Budget.Create(UserId.CreateId(), "Update Fail Budget", 500, "Travel", DateTime.UtcNow);
-            budget.ApplyTransaction(400);
+            budget.ApplyTransaction(-400);
 
             // Act & Assert
             Assert.Throws<BudgetDecreaseAmountException>(() => budget.UpdateTotalAmount(300));

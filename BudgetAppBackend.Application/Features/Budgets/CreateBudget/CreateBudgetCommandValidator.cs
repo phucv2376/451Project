@@ -24,6 +24,7 @@ namespace BudgetAppBackend.Application.Features.Budgets.CreateBudget
 
                 RuleFor(x => x.CreateBudgetDto.Category)
                     .NotEmpty().WithMessage("CategoryId is required.");
+
             });
         }
     }

@@ -20,10 +20,15 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetDetailedDailyCas
         {
             var userId = UserId.Create(request.UserId);
             var monthStartDate = DateTime.UtcNow.AddDays(-30);  // from today go back 30 days.
-            //var manualTransactions = await _transactionReadRepository.GetUserTransactionsQueryAsync(userId, cancellationToken);
+            var manualTransactions = await _transactionReadRepository.GetDetailedDailyCashFlowAsync(userId, monthStartDate, cancellationToken);
             var plaidTransactions = await _plaidTransactionRepository.GetDetailedDailyCashFlowAsync(userId, monthStartDate, cancellationToken);
+
             // Combine and process transactions here
-            return plaidTransactions;
+            var combinedTransactions = manualTransactions.Concat(plaidTransactions)
+                .OrderByDescending(t => t.Date)
+                                   .ToList();
+
+            return combinedTransactions;
         }
     }
     

@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Globalization;
+using System.Linq;
 using BudgetAppBackend.Application.Contracts;
+using BudgetAppBackend.Application.DTOs.BudgetDTOs;
 using BudgetAppBackend.Application.DTOs.TransactionDTOs;
 using BudgetAppBackend.Domain.PlaidTransactionAggregate;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
@@ -325,6 +327,23 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                  t.Amount,
                  t.Name,
                  t.Categories)).ToList();
+        }
+
+        public async Task<List<MonthlyCategoryTotalDto>> GetCategoryTotalsForLastFourMonthsAsync(string categoryName, UserId userId, CancellationToken cancellationToken)
+        {
+            var fromDate = DateTime.UtcNow.AddMonths(-3);
+            var monthlyCategoryTotal = await _context.Transactions
+                .Where(t => t.UserId == userId && t.Categories.FirstOrDefault() == categoryName && t.TransactionDate >= fromDate)
+                .GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month })
+                .Select(g => new MonthlyCategoryTotalDto
+                {
+                    Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
+                    Total = g.Sum(t => t.Amount)
+                })
+                .OrderBy(dto => DateTime.ParseExact(dto.Month, "MMMM", CultureInfo.CurrentCulture))
+                .ToListAsync(cancellationToken);
+
+            return monthlyCategoryTotal;
         }
     }
 }

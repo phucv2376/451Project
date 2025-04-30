@@ -179,7 +179,7 @@ export const usePlaid = ({ onSuccess, onExit, userIdOverride }: UsePlaidProps = 
     userId: string,
     token: string,
     cursor?: string,
-    count: number = 5
+    count: number = 100
   ): Promise<TransactionSyncResponse | null> => {
     console.log('-------- SYNC TRANSACTIONS CALLED --------');
     console.log(`Request params:`);

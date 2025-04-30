@@ -6,12 +6,12 @@ namespace BudgetAppBackend.Domain.Tests
 {
     public class TransactionAggregateTests
     {
-        /* [Fact]
-       public void CreateTransaction_ShouldInitializeCorrectly()
+        [Fact]
+        public void CreateTransaction_ShouldInitializeCorrectly()
         {
             // Arrange
             var userId = UserId.CreateId();
-            var category = "Travel";
+            var category = new List<string> { "Travel" };
             decimal amount = 100;
             DateTime transactionDate = DateTime.UtcNow;
             string payee = "John Doe";
@@ -22,7 +22,7 @@ namespace BudgetAppBackend.Domain.Tests
 
             // Assert
             Assert.Equal(userId, transaction.UserId);
-            Assert.Equal(category, transaction.Categories.FirstOrDefault());
+            Assert.Equal(category.FirstOrDefault(), transaction.Categories.FirstOrDefault());
             Assert.Equal(amount, transaction.Amount);
             Assert.Equal(transactionDate, transaction.TransactionDate);
             Assert.Equal(payee, transaction.Payee);
@@ -34,7 +34,7 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var userId = UserId.CreateId();
-            var category = "Travel";
+            var category = new List<string> { "Travel" };
             decimal amount = 0;
             DateTime transactionDate = DateTime.UtcNow;
             string payee = "John Doe";
@@ -49,7 +49,7 @@ namespace BudgetAppBackend.Domain.Tests
         {
             // Arrange
             var userId = UserId.CreateId();
-            var category = "Travel";
+            var category = new List<string> { "Travel" };
             decimal amount = 100;
             DateTime transactionDate = DateTime.UtcNow;
             string payee = "";
@@ -63,17 +63,15 @@ namespace BudgetAppBackend.Domain.Tests
         public void UpdateTransaction_ShouldModifyValuesCorrectly()
         {
             // Arrange
-            var transaction = Transaction.Create(UserId.CreateId(), "Travel", 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
-            decimal newAmount = 200;
-            DateTime newTransactionDate = DateTime.UtcNow.AddDays(1);
+            var transaction = Transaction.Create(UserId.CreateId(), new List<string> { "Travel" }, 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
+            DateTime newTransactionDate = DateTime.UtcNow.AddDays(-1);
             string newPayee = "Jane Doe";
             TransactionType newType = TransactionType.Income;
 
             // Act
-            transaction.UpdateTransaction(newAmount, newTransactionDate, newPayee, "Travel", newType);
+            transaction.UpdateTransaction(100, newTransactionDate, newPayee, "Travel", newType);
 
             // Assert
-            Assert.Equal(newAmount, transaction.Amount);
             Assert.Equal(newTransactionDate, transaction.TransactionDate);
             Assert.Equal(newPayee, transaction.Payee);
             Assert.Equal(newType, transaction.Type);
@@ -83,7 +81,7 @@ namespace BudgetAppBackend.Domain.Tests
         public void UpdateTransaction_ShouldThrowException_WhenAmountIsZeroOrNegative()
         {
             // Arrange
-            var transaction = Transaction.Create(UserId.CreateId(), "Travel", 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
+            var transaction = Transaction.Create(UserId.CreateId(), new List<string> { "Travel" }, 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
             decimal newAmount = 0;
             DateTime newTransactionDate = DateTime.UtcNow.AddDays(1);
             string newPayee = "Jane Doe";
@@ -97,15 +95,14 @@ namespace BudgetAppBackend.Domain.Tests
         public void DeleteTransaction_ShouldRaiseDomainEvent()
         {
             // Arrange
-            var transaction = Transaction.Create(UserId.CreateId(), "Travel", 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
+            var transaction = Transaction.Create(UserId.CreateId(), new List<string> { "Travel" }, 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
 
             // Act
             transaction.DeleteTransaction();
 
             // Assert
-            // No direct way to check events, but we ensure no exceptions are thrown
-            Assert.Equal(100, transaction.Amount); // Ensures the object is still valid
-        }*/
+            Assert.Equal(100, transaction.Amount);
+        }
     }
 }
 

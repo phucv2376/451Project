@@ -5,7 +5,6 @@ using BudgetAppBackend.Application.Configuration;
 using BudgetAppBackend.Application.DTOs.AiAnalysisDTOS;
 using BudgetAppBackend.Application.DTOs.TransactionDTOs;
 using BudgetAppBackend.Application.Service;
-using BudgetAppBackend.Domain.BudgetAggregate;
 using Microsoft.Extensions.Options;
 
 namespace BudgetAppBackend.Infrastructure.Services
@@ -44,6 +43,16 @@ namespace BudgetAppBackend.Infrastructure.Services
             promptBuilder.AppendLine();
             promptBuilder.AppendLine("Provide a detailed, comprehensive analysis of the transactions from the last 3 months (from" + threeMonthsAgo.ToString() + " to" + DateTime.Now.ToString() + ". For each section, provide extensive analysis with specific examples and detailed explanations:");
 
+            // Split transactions into income and expenses
+            var expenseTransactions = transactions.Where(t => t.Amount < 0).ToList();
+            var incomeTransactions = transactions.Where(t => t.Amount > 0).ToList();
+
+            // Calculate financial metrics
+            decimal totalExpenses = expenseTransactions.Sum(t => -t.Amount);
+            decimal totalIncome = incomeTransactions.Sum(t => t.Amount);
+            decimal netSavings = totalIncome - totalExpenses;
+
+
             // Append transaction summaries
             var totalSpending = transactions.Sum(t => Math.Abs(t.Amount));
             var averageTransaction = transactions.Average(t => Math.Abs(t.Amount));
@@ -51,48 +60,28 @@ namespace BudgetAppBackend.Infrastructure.Services
             var minTransaction = transactions.Min(t => Math.Abs(t.Amount));
             var transactionCount = transactions.Count();
 
-            
-            promptBuilder.AppendLine("\nLast 3 Months Transaction Summary:");
-            promptBuilder.AppendLine($"- Total Transactions: {transactionCount}");
-            promptBuilder.AppendLine($"- Total Spending: ${totalSpending:F2}");
-            promptBuilder.AppendLine($"- Average Transaction: ${averageTransaction:F2}");
-            promptBuilder.AppendLine($"- Highest Transaction: ${maxTransaction:F2}");
-            promptBuilder.AppendLine($"- Lowest Transaction: ${minTransaction:F2}");
 
-            // Append category breakdown
-            var categoryBreakdown = transactions
-                .GroupBy(t => t.Categories.FirstOrDefault())
-                .Select(g => new {
-                    Category = g.Key,
-                    Total = g.Sum(t => Math.Abs(t.Amount)),
-                    Count = g.Count(),
-                    Percentage = (g.Sum(t => Math.Abs(t.Amount)) / totalSpending) * 100
-                })
-                .OrderByDescending(x => x.Total);
+            // Transaction summary
+            promptBuilder.AppendLine("\nLast 3 Months Financial Summary:");
+            promptBuilder.AppendLine($"- Total Income: ${totalIncome:F2} ({incomeTransactions.Count} transactions)");
+            promptBuilder.AppendLine($"- Total Expenses: ${totalExpenses:F2} ({expenseTransactions.Count} transactions)");
+            promptBuilder.AppendLine($"- Net Savings: ${netSavings:F2}");
 
-            promptBuilder.AppendLine("\nCategory Breakdown (Last 3 Months):");
-            foreach (var category in categoryBreakdown)
-            {
-                promptBuilder.AppendLine($"- {category.Category}: ${category.Total:F2} ({category.Count} transactions, {category.Percentage:F1}% of total)");
-            }
+            // Category breakdowns
+            AddCategoryAnalysis(promptBuilder, incomeTransactions, "Income", totalIncome, false);
+            AddCategoryAnalysis(promptBuilder, expenseTransactions, "Expense", totalExpenses, true);
 
-            // Append daily pattern
-            var dailySpending = transactions
-                .GroupBy(t => t.TransactionDate.Date)
-                .Select(g => new { Date = g.Key, Total = g.Sum(t => Math.Abs(t.Amount)) })
-                .OrderBy(x => x.Date);
+            // Daily patterns
+            AddDailyPatterns(promptBuilder, incomeTransactions, "Income");
+            AddDailyPatterns(promptBuilder, expenseTransactions, "Expense");
 
-            promptBuilder.AppendLine("\nDaily Spending Pattern (Last 3 Months):");
-            foreach (var day in dailySpending)
-            {
-                promptBuilder.AppendLine($"- {day.Date:yyyy-MM-dd}: ${day.Total:F2}");
-            }
-
-            // Append detailed transactions
-            promptBuilder.AppendLine("\nDetailed Transactions (Last 3 Months):");
+            // Detailed transactions
+            promptBuilder.AppendLine("\nDetailed Transactions:");
             foreach (var tx in transactions.OrderByDescending(t => t.TransactionDate))
             {
-                promptBuilder.AppendLine($"- Date: {tx.TransactionDate:yyyy-MM-dd}, Amount: ${Math.Abs(tx.Amount):F2}, Payee: {tx.Payee}, Category: {tx.Categories}");
+                string type = tx.Amount < 0 ? "Expense" : "Income";
+                promptBuilder.AppendLine($"- {tx.TransactionDate:yyyy-MM-dd}: {type} ${Math.Abs(tx.Amount):F2} " +
+                    $"[{tx.Categories.FirstOrDefault()}] {tx.Payee}");
             }
 
             promptBuilder.AppendLine("\nRequired JSON Response Structure (EXACTLY AS SHOWING DO NOT CHANGE PROPERTY NAMES EVEN DO NOT ADD ONE LETTER EXTRA):");
@@ -249,52 +238,42 @@ namespace BudgetAppBackend.Infrastructure.Services
             }
         }
 
-        //not yet tested
-        /// <summary>
-        /// Sends a smaller prompt to generate budget recommendations based on current budget setup and transactions.
-        /// </summary>
-        public async Task<string> GetBudgetRecommendations(IEnumerable<Budget> budgets, IEnumerable<TransactionDto> transactions)
+        private void AddCategoryAnalysis(StringBuilder pb, IEnumerable<TransactionDto> transactions,
+                                        string type, decimal total, bool isExpense)
         {
+            var breakdown = transactions
+                .GroupBy(t => t.Categories.FirstOrDefault() ?? "Uncategorized")
+                .Select(g => new {
+                    Category = g.Key,
+                    Total = isExpense ? g.Sum(t => -t.Amount) : g.Sum(t => t.Amount),
+                    Count = g.Count(),
+                    Percentage = total > 0 ? (g.Sum(t => Math.Abs(t.Amount)) / total * 100) : 0
+                })
+                .OrderByDescending(x => x.Total);
 
-            var promptBuilder = new StringBuilder();
-            promptBuilder.AppendLine("Based on the following budget allocations and recent transactions, provide personalized budget recommendations:");
-
-            promptBuilder.AppendLine("Budgets:");
-            foreach (var budget in budgets)
+            pb.AppendLine($"\n{type} Category Analysis:");
+            foreach (var cat in breakdown)
             {
-                promptBuilder.AppendLine($"- Title: {budget.Title}, Total Amount: {budget.TotalAmount}");
+                pb.AppendLine($"- {cat.Category}: ${cat.Total:F2} ({cat.Count} transactions, {cat.Percentage:F1}%)");
             }
-
-            promptBuilder.AppendLine("Recent Transactions:");
-            foreach (var tx in transactions.OrderByDescending(t => t.TransactionDate).Take(5))
-            {
-                promptBuilder.AppendLine($"- Date: {tx.TransactionDate:yyyy-MM-dd}, Amount: {tx.Amount}, Payee: {tx.Payee}, Type: {tx.Categories}");
-            }
-            string prompt = promptBuilder.ToString();
-
-            var requestBody = new
-            {
-                model = _ollamaSettings.Model,
-                prompt = prompt,
-                max_tokens = 200,
-                temperature = 0.0
-            };
-
-            var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-
-            var ollamaEndpoint = _ollamaSettings.Endpoint;
-
-            var response = await _httpClient.PostAsync($"{ollamaEndpoint}/v1/completions", jsonContent);
-            response.EnsureSuccessStatusCode();
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            using var document = JsonDocument.Parse(responseContent);
-            var root = document.RootElement;
-            var text = root.GetProperty("choices")[0].GetProperty("text").GetString();
-
-            return text ?? string.Empty;
         }
 
+        private void AddDailyPatterns(StringBuilder pb, IEnumerable<TransactionDto> transactions, string type)
+        {
+            var daily = transactions
+                .GroupBy(t => t.TransactionDate.Date)
+                .Select(g => new {
+                    Date = g.Key,
+                    Total = type == "Expense" ? g.Sum(t => -t.Amount) : g.Sum(t => t.Amount)
+                })
+                .OrderBy(d => d.Date);
+
+            pb.AppendLine($"\nDaily {type} Pattern:");
+            foreach (var day in daily)
+            {
+                pb.AppendLine($"- {day.Date:yyyy-MM-dd}: ${day.Total:F2}");
+            }
+        }
     }
 
 }

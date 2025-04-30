@@ -1,8 +1,6 @@
 ﻿using BudgetAppBackend.Domain.BudgetAggregate.ValueObjects;
 using BudgetAppBackend.Domain.BudgetAggregate;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
-using MediatR;
-using System.Threading;
 
 namespace BudgetAppBackend.Application.Contracts
 {

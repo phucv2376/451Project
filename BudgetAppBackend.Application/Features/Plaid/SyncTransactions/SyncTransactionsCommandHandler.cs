@@ -114,6 +114,7 @@ namespace BudgetAppBackend.Application.Features.Plaid.SyncTransactions
                     {
                         var addedEntities = syncResponse.Added
                             .Where(t => t != null && !string.IsNullOrEmpty(t.PlaidTransactionId))
+                            .OrderByDescending(t => t.Date)
                             .Select(CreateDomainEntity)
                             .ToList();
 
