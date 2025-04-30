@@ -115,7 +115,7 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
                     transaction.Categories.FirstOrDefault() != null &&
                     transaction.Categories.FirstOrDefault().Contains(Category, StringComparison.OrdinalIgnoreCase))
                 {
-                    ApplyTransaction(-transaction.Amount);
+                    ApplyTransaction(transaction.Amount);
                 }
             }
         }
@@ -130,7 +130,7 @@ namespace BudgetAppBackend.Domain.BudgetAggregate
                     !string.IsNullOrWhiteSpace(plaidTransaction.Categories.FirstOrDefault()) &&
                     plaidTransaction.Categories.FirstOrDefault().Contains(Category, StringComparison.OrdinalIgnoreCase))
                 {
-                    ApplyTransaction(-plaidTransaction.Amount);
+                    ApplyTransaction(plaidTransaction.Amount);
                 }
             }
         }

@@ -39,7 +39,8 @@ namespace BudgetAppBackend.Infrastructure
                 var resetBudgetJobKey = new JobKey("ResetBudgetJob");
                 q.AddJob<ResetBudgetJob>(resetBudgetJobKey)
                  .AddTrigger(trigger => trigger.ForJob(resetBudgetJobKey)
-                        .WithSchedule(CronScheduleBuilder.MonthlyOnDayAndHourAndMinute(1, 0, 0)));
+                            //.WithCronSchedule("0 * * ? * *"));
+                .WithSchedule(CronScheduleBuilder.AtHourAndMinuteOnGivenDaysOfWeek(1, 0, 0)));  //MonthlyOnDayAndHourAndMinute(1, 0, 0))
             });
             services.AddQuartzHostedService();
             services.AddScoped<IAuthRepository, AuthRepository>();
