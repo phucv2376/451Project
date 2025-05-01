@@ -12,7 +12,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateField } from '@mui/x-date-pickers/DateField';
+import { DateField, DatePicker } from '@mui/x-date-pickers';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
@@ -62,7 +62,7 @@ const TransactionPage = () => {
 
     const [newTransaction, setNewTransaction] = useState<AddEditTransaction>({
         userId: "",
-        transactionDate: null,
+        transactionDate: dayjs().toDate(),
         amount: 0,
         payee: "",
         transactionType: "",
@@ -487,10 +487,9 @@ const TransactionPage = () => {
                                 </FormControl>
 
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DateField
+                                    <DatePicker
                                         label="Date"
-                                        name="transactionDate"
-                                        sx={{ width: '100%' }}
+                                        value={date}
                                         onChange={handleDateChange(setNewTransaction, "transactionDate")}
                                     />
                                 </LocalizationProvider>

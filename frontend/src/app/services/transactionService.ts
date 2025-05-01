@@ -126,7 +126,7 @@ export const deleteTransaction = async (transactionId: string, userId: string) =
         if (!response.ok) {
             // Handle 404 or other error statuses
             const errorMessage = response.status === 404
-                ? "Transaction not found"
+                ? "Cannot delete bank account transactions"
                 : "Failed to delete transaction";
             return { success: false, message: errorMessage };
         }
