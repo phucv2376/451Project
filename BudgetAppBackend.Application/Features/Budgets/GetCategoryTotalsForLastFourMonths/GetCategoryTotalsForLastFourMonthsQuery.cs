@@ -3,9 +3,9 @@ using MediatR;
 
 namespace BudgetAppBackend.Application.Features.Budgets.GetCategoryTotalsForLastFourMonths
 {
-    public class GetCategoryTotalsForLastFourMonthsQuery : IRequest<MonthlyCategoryTotalDto>
+    public class GetCategoryTotalsForLastFourMonthsQuery : IRequest<List<MonthlyCategoryTotalDto>>
     {
-        public Guid UserId { get; set; }
-        
+        public GetTotalBudgetForLastFourMonths GetTotalBudgetForLastFourMonthsDto { get; set; } = default!;
+
     }
 }

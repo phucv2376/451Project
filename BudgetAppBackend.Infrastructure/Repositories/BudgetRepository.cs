@@ -69,5 +69,15 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                     b.Category == categoryName);
         }
 
+        public async Task<Budget?> GetBudgetAsync(UserId userId, string categoryName, CancellationToken cancellationToken)
+        {
+            var budget = await _dbContext.Budgets
+                .FirstOrDefaultAsync(b => b.UserId == userId && b.Category == categoryName, cancellationToken);
+            if (budget == null)
+            {
+                return null;
+            }
+            return budget;
+        }
     }
 }

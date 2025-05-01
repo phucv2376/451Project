@@ -8,6 +8,7 @@ namespace BudgetAppBackend.Application.Contracts
     {
         Task AddAsync(Budget budget, CancellationToken cancellationToken);//
         Task<Budget?> GetByIdAsync(BudgetId budgetId, CancellationToken cancellationToken);  //
+        Task<Budget?> GetBudgetAsync(UserId userId, string categoryName, CancellationToken cancellationToken);  //
         Task<List<Budget>> GetActiveBudgetsAsync(UserId userId, CancellationToken cancellationToken); //
         Task<Budget?> GetByCategoryAsync(string categoryName,UserId userId, DateTime date, CancellationToken cancellationToken);
         Task UpdateAsync(Budget budget, CancellationToken cancellationToken); //

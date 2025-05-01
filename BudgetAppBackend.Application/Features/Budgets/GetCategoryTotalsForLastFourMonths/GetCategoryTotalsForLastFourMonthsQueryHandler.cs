@@ -1,10 +1,11 @@
 ﻿using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.DTOs.BudgetDTOs;
+using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using MediatR;
 
 namespace BudgetAppBackend.Application.Features.Budgets.GetCategoryTotalsForLastFourMonths
 {
-    public class GetCategoryTotalsForLastFourMonthsQueryHandler : IRequestHandler<GetCategoryTotalsForLastFourMonthsQuery, MonthlyCategoryTotalDto>
+    public class GetCategoryTotalsForLastFourMonthsQueryHandler : IRequestHandler<GetCategoryTotalsForLastFourMonthsQuery, List<MonthlyCategoryTotalDto>> // Change return type to List<MonthlyCategoryTotalDto>
     {
         private readonly IBudgetRepository _budgetRepository;
         private readonly ITransactionRepository _transactionRepository;
@@ -17,10 +18,31 @@ namespace BudgetAppBackend.Application.Features.Budgets.GetCategoryTotalsForLast
             _laidTransactionRepository = laidTransactionRepository;
         }
 
-        public Task<MonthlyCategoryTotalDto> Handle(GetCategoryTotalsForLastFourMonthsQuery request, CancellationToken cancellationToken)
+        public async Task<List<MonthlyCategoryTotalDto>> Handle(GetCategoryTotalsForLastFourMonthsQuery request, CancellationToken cancellationToken) // Update return type
         {
-            //var budget = _budgetRepository.GetByCategoryAsync(request, request.UserId, request.Date, cancellationToken);
-            throw new NotImplementedException();
+            var userId = UserId.Create(request.GetTotalBudgetForLastFourMonthsDto.UserId);
+            var budget = await _budgetRepository.GetBudgetAsync(userId, request.GetTotalBudgetForLastFourMonthsDto.Category, cancellationToken); // Add await for async call
+            if (budget == null)
+            {
+                throw new Exception("Budget not found");
+            }
+            var manu = await _transactionRepository.GetCategoryTotalsForLastFourMonthsAsync(request.GetTotalBudgetForLastFourMonthsDto.Category, userId, cancellationToken);
+            var plaid = await _laidTransactionRepository.GetCategoryTotalsForLastFourMonthsAsync(request.GetTotalBudgetForLastFourMonthsDto.Category, userId, cancellationToken);
+
+
+
+            var combinedTotals = manu
+            .Concat(plaid)
+            .GroupBy(dto => dto.Month)
+            .Select(group => new MonthlyCategoryTotalDto
+            {
+                Month = group.Key,
+                Total = group.Sum(dto => dto.Total)
+            })
+            .OrderBy(dto => dto.Month)
+            .ToList();
+
+            return combinedTotals; // Return the list
         }
     }
 }

@@ -6,6 +6,7 @@ using BudgetAppBackend.Domain.TransactionAggregate;
 using BudgetAppBackend.Domain.TransactionAggregate.ValueObjects;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using SkiaSharp;
 
 namespace BudgetAppBackend.Infrastructure.Repositories
 {
@@ -217,19 +218,45 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
         public async Task<List<MonthlyCategoryTotalDto>> GetCategoryTotalsForLastFourMonthsAsync(string categoryName, UserId userId, CancellationToken cancellationToken)
         {
-            var fromDate = DateTime.UtcNow.AddMonths(-3); 
-            var monthlyCategoryTotal = await _dbContext.Transactions
-                .Where(t => t.UserId == userId && t.Categories.FirstOrDefault() == categoryName && t.TransactionDate >= fromDate)
-                .GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month })
-                .Select(g => new MonthlyCategoryTotalDto
-                {
-                    Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
-                    Total = g.Sum(t => t.Amount)
-                })
-                .OrderBy(dto => DateTime.ParseExact(dto.Month, "MMMM", CultureInfo.CurrentCulture))
-                .ToListAsync(cancellationToken);
+            try
+            {
+                // Step 1: Determine the starting date (three months ago from now)
+                var fromDate = DateTime.UtcNow.AddMonths(-3);
 
-            return monthlyCategoryTotal;
+                // Step 2: Retrieve transactions filtered by user and date
+                var transactions = await _dbContext.Transactions
+                    .Where(t => t.UserId == userId && t.TransactionDate >= fromDate)
+                    .ToListAsync();
+
+                // Step 3: Filter by category in memory
+                var filteredTransactions = transactions
+                    .Where(t => t.Categories.Any(c => c.Contains(categoryName)))
+                    .ToList();
+
+                // Step 4: Group the filtered transactions by year and month
+                var groupedTransactions = filteredTransactions
+                    .GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month });
+
+                // Step 5: Project each group into a MonthlyCategoryTotalDto
+                var monthlyCategoryTotals = groupedTransactions
+                    .Select(g => new MonthlyCategoryTotalDto
+                    {
+                        Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
+                        Total = g.Sum(t => t.Amount)
+                    })
+                    .OrderBy(dto => DateTime.ParseExact(dto.Month, "MMMM", CultureInfo.CurrentCulture))
+                    .ToList();
+
+                return monthlyCategoryTotals;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (implementation depends on your logging framework)
+                throw;
+            }
         }
+
+
+
     }
 }
