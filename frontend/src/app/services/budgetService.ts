@@ -80,6 +80,43 @@ export const getBudgetList = async (userId: string) => {
     }
 };
 
+
+
+/**
+ * Updates a budget the user chooses.
+ * @param userId - The ID of the user.
+ * @returns A success status or an error message.
+ */
+export const updateBudget = async (budgetUpdate: Budget) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Budget/update`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(budgetUpdate)
+        });
+
+        if (!response.ok) {
+            let errorMessage = "Failed to update budget. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+
+        return { success: true, message: "Budget updated successfully" };
+
+    } catch (error) {
+        console.error("Network error:", error);
+        return { success: false, message: "A network error occurred. Please check your connection and try again." };
+    }
+};
+
 /**
  * Deletes a budget by ID
  * @param budgetId - The ID of the budget to delete
@@ -125,47 +162,49 @@ export const deleteBudget = async (deleteBudget: Budget) => {
  * @returns Array of summed amounts for each month
  */
 export const getMonthlyCategoryData = async (userId: string, category: string) => {
-  const monthlyData: number[] = [];
-  const currentDate = new Date();
-  
-  // Get the last 4 months
-  const months = Array.from({ length: 4 }, (_, i) => {
-    return subMonths(currentDate, 3 - i); // Gets [Jan, Feb, Mar, Apr] if current month is April
-  });
+    const monthlyData: number[] = [];
+    const currentDate = new Date();
+    const rowCount = 50;
 
-  // Fetch and sum transactions for each month
-  for (const month of months) {
-    try {
-      const startDate = startOfMonth(month);
-      const endDate = endOfMonth(month);
-      
-      // Create properly typed FilteredTransaction object
-      const filters: FilteredTransaction = {
-        Category: category,
-        StartDate: startDate,
-        EndDate: endDate,
-      };
+    // Get the last 4 months
+    const months = Array.from({ length: 4 }, (_, i) => {
+        return subMonths(currentDate, 3 - i); // Gets [Jan, Feb, Mar, Apr] if current month is April
+    });
 
-      const result = await getTransactions(
-        userId, 
-        undefined, 
-        undefined, 
-        filters
-      );
+    // Fetch and sum transactions for each month
+    for (const month of months) {
+        try {
+            const startDate = startOfMonth(month);
+            const endDate = endOfMonth(month);
 
-      if (result.success && result.data?.data) {
-        const monthlySum = result.data.data.reduce((sum, transaction) => {
-          return sum + Math.abs(transaction.amount);
-        }, 0);
-        monthlyData.push(parseFloat(monthlySum.toFixed(2)));
-      } else {
-        monthlyData.push(0);
-      }
-    } catch (error) {
-      console.error(`Error fetching data for month:`, error);
-      monthlyData.push(0);
+            // Create properly typed FilteredTransaction object
+            const filters: FilteredTransaction = {
+                Category: category,
+                StartDate: startDate,
+                EndDate: endDate,
+            };
+
+            const result = await getTransactions(
+                userId,
+                rowCount,
+                undefined,
+                filters
+            );
+
+            if (result.success && result.data?.data) {
+                const monthlySum = result.data.data.reduce((sum, transaction) => {
+                    return sum + transaction.amount;
+                }, 0);
+                monthlyData.push(parseFloat(monthlySum.toFixed(2)));
+            } else {
+                monthlyData.push(0);
+            }
+        } catch (error) {
+            console.error(`Error fetching data for month:`, error);
+            monthlyData.push(0);
+        }
+        console.log(monthlyData);
     }
-  }
 
-  return monthlyData;
+    return monthlyData;
 };

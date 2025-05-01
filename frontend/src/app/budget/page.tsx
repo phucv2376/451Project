@@ -1,12 +1,12 @@
 "use client";
 import NavBar from "../components/NavBar";
 import { categories } from "../models/TransactionCategory";
-import { createBudget, deleteBudget, getBudgetList } from "../services/budgetService";
+import { createBudget, deleteBudget, getBudgetList, updateBudget } from "../services/budgetService";
+import UpdateAddBudget from "../components/UpdateAddBudget";
 
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import LinearProgress, { LinearProgressProps } from '@mui/material/LinearProgress';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 import { Gauge } from '@mui/x-charts/Gauge';
@@ -41,14 +41,20 @@ const BudgetPage = () => {
         userId: "",
         budgetId: ""
     })
+    const [userUpdateBudget, setUserUpdateBudget] = useState<Budget>({
+        budgetId: "",
+        title: "test",
+        totalAmount: 0
+    })
     const [budgetList, setBudgetList] = useState<Budget[]>([]);
 
-    const [showChart, setShowChart] = useState(false);
+    const [showUpdateBudget, setShowUpdateBudget] = useState(false);
     const [activeCategoryIndex, setActiveCategoryIndex] = useState<number | null>(null);
     const [showAddBudget, setShowAddBudget] = useState(false);
     const [errorBudget, setErrorBudget] = useState<string | null>(null);
     const [userId, setUserId] = useState('');
     const [loading, setLoading] = useState(true);
+
 
 
     const fetchBudgets = async (userId: string) => {
@@ -76,16 +82,37 @@ const BudgetPage = () => {
         }
     }, []);
 
+    const handleBudgetInfo = (budget: Budget) => {
+        setDelBudget({
+            userId: userId,
+            budgetId: budget.budgetId
+        })
+        setUserUpdateBudget({
+            budgetId: budget.budgetId,
+            totalAmount: budget.totalAmount
+        })
+    }
 
     const handleShowAddBudget = () => {
         setShowAddBudget(true);
     }
-    const handleShowDeleteBudget = () => {
-        
+
+    const handleShowUpdateBudget = () => {
+        setShowUpdateBudget(true);
     }
-    const handleCancel = () => {
+
+    const handleCancel = () => { //add delete fields when cancel
         setShowAddBudget(false);
     }
+    const handleBudgetCancel = (e?: React.MouseEvent) => {
+        // Stop event propagation if event exists
+        e?.stopPropagation();
+        setShowUpdateBudget(false);
+
+        // Optional: Clear any edit state if needed
+        // setBudgetToEdit(null);
+    };
+
     const handleAddBudget = async () => {
         const result = await createBudget(newBudget);
 
@@ -93,11 +120,28 @@ const BudgetPage = () => {
             console.log("Budget created successfully");
             handleCancel();
             fetchBudgets(userId);
+            setActiveCategoryIndex(null);
         } else {
             console.error("Error creating budget:", result.message);
             setErrorBudget(result.message || "Failed to create budget.");
         }
     };
+
+    const handleUpdateBudget = async (userUpdateBudget: Budget) => {
+        console.log(userUpdateBudget.title);
+
+        const result = await updateBudget(userUpdateBudget);
+
+        if (result.success) {
+            console.log("Budget updated successfully");
+            fetchBudgets(userId);
+            setActiveCategoryIndex(null);
+            setShowUpdateBudget(false);
+        } else {
+            console.error("Error:", result.message);
+            setErrorBudget(result.message || "Failed to update budget");
+        }
+    }
 
     const handleDeleteBudget = async (delBudget: Budget) => {
         const result = await deleteBudget(delBudget);
@@ -106,10 +150,27 @@ const BudgetPage = () => {
             console.log("Budget deleted successfully");
             // Refresh budgets list or update UI
             fetchBudgets(userId);
+            setDelBudget(prev => ({
+                ...prev,
+                userId: userId,
+                budgetId: ""
+            }));
+            setActiveCategoryIndex(null);
         } else {
             console.error("Error:", result.message);
             setErrorBudget(result.message || "Failed to delete budget");
         }
+    }
+
+    const handleSetDeleteBudget = () => {
+        console.log(delBudget.category);
+        handleDeleteBudget(delBudget);
+    }
+
+    const handleSetUpdateBudget = () => {
+        console.log(userUpdateBudget.category);
+
+        handleUpdateBudget(userUpdateBudget);
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +179,11 @@ const BudgetPage = () => {
             ...prev,
             totalAmount: Number(value)  // Convert string to number
         }));
+        setUserUpdateBudget(prev => ({
+            ...prev,
+            title: "test",
+            totalAmount: Number(value)
+        }))
     };
     const handleSelectChange = (e: SelectChangeEvent<string>) => {
         setNewBudget(prev => ({
@@ -126,6 +192,14 @@ const BudgetPage = () => {
         }));
     };
 
+    //const handleTotalAmountChange=
+
+    const collapseCategoryIndex = (index: number | null) => {
+        if (!showUpdateBudget) {
+            setActiveCategoryIndex(activeCategoryIndex === index ? null : index);
+        }
+        console.log(index);
+    }
 
     return (
         <div className="flex bg-[#F1F5F9] min-h-screen w-full">
@@ -147,21 +221,6 @@ const BudgetPage = () => {
                     <p>Monthly Budgets</p>
                     <div className="flex items-center gap-2">
 
-                        <IconButton
-                            aria-label="delete"
-                            color="error"
-                            onClick={handleShowDeleteBudget}
-                        >
-                            <DeleteIcon />
-                        </IconButton>
-                        <IconButton
-                            aria-label="edit"
-                            color="primary"
-                        //disabled={!selectedTransaction}
-                        //onClick={handleShowEditTransaction}
-                        >
-                            <EditIcon />
-                        </IconButton>
                         <Button
                             variant="contained"
                             startIcon={<AddIcon />}
@@ -230,7 +289,7 @@ const BudgetPage = () => {
                     </div>
                 )}
                 {/*Budgets*/}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 z-0">
 
                     {/* Empty state message - shows when no budgets exist */}
                     {budgetList.length === 0 && (
@@ -247,7 +306,14 @@ const BudgetPage = () => {
                             <div
                                 key={budget.budgetId}
                                 className="bg-white rounded-lg border-gray-200 shadow-sm p-4 cursor-pointer relative"
-                                onClick={() => setActiveCategoryIndex(activeCategoryIndex === index ? null : index)}
+                                onClick={() => {
+                                    collapseCategoryIndex(index);
+                                    // setDelBudget({
+                                    //     userId: userId,
+                                    //     budgetId: budget.budgetId
+                                    // });
+                                    handleBudgetInfo(budget);
+                                }}
                             >
                                 <div className="flex items-center">
                                     <CategoryIcon
@@ -291,7 +357,7 @@ const BudgetPage = () => {
                                 </div>
                                 <Collapse in={activeCategoryIndex === index}>
                                     <div className="flex">
-                                        <BudgetBarGraph 
+                                        <BudgetBarGraph
                                             userId={userId}
                                             category={budget.category || 'Uncategorized'}
                                         />
@@ -303,14 +369,13 @@ const BudgetPage = () => {
                                                 borderRadius: '8px',
                                                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                                                 maxWidth: 300,
-                                                ml: 2 // Add some margin to separate from the chart
+                                                ml: 2
                                             }}
                                         >
                                             <Typography variant="subtitle2" sx={{ p: 2, pb: 1, fontWeight: 600 }}>
                                                 Top Transactions of the Month
                                             </Typography>
                                             <Table size="small">
-
                                                 <TableBody>
                                                     {transactions.map((transaction, index) => (
                                                         <TableRow key={index} hover>
@@ -336,8 +401,46 @@ const BudgetPage = () => {
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
+
+                                    </div>
+
+                                    <IconButton
+                                        aria-label="delete"
+                                        color="error"
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent triggering the parent div's onClick
+                                            handleSetDeleteBudget();
+                                        }}
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                    <IconButton
+                                        aria-label="edit"
+                                        color="primary"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleShowUpdateBudget();
+                                            console.log("testing...", userUpdateBudget);
+
+                                        }}
+                                    >
+                                        <EditIcon />
+                                    </IconButton>
+                                    <div className="z-50">
+                                        {(showUpdateBudget) && (
+                                            <UpdateAddBudget
+                                                title="Update Budget"
+                                                handleInputChange={handleInputChange}
+                                                handleCancel={handleBudgetCancel}
+                                                handleEvent={handleSetUpdateBudget}
+                                                handleSelectChange={handleSelectChange}
+                                                eventButton="Update"
+                                                amountValue={Math.abs(budget.totalAmount ?? 0).toFixed(2)}
+                                            />
+                                        )}
                                     </div>
                                 </Collapse>
+
                             </div>
                         )
                     })}
