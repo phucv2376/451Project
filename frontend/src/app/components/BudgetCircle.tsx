@@ -11,7 +11,8 @@ type Props = {
 const BudgetCircle = (props: Props) => {
     const calculateProgress = () => {
         if (props.budgetAmount === 0) return 0; // Avoid division by zero
-        return Math.round(props.budgetSpent / props.budgetAmount * 100);
+        const res = Math.round(props.budgetSpent / props.budgetAmount * 100)
+        return res;
     };
 
     return (
@@ -30,7 +31,7 @@ const BudgetCircle = (props: Props) => {
                 {/* Main Progress Bar */}
                 <CircularProgress
                     variant="determinate"
-                    value={calculateProgress()}
+                    value={Math.min(100, calculateProgress())}
                     size={90}
                     thickness={7}
                     sx={{
