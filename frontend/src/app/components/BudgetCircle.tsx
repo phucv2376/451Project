@@ -62,7 +62,7 @@ const BudgetCircle = (props: Props) => {
 
                 </Box>
             </Box>
-            <p className="text-sm text-center">{props.label}</p>
+            <p className="text-sm text-center text-nowrap">{props.label}</p>
         </div>
     );
 };
