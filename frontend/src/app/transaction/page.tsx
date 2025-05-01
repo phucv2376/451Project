@@ -62,7 +62,7 @@ const TransactionPage = () => {
 
     const [newTransaction, setNewTransaction] = useState<AddEditTransaction>({
         userId: "",
-        transactionDate: null,
+        transactionDate: dayjs().toDate(),
         amount: 0,
         payee: "",
         transactionType: "",
