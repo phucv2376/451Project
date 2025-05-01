@@ -11,14 +11,14 @@ const CashflowSummary = (props: props) => (
             <div className="pr-7 flex w-1/2 max-h-[100%] flex-col justify-center items-center border-r border-gray-300">
                 <h2 className="text-gray-600 text-2xl md:text-xl pb-2">Net Cashflow </h2>
                 <span className=
-                    {`text-5xl md:text-4xl ${props.monthlyIncome - props.monthlyExpenses >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                    {`text-5xl md:text-4xl ${props.monthlyIncome + props.monthlyExpenses >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 >
-                    {`${props.monthlyIncome - props.monthlyExpenses >= 0 ? '+' : '-'}`}
-                    ${Math.abs(Math.round(props.monthlyIncome - props.monthlyExpenses))} </span>
+                    {`${props.monthlyIncome + props.monthlyExpenses >= 0 ? '+' : '-'}`}
+                    ${Math.abs(Math.round(props.monthlyIncome + props.monthlyExpenses))} </span>
             </div>
             <div className="flex pl-7 w-1/2 justify-center flex-col">
                 <SummaryItem label="Cash In:" value={props.monthlyIncome} isLoading={props.isLoading} positive />
-                <SummaryItem label="Cash Out:" value={props.monthlyExpenses} isLoading={props.isLoading} />
+                <SummaryItem label="Cash Out:" value={Math.abs(props.monthlyExpenses)} isLoading={props.isLoading} />
             </div>
         </div>
     </div>
