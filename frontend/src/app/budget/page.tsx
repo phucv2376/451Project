@@ -3,34 +3,21 @@ import NavBar from "../components/NavBar";
 import { categories } from "../models/TransactionCategory";
 import { createBudget, deleteBudget, getBudgetList, updateBudget } from "../services/budgetService";
 import UpdateAddBudget from "../components/UpdateAddBudget";
+import TopTransactionsTable from "../components/TopTransactionsTable";
+import BudgetBarGraph from "../components/BudgetBarGraph";
+import { Budget } from "../models/Budget";
 
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
-import { Gauge } from '@mui/x-charts/Gauge';
 import { Collapse } from "@mui/material";
 import { useEffect, useState } from "react";
-import BudgetBarGraph from "../components/BudgetBarGraph";
-import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper, Typography } from '@mui/material';
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import { transactionTypes } from "../models/TransactionType";
-import MenuItem from "@mui/material/MenuItem";
-import TextField from "@mui/material/TextField";
-import InputAdornment from "@mui/material/InputAdornment";
+import { SelectChangeEvent } from "@mui/material/Select";
 import { ShoppingBasket, PriorityHighOutlined } from "@mui/icons-material"; // or any default icon
-import { Budget } from "../models/Budget";
-import { red } from "@mui/material/colors";
 
 const BudgetPage = () => {
-    const transactions = [
-        { description: 'Overdraft', date: 'April 2, 2025', amount: -22.50 },
-        { description: 'Overdraft', date: 'April 2, 2025', amount: -9.99 },
-        { description: 'Wire Transfer', date: 'April 1, 2025', amount: -5.75 },
-    ];
     const [newBudget, setNewBudget] = useState<Budget>({
         userId: "",
         totalAmount: 0,
@@ -55,12 +42,9 @@ const BudgetPage = () => {
     const [userId, setUserId] = useState('');
     const [loading, setLoading] = useState(true);
 
-
-
     const fetchBudgets = async (userId: string) => {
         const result = await getBudgetList(userId);
         if (result.success) {
-            console.log(result.data);
             if (result.data != null) {
                 setBudgetList(result.data);
             }
@@ -91,6 +75,7 @@ const BudgetPage = () => {
             budgetId: budget.budgetId,
             totalAmount: budget.totalAmount
         })
+
     }
 
     const handleShowAddBudget = () => {
@@ -121,6 +106,7 @@ const BudgetPage = () => {
             handleCancel();
             fetchBudgets(userId);
             setActiveCategoryIndex(null);
+            
         } else {
             console.error("Error creating budget:", result.message);
             setErrorBudget(result.message || "Failed to create budget.");
@@ -192,35 +178,21 @@ const BudgetPage = () => {
         }));
     };
 
-    //const handleTotalAmountChange=
-
     const collapseCategoryIndex = (index: number | null) => {
         if (!showUpdateBudget) {
             setActiveCategoryIndex(activeCategoryIndex === index ? null : index);
         }
-        console.log(index);
     }
 
     return (
         <div className="flex bg-[#F1F5F9] min-h-screen w-full">
             <NavBar />
             <div className="w-full lg:ml-[5%] lg:w-3/4 h-full mb-5">
-                {/* <div className="flex justify-center">
-					<Gauge
-						width={300}
-						height={300}
-						value={60}
-						startAngle={-90}
-						endAngle={90}
-						cornerRadius={10}
-					/>
-				</div> */}
 
                 {/*heading*/}
                 <div className="mt-16 flex justify-between mb-3">
                     <p>Monthly Budgets</p>
                     <div className="flex items-center gap-2">
-
                         <Button
                             variant="contained"
                             startIcon={<AddIcon />}
@@ -232,62 +204,18 @@ const BudgetPage = () => {
                     </div>
                 </div>
                 {(showAddBudget) && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
-                            <div className="p-6">
-                                <h2 className="text-xl font-bold mb-6">
-                                    Add Budget
-                                </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-
-                                    <FormControl fullWidth>
-                                        <InputLabel>Category</InputLabel>
-                                        <Select
-                                            //value={category}
-                                            onChange={handleSelectChange}
-                                            //value={newTransaction.categories || []} // Ensure controlled component
-                                            label="Category"
-                                            name="categories"
-                                        >
-                                            {categories.map((cat, index) => (
-                                                <MenuItem key={index} value={cat.category.toString()}>
-                                                    <cat.Icon style={{ marginRight: '6px' }} />
-                                                    {cat.category}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-
-                                    <TextField
-                                        label="Budget Amount"
-                                        name="amount"
-                                        placeholder="00.00"
-                                        onChange={handleInputChange}
-                                        InputProps={{
-                                            startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                                        }}
-                                        fullWidth
-                                    />
-                                </div>
-                                <div className="flex justify-end gap-3">
-                                    <Button
-                                        variant="outlined"
-                                        onClick={handleCancel}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={handleAddBudget}
-                                    >
-                                        Add
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <UpdateAddBudget
+                        title="Add Budget"
+                        handleInputChange={handleInputChange}
+                        handleCancel={handleCancel}
+                        handleSelectChange={handleSelectChange}
+                        handleEvent={handleAddBudget}
+                        eventButton="Add"
+                        addBudget={true}
+                        budgetList={budgetList.map(budget => budget.category)}
+                    />
                 )}
+
                 {/*Budgets*/}
                 <div className="flex flex-col gap-4 z-0">
 
@@ -308,10 +236,6 @@ const BudgetPage = () => {
                                 className="bg-white rounded-lg border-gray-200 shadow-sm p-4 cursor-pointer relative"
                                 onClick={() => {
                                     collapseCategoryIndex(index);
-                                    // setDelBudget({
-                                    //     userId: userId,
-                                    //     budgetId: budget.budgetId
-                                    // });
                                     handleBudgetInfo(budget);
                                 }}
                             >
@@ -331,9 +255,9 @@ const BudgetPage = () => {
                                             <div>${(budget.spentAmount ?? 0).toFixed(2)} Spent</div>
                                         </div>
                                     </div>
+
                                     {/* Budget Progress Bar */}
                                     <div className="w-[83%] bg-gray-200 rounded-full h-2.5 mt-2 relative overflow-hidden">
-                                        {/* Base progress bar (up to 100%) */}
                                         <div
                                             className="h-2.5 rounded-full absolute"
                                             style={{
@@ -342,6 +266,7 @@ const BudgetPage = () => {
                                             }}
                                         />
                                     </div>
+                                    
                                     {/* Over-budget indicator (only shows when spent > total) */}
                                     {((budget.spentAmount ?? 0) > (budget.totalAmount ?? 0)) && (
                                         <div className="absolute top-2 right-2 group">
@@ -361,47 +286,10 @@ const BudgetPage = () => {
                                             userId={userId}
                                             category={budget.category || 'Uncategorized'}
                                         />
-                                        <TableContainer
-                                            component={Paper}
-                                            elevation={0}
-                                            sx={{
-                                                border: '1px solid #e0e0e0',
-                                                borderRadius: '8px',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                                                maxWidth: 300,
-                                                ml: 2
-                                            }}
-                                        >
-                                            <Typography variant="subtitle2" sx={{ p: 2, pb: 1, fontWeight: 600 }}>
-                                                Top Transactions of the Month
-                                            </Typography>
-                                            <Table size="small">
-                                                <TableBody>
-                                                    {transactions.map((transaction, index) => (
-                                                        <TableRow key={index} hover>
-                                                            <TableCell>
-                                                                <div>
-                                                                    <Typography variant="body2">{transaction.description}</Typography>
-                                                                    <Typography variant="caption" color="text.secondary">
-                                                                        {transaction.date}
-                                                                    </Typography>
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell align="right">
-                                                                <Typography
-                                                                    variant="body2"
-                                                                    color={transaction.amount < 0 ? 'error.main' : 'success.main'}
-                                                                    fontWeight={500}
-                                                                >
-                                                                    {transaction.amount < 0 ? '-' : ''}${Math.abs(transaction.amount).toFixed(2)}
-                                                                </Typography>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </TableContainer>
-
+                                        <TopTransactionsTable
+                                            userId={userId}
+                                            category={budget.category || 'Uncategorized'}
+                                        />
                                     </div>
 
                                     <IconButton
@@ -420,8 +308,6 @@ const BudgetPage = () => {
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleShowUpdateBudget();
-                                            console.log("testing...", userUpdateBudget);
-
                                         }}
                                     >
                                         <EditIcon />
@@ -433,14 +319,13 @@ const BudgetPage = () => {
                                                 handleInputChange={handleInputChange}
                                                 handleCancel={handleBudgetCancel}
                                                 handleEvent={handleSetUpdateBudget}
-                                                handleSelectChange={handleSelectChange}
                                                 eventButton="Update"
+                                                addBudget={false}
                                                 amountValue={Math.abs(budget.totalAmount ?? 0).toFixed(2)}
                                             />
                                         )}
                                     </div>
                                 </Collapse>
-
                             </div>
                         )
                     })}

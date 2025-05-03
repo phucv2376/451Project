@@ -1,8 +1,8 @@
 import API_BASE_URL from "@/app/config";
-import { Budget } from "../models/Budget"; // Assuming you have a Budget type/interface
+import { Budget, MonthSummary } from "../models/Budget"; // Assuming you have a Budget type/interface
 import { subMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 import { getTransactions } from "./transactionService";
-import { FilteredTransaction } from "../models/Transaction";
+import { FilteredTransaction, Transaction } from "../models/Transaction";
 
 /**
  * Creates a new budget for a user.
@@ -157,54 +157,82 @@ export const deleteBudget = async (deleteBudget: Budget) => {
 
 /**
  * Fetches and sums transactions by category for the last 4 months
- * @param userId - The ID of the user
- * @param category - The category to filter by
+ * @param userId contains userId
+ * @param category contains category name
  * @returns Array of summed amounts for each month
  */
-export const getMonthlyCategoryData = async (userId: string, category: string) => {
-    const monthlyData: number[] = [];
-    const currentDate = new Date();
-    const rowCount = 50;
+export const fourMonthsSummary = async (userId : string, category : string) => {
+    try {
+        const encodedCategory = encodeURIComponent(category);
+        const response = await fetch(`${API_BASE_URL}/Budget/last-four-mothns-total?userId=${userId}&categoryName=${encodedCategory}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include"
+        });
+        //console.log(response)
 
-    // Get the last 4 months
-    const months = Array.from({ length: 4 }, (_, i) => {
-        return subMonths(currentDate, 3 - i); // Gets [Jan, Feb, Mar, Apr] if current month is April
-    });
-
-    // Fetch and sum transactions for each month
-    for (const month of months) {
-        try {
-            const startDate = startOfMonth(month);
-            const endDate = endOfMonth(month);
-
-            // Create properly typed FilteredTransaction object
-            const filters: FilteredTransaction = {
-                Category: category,
-                StartDate: startDate,
-                EndDate: endDate,
-            };
-
-            const result = await getTransactions(
-                userId,
-                rowCount,
-                undefined,
-                filters
-            );
-
-            if (result.success && result.data?.data) {
-                const monthlySum = result.data.data.reduce((sum, transaction) => {
-                    return sum + transaction.amount;
-                }, 0);
-                monthlyData.push(parseFloat(monthlySum.toFixed(2)));
-            } else {
-                monthlyData.push(0);
+        if (!response.ok) {
+            let errorMessage = "Failed to fetch budget summary. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
             }
-        } catch (error) {
-            console.error(`Error fetching data for month:`, error);
-            monthlyData.push(0);
+            return { success: false, message: errorMessage };
         }
-        console.log(monthlyData);
+        const data : MonthSummary[] = await response.json();
+        return { success: true, data };
+    } catch (error) {
+        console.error("Network error:", error);
+        return {
+            success: false,
+            message: "A network error occurred. Please check your connection and try again."
+        };
     }
 
-    return monthlyData;
+};
+
+/**
+ * Fetches and sums transactions by category for the last 4 months
+ * @param userId contains userId
+ * @param category contains category name
+ * @returns Array of summed amounts for each month
+ */
+export const topTransactionsBudget = async (userId : string, category : string) => {
+    try {
+        const encodedCategory = encodeURIComponent(category);
+        const response = await fetch
+        (`${API_BASE_URL}/Budget/top-five-current-month-transaction-by-budget?userId=${userId}&categoryName=${encodedCategory}`, 
+            {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include"
+        });
+        //console.log(response)
+
+        if (!response.ok) {
+            let errorMessage = "Failed to fetch top transactions. Please try again.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;
+            } catch (parseError) {
+                console.error("Error parsing error response:", parseError);
+            }
+            return { success: false, message: errorMessage };
+        }
+        const data : Transaction[] = await response.json();
+        return { success: true, data };
+    } catch (error) {
+        console.error("Network error:", error);
+        return {
+            success: false,
+            message: "A network error occurred. Please check your connection and try again."
+        };
+    }
+
 };

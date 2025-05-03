@@ -8,3 +8,8 @@ export interface Budget {
     isActive?: boolean;
     createdDate?: string;
   }
+
+  export interface MonthSummary{
+    month: string;
+    total: number
+  }
