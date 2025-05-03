@@ -23,7 +23,8 @@ const TopTransactionsTable = (props: Props) => {
         const fetchTopTransactions = async () => {
             const result = await topTransactionsBudget(props.userId, props.category);
             if (result.success) {
-                setTopTransactions(result.data || []);
+                const sortedTransactions = [...result.data || []].sort((a, b) => a.amount - b.amount);
+                setTopTransactions(sortedTransactions);
             }
         };
         fetchTopTransactions();
