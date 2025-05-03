@@ -10,41 +10,53 @@ import Button from "@mui/material/Button"
 type Props = {
     title: string,
     handleInputChange: any,
-    handleSelectChange: any,
+    handleSelectChange?: any,
     handleCancel: any,
     handleEvent: any,
     eventButton: string,
-    amountValue: any
+    amountValue?: any,
+    addBudget: boolean,
+    budgetList?: any
 }
 
 
 const UpdateAddBudget = (props: Props) => {
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
                 <div className="p-6">
                     <h2 className="text-xl font-bold mb-6">
                         {props.title}
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-{/*                     
+                    <div className={`grid ${props.addBudget ? 'grid-cols-2' : 'grid-cols-1'} gap-4 mb-5`}>                    {props.addBudget && (
                         <FormControl fullWidth>
                             <InputLabel>Category</InputLabel>
                             <Select
                                 onChange={props.handleSelectChange}
                                 label="Category"
                                 name="categories"
-                                defaultValue={props.categoryValue}
                             >
-                                {categories.map((cat, index) => (
-                                    <MenuItem key={index} value={cat.category.toString()}>
-                                        <cat.Icon style={{ marginRight: '6px' }} />
-                                        {cat.category}
-                                    </MenuItem>
-                                ))}
+                                {categories.map((cat, index) => {
+                                    const isDisabled = props.budgetList?.includes(cat.category);
+                                    console.log("isdisabled index: ", index , " ", isDisabled);
+                                    return (
+                                        <MenuItem
+                                            key={index}
+                                            value={cat.category.toString()}
+                                            disabled={isDisabled} // Disables selection if already exists
+                                            sx={{
+                                                opacity: isDisabled ? 0.5 : 1, // Gray out if disabled
+                                                color: isDisabled ? 'text.disabled' : 'inherit',
+                                            }}
+                                        >
+                                            <cat.Icon style={{ marginRight: '6px', opacity: isDisabled ? 0.5 : 1 }} />
+                                            {cat.category}
+                                        </MenuItem>
+                                    );
+                                })}
                             </Select>
-                        </FormControl> */}
-
+                        </FormControl>
+                    )}
                         <TextField
                             label="Budget Amount"
                             name="amount"
