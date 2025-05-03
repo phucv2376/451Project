@@ -3,6 +3,7 @@ using BudgetAppBackend.Application.Features.Budgets.CreateBudget;
 using BudgetAppBackend.Application.Features.Budgets.DeleteBudget;
 using BudgetAppBackend.Application.Features.Budgets.GetBudgetsByUser;
 using BudgetAppBackend.Application.Features.Budgets.GetCategoryTotalsForLastFourMonths;
+using BudgetAppBackend.Application.Features.Budgets.GetTop5ExpensByBudget;
 using BudgetAppBackend.Application.Features.Budgets.UpdateBudget;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -73,6 +74,22 @@ namespace BudgetAppBackend.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("top-five-current-month-transaction-by-budget")]
+        public async Task<IActionResult> GetTopFiveTransactionForBudget(Guid userId, string categoryName)
+        {
+            var getTopFiveTransactionsRequest = new GetTopFiveTransactionsRequest
+            {
+                UserId = userId,
+                CategoryName = categoryName
+            };
+
+            var result = await _sender.Send(new GetTopNExpensesByBudgetQuery
+            {
+                GetTopFiveTransactionsRequestDto = getTopFiveTransactionsRequest
+            });
+
+            return Ok(result);
+        }
     }
        
 }

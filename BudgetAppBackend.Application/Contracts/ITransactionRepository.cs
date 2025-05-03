@@ -21,6 +21,8 @@ namespace BudgetAppBackend.Application.Contracts
         Task<IEnumerable<TransactionDto>> GetUserTransactionsByDateRangeAsync(UserId userId, DateTime startDate, bool onlyWithCategory, CancellationToken cancellationToken);
         Task<IEnumerable<TransactionDto>> GetRecentTransactionsByUserAsync(UserId userId, CancellationToken cancellationToken); // complete
 
+        Task<IEnumerable<TransactionDto>> GetTopFiveTransactionsByCategory(UserId userId, string categoryName, DateTime currentMoth, CancellationToken cancellationToken); // complete
+
         Task<IEnumerable<DetailedDailyCashFlowDto>> GetDetailedDailyCashFlowAsync(UserId userId, DateTime monthStartDate, CancellationToken cancellationToken); // today
         Task<List<MonthlyCategoryTotalDto>> GetCategoryTotalsForLastFourMonthsAsync(string categoryName, UserId userId, CancellationToken cancellationToken);   // today
         Task<IEnumerable<Transaction>> GetTransactionsByUserAndCategoryAsync(UserId userId, string category, DateTime budgetCreatedDate, CancellationToken cancellationToken);

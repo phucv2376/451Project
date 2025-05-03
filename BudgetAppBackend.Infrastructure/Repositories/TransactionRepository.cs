@@ -225,7 +225,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
                 // Step 2: Retrieve transactions filtered by user and date
                 var transactions = await _dbContext.Transactions
-                    .Where(t => t.UserId == userId && t.TransactionDate >= fromDate)
+                    .Where(t => t.UserId == userId && t.TransactionDate >= fromDate && t.Amount < 0)
                     .ToListAsync();
 
                 // Step 3: Filter by category in memory
@@ -251,12 +251,34 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                // Log the exception (implementation depends on your logging framework)
+               
                 throw;
             }
         }
 
+        public async Task<IEnumerable<TransactionDto>> GetTopFiveTransactionsByCategory(UserId userId, string categoryName, DateTime currentMonth, CancellationToken cancellationToken)
+        {
+            var transactions = await _dbContext.Transactions
+                .Where(t => t.UserId == userId &&
+                            t.TransactionDate.Year == currentMonth.Year &&
+                            t.TransactionDate.Month == currentMonth.Month &&
+                            t.Amount < 0)
+                .OrderBy(t => t.Amount) // Order by ascending to get the most negative amounts  
+                .Take(5)
+                .Select(t => new TransactionDto(
+                    t.Id.Id,
+                    t.TransactionDate,
+                    t.Amount,
+                    t.Payee,
+                    t.Categories))
+                .ToListAsync(cancellationToken);
 
+            // Filter transactions by category in memory
+            transactions = transactions
+                .Where(t => t.Categories.Any(c => c.Contains(categoryName)))
+                .ToList();
 
+            return transactions;
+        }
     }
 }
