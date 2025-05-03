@@ -90,7 +90,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                             t.TransactionDate.Year == currentDate.Year &&
                             t.TransactionDate.Month == currentDate.Month &&
                             t.Type == TransactionType.Expense)
-                .SumAsync(t => (decimal?)t.Amount ?? 0, cancellationToken);
+                .SumAsync(t => Math.Abs(t.Amount), cancellationToken);
         }
 
         public async Task<decimal> GetTotalIncomeForMonthAsync(UserId userId, DateTime currentDate, CancellationToken cancellationToken)
@@ -280,5 +280,44 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
             return transactions;
         }
+
+        public async Task<IEnumerable<TransactionDto>> GetTransactionsByUserIdAndDateRangeAsync(UserId userId, DateTime startDate, CancellationToken cancellationToken)
+        {
+            var transactions = await _dbContext.Transactions
+                .Where(t => t.UserId == userId &&
+                            t.TransactionDate >= startDate)
+                .ToListAsync(cancellationToken);
+            // Filter transactions by category in memory
+            return transactions
+                .Select(t => new TransactionDto(
+                    t.Id.Id,
+                    t.TransactionDate,
+                    t.Amount,
+                    t.Payee,
+                    t.Categories))
+                .ToList();
+        }
+
+        public async Task<decimal> GetTotalIncomeDateRangeAsync(UserId userId, DateTime startDate, CancellationToken cancellationToken)
+        {
+            var amount = await _dbContext.Transactions
+                .Where(t => t.UserId == userId &&
+                            t.TransactionDate >= startDate &&
+                            t.Type == TransactionType.Income)
+               .SumAsync(t => (decimal?)t.Amount ?? 0, cancellationToken);
+            return amount;
+        }
+
+        public async Task<decimal> GetTotalExpensesDateRangeAsync(UserId userId, DateTime startDate, CancellationToken cancellationToken)
+        {
+            var amount = await _dbContext.Transactions
+                .Where(t => t.UserId == userId &&
+                            t.TransactionDate >= startDate &&
+                            t.Type == TransactionType.Expense)
+                .SumAsync(t => Math.Abs(t.Amount), cancellationToken);
+            return amount;
+        }
+
+
     }
 }

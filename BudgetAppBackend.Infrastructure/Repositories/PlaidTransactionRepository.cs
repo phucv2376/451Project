@@ -395,6 +395,46 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             return transactions;
         }
 
+        public async Task<IEnumerable<TransactionDto>> GetTransactionsByUserIdAndDateRangeAsync(UserId userId, DateTime startDate, CancellationToken cancellationToken)
+        {
+            var transactions = await _context.Transactions
+                .Where(t => t.UserId == userId &&
+                            t.TransactionDate >= startDate)
+                .ToListAsync(cancellationToken);
+            // Filter transactions by category in memory
+            return transactions
+                .Select(t => new TransactionDto(
+                    t.Id.Id,
+                    t.TransactionDate,
+                    t.Amount,
+                    t.Payee,
+                    t.Categories))
+                .ToList();
+        }
 
+        public async Task<decimal> GetTotalIncomeDateRangeAsync(UserId userId, DateTime startDate, CancellationToken cancellationToken)
+        {
+            var transactions = await _context.PlaidTransactions
+            .Where(t => t.UserId == userId &&
+                        t.Date == startDate)
+            .ToListAsync(cancellationToken); // query happens here
+
+            return transactions
+             .Where(t => t.Amount > 0)
+             .Sum(t => t.Amount);
+
+        }
+
+        public async Task<decimal> GetTotalExpensesDateRangeAsync(UserId userId, DateTime startDate, CancellationToken cancellationToken)
+        {
+            var transactions = await _context.PlaidTransactions
+                .Where(t => t.UserId == userId &&
+                            t.Date >= startDate)
+                .ToListAsync(cancellationToken);
+
+                 return transactions
+                 .Where(t => t.Amount < 0)
+                 .Sum(t => Math.Abs(t.Amount));
+        }
     }
 }
