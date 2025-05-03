@@ -41,7 +41,7 @@ namespace BudgetAppBackend.Application.Features.Reports.GetFinancialReport
             var plaidTransactions = await _plaidTransactionRepo.GetTransactionsByUserIdAndDateRangeAsync(request.UserId, startDate, cancellationToken);
 
             // Combine transactions and order by date  
-            var allTransactions = transactions.Concat(plaidTransactions).OrderBy(t => t.TransactionDate);
+            var allTransactions = transactions.Concat(plaidTransactions);
 
             // Fetch budgets
             var budgets = await _budgetRepo.GetActiveBudgetsAsync(request.UserId, cancellationToken);

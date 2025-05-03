@@ -264,7 +264,6 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                             t.TransactionDate.Month == currentMonth.Month &&
                             t.Amount < 0)
                 .OrderBy(t => t.Amount) // Order by ascending to get the most negative amounts  
-                .Take(5)
                 .Select(t => new TransactionDto(
                     t.Id.Id,
                     t.TransactionDate,
@@ -274,11 +273,12 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
 
             // Filter transactions by category in memory
-            transactions = transactions
+            var totaltransactions = transactions
                 .Where(t => t.Categories.Any(c => c.Contains(categoryName)))
+                .Take(5)
                 .ToList();
 
-            return transactions;
+            return totaltransactions;
         }
 
         public async Task<IEnumerable<TransactionDto>> GetTransactionsByUserIdAndDateRangeAsync(UserId userId, DateTime startDate, CancellationToken cancellationToken)

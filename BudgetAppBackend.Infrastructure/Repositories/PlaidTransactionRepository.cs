@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Linq;
 using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Application.DTOs.BudgetDTOs;
 using BudgetAppBackend.Application.DTOs.TransactionDTOs;
@@ -337,8 +336,8 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                 var fromDate = DateTime.UtcNow.AddMonths(-3);
 
                 // Step 2: Retrieve transactions filtered by user and date
-                var transactions = await _context.Transactions
-                    .Where(t => t.UserId == userId && t.TransactionDate >= fromDate && t.Amount < 0)
+                var transactions = await _context.PlaidTransactions
+                    .Where(t => t.UserId == userId && t.Date >= fromDate && t.Amount < 0)
                     .ToListAsync();
 
                 // Step 3: Filter by category in memory
@@ -348,7 +347,7 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
                 // Step 4: Group the filtered transactions by year and month
                 var groupedTransactions = filteredTransactions
-                    .GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month });
+                    .GroupBy(t => new { t.Date.Year, t.Date.Month });
 
                 // Step 5: Project each group into a MonthlyCategoryTotalDto
                 var monthlyCategoryTotals = groupedTransactions
@@ -372,24 +371,24 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
         public async Task<IEnumerable<TransactionDto>> GetTopFiveTransactionsByCategory(UserId userId, string categoryName, DateTime currentMonth, CancellationToken cancellationToken)
         {
-            var transactions = await _context.Transactions
+            var transactions = await _context.PlaidTransactions
                 .Where(t => t.UserId == userId &&
-                            t.TransactionDate.Year == currentMonth.Year &&
-                            t.TransactionDate.Month == currentMonth.Month &&
+                            t.Date.Year == currentMonth.Year &&
+                            t.Date.Month == currentMonth.Month &&
                             t.Amount < 0)
                 .OrderBy(t => t.Amount) // Order by ascending to get the most negative amounts  
-                .Take(5)
                 .Select(t => new TransactionDto(
                     t.Id.Id,
-                    t.TransactionDate,
+                    t.Date,
                     t.Amount,
-                    t.Payee,
+                    t.Name,
                     t.Categories))
                 .ToListAsync(cancellationToken);
 
             // Filter transactions by category in memory
             transactions = transactions
                 .Where(t => t.Categories.Any(c => c.Contains(categoryName)))
+                .Take(5)
                 .ToList();
 
             return transactions;
@@ -397,26 +396,28 @@ namespace BudgetAppBackend.Infrastructure.Repositories
 
         public async Task<IEnumerable<TransactionDto>> GetTransactionsByUserIdAndDateRangeAsync(UserId userId, DateTime startDate, CancellationToken cancellationToken)
         {
-            var transactions = await _context.Transactions
+            var transactions = await _context.PlaidTransactions
                 .Where(t => t.UserId == userId &&
-                            t.TransactionDate >= startDate)
+                            t.Date >= startDate)
                 .ToListAsync(cancellationToken);
             // Filter transactions by category in memory
-            return transactions
+            var Totaltransactions = transactions
                 .Select(t => new TransactionDto(
                     t.Id.Id,
-                    t.TransactionDate,
+                    t.Date,
                     t.Amount,
-                    t.Payee,
+                    t.Name,
                     t.Categories))
                 .ToList();
+
+            return Totaltransactions;
         }
 
         public async Task<decimal> GetTotalIncomeDateRangeAsync(UserId userId, DateTime startDate, CancellationToken cancellationToken)
         {
             var transactions = await _context.PlaidTransactions
             .Where(t => t.UserId == userId &&
-                        t.Date == startDate)
+                        t.Date >= startDate)
             .ToListAsync(cancellationToken); // query happens here
 
             return transactions
