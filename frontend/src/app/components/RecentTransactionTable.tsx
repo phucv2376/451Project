@@ -44,8 +44,7 @@ const RecentTransactionTable = ({ transactions: initialTransactions, error, isLo
     }, []);
 
     return (
-        <div className="w-full m-h-full mlg:w-2/3 cursor-pointer" onClick={() => {router.push("/transaction")}}>
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+        <div className="w-full m-h-full mlg:w-2/3 cursor-pointer bg-white rounded-lg border border-gray-200 shadow-sm p-5" onClick={() => {router.push("/transaction")}}>
                 <h2 className="text-md font-bold mb-4">Recent Transaction History</h2>
                 <div className="overflow-x-auto">
                     {isLoading ? (
@@ -62,7 +61,6 @@ const RecentTransactionTable = ({ transactions: initialTransactions, error, isLo
                             enableSubCat={false}
                         />
                     )}
-                </div>
             </div>
         </div>
     );

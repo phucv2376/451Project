@@ -28,6 +28,7 @@ type Props = {
     onRowsPerPageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     selectedTransaction?: string | null;
     onTransactionSelect?: (transactionId: string) => void;
+    getTransactionSelected?: (transaction: any) => void;
 };
 
 const TransactionTable = (props: Props) => {
@@ -38,6 +39,13 @@ const TransactionTable = (props: Props) => {
     const handleRowSelection = (transactionId: string) => {
         if (props.onTransactionSelect) {
             props.onTransactionSelect(transactionId);
+        }
+    };
+
+    const handleTransactionClick = (transaction : any) => {
+        //console.log("Selected Transaction test:", transaction);
+        if (props.getTransactionSelected) {
+            props.getTransactionSelected(transaction); 
         }
     };
 
@@ -88,7 +96,10 @@ const TransactionTable = (props: Props) => {
                                 key={transaction.transactionId}
                                 hover
                                 selected={props.selectedTransaction === transaction.transactionId}
-                                onClick={() => handleRowSelection(transaction.transactionId)}
+                                onClick={() => {
+                                    handleRowSelection(transaction.transactionId);
+                                    handleTransactionClick(transaction); 
+                                }}
                                 style={{ cursor: 'pointer' }}
                             >
                                 {props.enableCheckbox && (

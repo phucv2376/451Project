@@ -53,10 +53,10 @@ const BudgetOverview = () => {
     console.log("Budgets:", budgets);
 
     return (
-        <div className="w-full h-full md:w-5/12 lg:w-1/3 bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+        <div className="w-full m-h-full md:w-5/12 lg:w-1/3 bg-white rounded-lg border border-gray-200 shadow-sm p-5">
             <h2 className="font-bold text-md mb-5">Budget Overview</h2>
-            <div className="flex justify-center items-center h-full w-full">
-                <div className="grid grid-cols-2 gap-4 w-full h-full p-7">
+            <div className="flex justify-center items-center w-full">
+                <div className="grid grid-cols-2 gap-4 w-fullp-7">
                     {loadingState ? (
                         <div className="flex items-center justify-center h-full"><p>Loading budgets...</p></div>
                     ) : error ? (

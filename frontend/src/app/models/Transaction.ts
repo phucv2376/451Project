@@ -13,10 +13,19 @@ export interface AddEditTransaction{
     amount: number,
     transactionDate: Date | null;
     userId: string;
-    categories: string[];
+    categories?: string[];
     payee: string;
     transactionType: string;
     transactionId?: string;
+}
+export interface EditTransaction{
+    amount: number,
+    transactionDate: Date | null;
+    userId: string;
+    payee: string;
+    transactionType: string;
+    transactionId?: string;
+    category: string
 }
 export interface FilteredTransaction{
     MinAmount?: number | null;
