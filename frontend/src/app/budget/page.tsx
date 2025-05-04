@@ -88,11 +88,13 @@ const BudgetPage = () => {
 
     const handleCancel = () => { //add delete fields when cancel
         setShowAddBudget(false);
+        setErrorBudget(null); // Bashir added this line to clear error message on cancel
     }
     const handleBudgetCancel = (e?: React.MouseEvent) => {
         // Stop event propagation if event exists
         e?.stopPropagation();
         setShowUpdateBudget(false);
+        setErrorBudget(null); // Bashir added this line to clear error message on cancel
 
         // Optional: Clear any edit state if needed
         // setBudgetToEdit(null);
@@ -106,10 +108,11 @@ const BudgetPage = () => {
             handleCancel();
             fetchBudgets(userId);
             setActiveCategoryIndex(null);
+            setErrorBudget(null); // Bashir added this line to clear error message on success
             
         } else {
             console.error("Error creating budget:", result.message);
-            setErrorBudget(result.message || "Failed to create budget.");
+            setErrorBudget(result.message);
         }
     };
 
@@ -123,9 +126,10 @@ const BudgetPage = () => {
             fetchBudgets(userId);
             setActiveCategoryIndex(null);
             setShowUpdateBudget(false);
+            setErrorBudget(null); // Bashir added this line to clear error message on success
         } else {
             console.error("Error:", result.message);
-            setErrorBudget(result.message || "Failed to update budget");
+            setErrorBudget(result.message);
         }
     }
 
@@ -142,9 +146,10 @@ const BudgetPage = () => {
                 budgetId: ""
             }));
             setActiveCategoryIndex(null);
+            setErrorBudget(null); // Bashir added this line to clear error message on success
         } else {
             console.error("Error:", result.message);
-            setErrorBudget(result.message || "Failed to delete budget");
+            setErrorBudget(result.message);
         }
     }
 
@@ -187,6 +192,20 @@ const BudgetPage = () => {
     return (
         <div className="flex bg-[#F1F5F9] min-h-screen w-full">
             <NavBar />
+            {/* Error Message Display Bashir added this section to display error messages*/} 
+            {errorBudget && (
+            <div className="fixed top-20 right-4 z-50">
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative flex items-center">
+                <span className="mr-4">{errorBudget}</span>
+                <button
+                    className="text-red-700 hover:text-red-900"
+                    onClick={() => setErrorBudget(null)}
+                >
+                    ×
+                </button>
+                </div>
+            </div>
+            )}
             <div className="w-full lg:ml-[5%] lg:w-3/4 h-full mb-5">
 
                 {/*heading*/}

@@ -73,6 +73,7 @@ export default function SignalRClient() {
 
     // Set up an event handler for "ReceiveNotification" events from the server.
     connection.on("ReceiveNotification", (message) => {
+      console.log("Received notification:", message);
       window.dispatchEvent(new CustomEvent("notification", { detail: message }));
     });
 
