@@ -41,6 +41,7 @@ import {
     createTransaction,
     updateTransaction
 } from '../services/transactionService';
+import { set } from 'date-fns';
 
 const TransactionPage = () => {
     const [category, setCategory] = useState('');
@@ -72,7 +73,7 @@ const TransactionPage = () => {
     });
     const [editTransaction, setEditTransaction] = useState<EditTransaction>({
         userId: "",
-        transactionDate: null,
+        transactionDate: dayjs().toDate(),
         amount: 0,
         payee: "",
         transactionType: "",
@@ -172,7 +173,7 @@ const TransactionPage = () => {
         setCategory(event.target.value as string);
     };
 
-    // const sanitizeTransaction = (transaction: AddEditTransaction): EditTransaction => {
+    // const sanitizeTransaction = (transaction: transaction): EditTransaction => {
     //     return {
     //       amount: transaction.amount,
     //       transactionDate: transaction.transactionDate,
@@ -180,15 +181,20 @@ const TransactionPage = () => {
     //       payee: transaction.payee,
     //       transactionType: transaction.transactionType,
     //       transactionId: transaction.transactionId,
-    //       category: transaction.categories?.[0] || '' // Use first category or fallback
+    //       category: transaction.categories[0] || "",
     //     };
     //   };
       
       // Usage in your component
-      const getTransactionInfo = (transaction: EditTransaction) => {
+    const getTransactionInfo = (transaction: Transaction) => {
+        console.log(transaction);
         //const sanitized = sanitizeTransaction(transaction);
-        setEditTransaction(transaction);
-        //console.log("Sanitized transaction:", sanitized);
+        let tempEditTransaction: any = {...transaction};
+        tempEditTransaction.category = transaction.categories[0] || "";
+        delete tempEditTransaction.categories;
+        tempEditTransaction.userId = userId || "";
+        setEditTransaction(tempEditTransaction);
+        console.log("Selected Transaction: ", tempEditTransaction);
     };
    
 

@@ -51,7 +51,7 @@ const AddEditTransactionComponent = (props: Props) => {
         const { name, value } = event.target;
         setter(prev => ({
             ...prev,
-            [name]: name === "category" ? (Array.isArray(value) ? value : [value]) : value
+            [name]: value
         }));
     };
 
