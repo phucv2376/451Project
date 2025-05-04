@@ -27,11 +27,11 @@ namespace BudgetAppBackend.Application.Features.AI.GetQuarterlyTransactionAnalys
         {
             var userId = UserId.Create(request.UserId);
 
-            //var manualTransactions = (await _transactionRepository.GetThreeMonthTransactionsByUserIdAsync(userId)) ?? Enumerable.Empty<TransactionDto>();
+            var manualTransactions = (await _transactionRepository.GetThreeMonthTransactionsByUserIdAsync(userId)) ?? Enumerable.Empty<TransactionDto>();
             var plaidTransactions = (await _plaidTransactionRepository.GetThreeMonthTransactionsByUserIdAsync(userId)) ?? Enumerable.Empty<TransactionDto>();
 
-            //var transactions = manualTransactions.Concat(plaidTransactions);
-            if (!plaidTransactions.Any())
+            var transactions = manualTransactions.Concat(plaidTransactions);
+            if (!transactions.Any())
             {
                 throw new KeyNotFoundException("No transactions to analyze");
             }

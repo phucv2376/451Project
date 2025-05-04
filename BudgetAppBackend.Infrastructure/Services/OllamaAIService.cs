@@ -96,6 +96,7 @@ namespace BudgetAppBackend.Infrastructure.Services
             promptBuilder.AppendLine("  \"opportunities\": \"Detailed analysis of potential opportunities for optimization (minimum 200 words)\",");
             promptBuilder.AppendLine("  \"futureProjections\": \"Analysis of future spending patterns and potential impacts (minimum 200 words)\",");
             promptBuilder.AppendLine("  \"comparisonAnalysis\": \"Comparison with typical spending patterns and benchmarks (minimum 200 words)\",");
+            promptBuilder.AppendLine("  \"disclaimer\": \"This analysis is for informational purposes only and not financial advice\",");
             promptBuilder.AppendLine("}");
 
             promptBuilder.AppendLine("\nIMPORTANT: For each section, provide detailed analysis with specific examples, data points, and actionable insights. " +
@@ -195,16 +196,17 @@ namespace BudgetAppBackend.Infrastructure.Services
 
                 var cleanedObject = new
                 {
-                    overview = tempRoot.GetProperty("overview").GetString()?.Trim() ?? "",
-                    spendingTrends = tempRoot.GetProperty("spendingTrends").GetString()?.Trim() ?? "",
-                    categoryAnalysis = tempRoot.GetProperty("categoryAnalysis").GetString()?.Trim() ?? "",
-                    anomaliesOrRedFlags = tempRoot.GetProperty("anomaliesOrRedFlags").GetString()?.Trim() ?? "",
-                    timeBasedInsights = tempRoot.GetProperty("timeBasedInsights").GetString()?.Trim() ?? "",
-                    recommendations = tempRoot.GetProperty("recommendations").GetString()?.Trim() ?? "",
-                    riskAssessment = tempRoot.GetProperty("riskAssessment").GetString()?.Trim() ?? "",
-                    opportunities = tempRoot.GetProperty("opportunities").GetString()?.Trim() ?? "",
-                    futureProjections = tempRoot.GetProperty("futureProjections").GetString()?.Trim() ?? "",
-                    comparativeAnalysis = tempRoot.GetProperty("comparisonAnalysis").GetString()?.Trim() ?? ""
+                    overview = GetFlexibleProperty(tempRoot, "overview"),
+                    spendingTrends = GetFlexibleProperty(tempRoot, "spendingTrends"),
+                    categoryAnalysis = GetFlexibleProperty(tempRoot, "categoryAnalysis"),
+                    anomaliesOrRedFlags = GetFlexibleProperty(tempRoot, "anomaliesOrRedFlags"),
+                    timeBasedInsights = GetFlexibleProperty(tempRoot, "timeBasedInsights"),
+                    recommendations = GetFlexibleProperty(tempRoot, "recommendations"),
+                    riskAssessment = GetFlexibleProperty(tempRoot, "riskAssessment"),
+                    opportunities = GetFlexibleProperty(tempRoot, "opportunities"),
+                    futureProjections = GetFlexibleProperty(tempRoot, "futureProjections"),
+                    comparativeAnalysis = GetFlexibleProperty(tempRoot, "comparisonAnalysis", "comparativeAnalysis"),
+                    disclaimer = GetFlexibleProperty(tempRoot, "disclaimer")
                 };
 
                 // Convert back to JSON string
@@ -217,19 +219,19 @@ namespace BudgetAppBackend.Infrastructure.Services
                 var analysisRoot = analysisDocument.RootElement;
 
                 return new QuarterlyTransactionAnalysis(
-                    Overview: analysisRoot.GetProperty("overview").GetString()?.Trim() ?? "No overview provided",
-                    SpendingTrends: analysisRoot.GetProperty("spendingTrends").GetString()?.Trim() ?? "No spending trends identified",
-                    CategoryAnalysis: analysisRoot.GetProperty("categoryAnalysis").GetString()?.Trim() ?? "No category analysis available",
-                    AnomaliesOrRedFlags: analysisRoot.GetProperty("anomaliesOrRedFlags").GetString()?.Trim() ?? "No anomalies detected",
-                    TimeBasedInsights: analysisRoot.GetProperty("timeBasedInsights").GetString()?.Trim() ?? "No time-based insights available",
-                    Recommendations: analysisRoot.GetProperty("recommendations").GetString()?.Trim() ?? "No recommendations provided",
-                    RiskAssessment: analysisRoot.GetProperty("riskAssessment").GetString()?.Trim() ?? "No risk assessment available",
-                    Opportunities: analysisRoot.GetProperty("opportunities").GetString()?.Trim() ?? "No opportunities identified",
-                    FutureProjections: analysisRoot.GetProperty("futureProjections").GetString()?.Trim() ?? "No future projections available",
-                    ComparativeAnalysis: analysisRoot.GetProperty("comparativeAnalysis").GetString()?.Trim() ?? "No comparative analysis available",
-                    Disclaimer: analysisRoot.TryGetProperty("disclaimer", out var disclaimerProp)
-                        ? disclaimerProp.GetString()?.Trim() ?? "This analysis is for informational purposes only and not financial advice"
-                        : "This analysis is for informational purposes only and not financial advice"
+                    Overview: GetFlexibleProperty(analysisRoot, "overview") ?? "No overview provided",
+                    SpendingTrends: GetFlexibleProperty(analysisRoot, "spendingTrends") ?? "No spending trends identified",
+                    CategoryAnalysis: GetFlexibleProperty(analysisRoot, "categoryAnalysis") ?? "No category analysis available",
+                    AnomaliesOrRedFlags: GetFlexibleProperty(analysisRoot, "anomaliesOrRedFlags") ?? "No anomalies detected",
+                    TimeBasedInsights: GetFlexibleProperty(analysisRoot, "timeBasedInsights") ?? "No time-based insights available",
+                    Recommendations: GetFlexibleProperty(analysisRoot, "recommendations") ?? "No recommendations provided",
+                    RiskAssessment: GetFlexibleProperty(analysisRoot, "riskAssessment") ?? "No risk assessment available",
+                    Opportunities: GetFlexibleProperty(analysisRoot, "opportunities") ?? "No opportunities identified",
+                    FutureProjections: GetFlexibleProperty(analysisRoot, "futureProjections") ?? "No future projections available",
+                    ComparativeAnalysis: GetFlexibleProperty(analysisRoot, "comparativeAnalysis", "comparisonAnalysis")
+                        ?? "No comparative analysis available",
+                    Disclaimer: GetFlexibleProperty(analysisRoot, "disclaimer")
+                        ?? "This analysis is for informational purposes only and not financial advice"
                 );
             }
             catch (JsonException ex)
@@ -273,6 +275,18 @@ namespace BudgetAppBackend.Infrastructure.Services
             {
                 pb.AppendLine($"- {day.Date:yyyy-MM-dd}: ${day.Total:F2}");
             }
+        }
+
+        private static string GetFlexibleProperty(JsonElement element, params string[] possibleNames)
+        {
+            foreach (var name in possibleNames)
+            {
+                if (element.TryGetProperty(name, out var prop))
+                {
+                    return prop.GetString()?.Trim() ?? string.Empty;
+                }
+            }
+            return string.Empty;
         }
     }
 

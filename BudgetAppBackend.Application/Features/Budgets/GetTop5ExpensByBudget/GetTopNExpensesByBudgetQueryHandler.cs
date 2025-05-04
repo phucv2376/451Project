@@ -33,13 +33,12 @@ namespace BudgetAppBackend.Application.Features.Budgets.GetTop5ExpensByBudget
             var manualTransactions = await _transactionRepository.GetTopFiveTransactionsByCategory(userId, request.GetTopFiveTransactionsRequestDto.CategoryName, currentMonth, cancellationToken);
             var plaidTransactions = await _laidTransactionRepository.GetTopFiveTransactionsByCategory(userId, request.GetTopFiveTransactionsRequestDto.CategoryName, currentMonth, cancellationToken);
 
-            var allTransactions = manualTransactions.Concat(plaidTransactions)
-                                    .OrderByDescending(t => t.TransactionDate)
-                                    .ToList();
-            
-            var topTransactions = allTransactions.Take(5).ToList();
+            var allTransactions = manualTransactions.Concat(plaidTransactions);
+            // Sort transactions by amount in descending order
+            allTransactions = allTransactions.OrderByDescending(t => t.Amount).Take(5).ToList();
 
-            return topTransactions;
+
+            return (List<TransactionDto>)allTransactions;
 
         }
     }
