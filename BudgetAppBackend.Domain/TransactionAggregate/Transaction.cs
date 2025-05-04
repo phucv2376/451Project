@@ -51,11 +51,15 @@ namespace BudgetAppBackend.Domain.TransactionAggregate
 
             var oldAmount = Amount;
             var oldType = Type;
+            var oldCategory = _categories.FirstOrDefault();
+
+            _categories = new List<string> { category };
 
             Amount = newAmount;
             TransactionDate = newTransactionDate;
             Payee = newPayee;
             Type = newType;
+            
 
             RaiseDomainEvent(new TransactionUpdatedEvent(UserId.Id, category, oldAmount, newAmount, TransactionDate));
         }

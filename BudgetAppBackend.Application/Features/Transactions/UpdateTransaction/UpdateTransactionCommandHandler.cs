@@ -24,12 +24,18 @@ namespace BudgetAppBackend.Application.Features.Transactions.UpdateTransaction
             {
                 throw new UnauthorizedAccessException("You are not authorized to update this transaction.");
             }
+
+            if (!Enum.TryParse<TransactionType>(request.UpdateTransactionDto.transactionType, true, out var transactionType))
+                throw new ArgumentException($"Invalid transaction type: {request.UpdateTransactionDto.transactionType}");
+
+            var amount = transactionType == TransactionType.Expense ? -Math.Abs(request.UpdateTransactionDto.Amount) : Math.Abs(request.UpdateTransactionDto.Amount);
+
             transaction.UpdateTransaction(
-                request.UpdateTransactionDto.Amount,
+                amount,
                 request.UpdateTransactionDto.TransactionDate,
                 request.UpdateTransactionDto.payee,
                 request.UpdateTransactionDto.category,
-                Enum.Parse<TransactionType>(request.UpdateTransactionDto.transactionType)
+                transactionType
             );
             await _transactionRepository.UpdateAsync(transaction, cancellationToken);
             return Unit.Value;
