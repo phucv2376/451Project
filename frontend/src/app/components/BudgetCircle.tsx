@@ -31,7 +31,7 @@ const BudgetCircle = (props: Props) => {
                 {/* Main Progress Bar */}
                 <CircularProgress
                     variant="determinate"
-                    value={Math.min(100, calculateProgress())}
+                    value={Math.min(100, calculateProgress())} //avoid exceeding 100%
                     size={90}
                     thickness={7}
                     sx={{
