@@ -99,7 +99,7 @@ export const updateBudget = async (budgetUpdate: Budget) => {
         });
 
         if (!response.ok) {
-            let errorMessage = "Failed to update budget. Please try again.";
+            let errorMessage = "";
             try {
                 const errorData = await response.json();
                 errorMessage = errorData.errors?.[0] || errorData.detail || errorMessage;

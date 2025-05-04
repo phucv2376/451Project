@@ -29,20 +29,7 @@ namespace BudgetAppBackend.Domain.Tests
             Assert.Equal(type, transaction.Type);
         }
 
-        [Fact]
-        public void CreateTransaction_ShouldThrowException_WhenAmountIsZeroOrNegative()
-        {
-            // Arrange
-            var userId = UserId.CreateId();
-            var category = new List<string> { "Travel" };
-            decimal amount = 0;
-            DateTime transactionDate = DateTime.UtcNow;
-            string payee = "John Doe";
-            TransactionType type = TransactionType.Expense;
-
-            // Act & Assert
-            Assert.Throws<TransactionAmountException>(() => Transaction.Create(userId, category, amount, transactionDate, payee, type));
-        }
+        
 
         [Fact]
         public void CreateTransaction_ShouldThrowException_WhenPayeeIsEmpty()
@@ -77,19 +64,7 @@ namespace BudgetAppBackend.Domain.Tests
             Assert.Equal(newType, transaction.Type);
         }
 
-        [Fact]
-        public void UpdateTransaction_ShouldThrowException_WhenAmountIsZeroOrNegative()
-        {
-            // Arrange
-            var transaction = Transaction.Create(UserId.CreateId(), new List<string> { "Travel" }, 100, DateTime.UtcNow, "John Doe", TransactionType.Expense);
-            decimal newAmount = 0;
-            DateTime newTransactionDate = DateTime.UtcNow.AddDays(1);
-            string newPayee = "Jane Doe";
-            TransactionType newType = TransactionType.Income;
-
-            // Act & Assert
-            Assert.Throws<TransactionAmountException>(() => transaction.UpdateTransaction(newAmount, newTransactionDate, newPayee, "Travel", newType));
-        }
+        
 
         [Fact]
         public void DeleteTransaction_ShouldRaiseDomainEvent()

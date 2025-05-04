@@ -14,6 +14,7 @@ namespace BudgetAppBackend.Infrastructure.EventHandlers
             _hubContext = hubContext;
         }
 
+        
         public async Task Handle(BudgetExceededEvent notification, CancellationToken cancellationToken)
         {
             var message = $"⚠️ Budget Alert: Spent {notification.SpentAmount:C} in category {notification.category}, exceeding limit of {notification.BudgetLimit:C}.";

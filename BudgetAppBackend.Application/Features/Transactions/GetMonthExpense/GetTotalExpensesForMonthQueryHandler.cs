@@ -21,7 +21,8 @@ namespace BudgetAppBackend.Application.Features.Transactions.GetMonthExpense
             var manulexp = await _transactionRepository.GetTotalExpensesForMonthAsync(userId, currentDate, cancellationToken);
             var plaidExp = await _laidTransactionRepository.GetTotalExpensesForMonthAsync(userId, currentDate, cancellationToken);
 
-            return manulexp + plaidExp;
+            var expense = manulexp + plaidExp;
+            return -expense;
         }
     }
 }

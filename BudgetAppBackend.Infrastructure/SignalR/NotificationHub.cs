@@ -20,7 +20,7 @@ namespace BudgetAppBackend.Infrastructure.SignalR
 
             if (!string.IsNullOrEmpty(userId))
             {
-                await Clients.User(userId).SendAsync("ReceiveNotification", $"🔔 Welcome, User {userId}!");
+                //await Clients.User(userId).SendAsync("ReceiveNotification", $"🔔 Welcome, User {userId}!");
                 _logger.LogInformation($"User {userId} connected to SignalR Hub.");
             }
             else
@@ -43,6 +43,7 @@ namespace BudgetAppBackend.Infrastructure.SignalR
             await base.OnDisconnectedAsync(exception);
         }
 
+        [Authorize]
         public async Task SendNotification(Guid userId, string message)
         {
             await Clients.User(userId.ToString()).SendAsync("ReceiveNotification", message);
