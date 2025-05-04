@@ -1,5 +1,5 @@
 import API_BASE_URL from "@/app/config";
-import { AddEditTransaction, FilteredTransaction, Transaction, TransactionListResponse } from "../models/Transaction";
+import { AddEditTransaction, EditTransaction, FilteredTransaction, Transaction, TransactionListResponse } from "../models/Transaction";
 
 
 /**
@@ -187,12 +187,12 @@ export const createTransaction = async (transactionData: AddEditTransaction) => 
 * @param transactionData - The updated transaction data.
 * @returns A success response with the updated transaction or an error message.
 */
-export const updateTransaction = async (transactionId: string, transactionData:AddEditTransaction) => {
+export const updateTransaction = async (transactionId: string, transactionData:EditTransaction) => {
     try {
         const response = await fetch(
             `${API_BASE_URL}/Transaction/update/${transactionId}`,
             {
-                method: "PUT", // or "PATCH" depending on your API design
+                method: "PUT", 
                 headers: {
                     "Content-Type": "application/json",
                 },
