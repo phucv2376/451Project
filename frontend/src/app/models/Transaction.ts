@@ -18,6 +18,15 @@ export interface AddEditTransaction{
     transactionType: string;
     transactionId?: string;
 }
+export interface AddTransaction{
+    amount: number,
+    transactionDate: Date | null;
+    userId: string;
+    categories: string[];
+    payee: string;
+    transactionType: string;
+    transactionId?: string;
+}
 export interface EditTransaction{
     amount: number,
     transactionDate: Date | null;

@@ -189,8 +189,7 @@ export const createTransaction = async (transactionData: AddEditTransaction) => 
 */
 export const updateTransaction = async (transactionId: string, transactionData:EditTransaction) => {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/Transaction/update/${transactionId}`,
+        const response = await fetch(`${API_BASE_URL}/Transaction/update/${transactionId}`,
             {
                 method: "PUT", 
                 headers: {
@@ -210,9 +209,7 @@ export const updateTransaction = async (transactionId: string, transactionData:E
             }
             return { success: false, message: errorMessage };
         }
-
-        const data = await response.json();
-        return { success: true, data };
+        return { success: true, message: "Transaction updated successfully" };
 
     } catch (error) {
         console.error("Network error:", error);

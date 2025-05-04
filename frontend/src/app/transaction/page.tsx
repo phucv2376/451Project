@@ -31,7 +31,8 @@ import {
     TransactionListResponse,
     AddEditTransaction,
     EditTransaction,
-    FilteredTransaction
+    FilteredTransaction,
+    AddTransaction
 } from '../models/Transaction';
 import { transactionTypes } from '../models/TransactionType';
 import { categories } from '../models/TransactionCategory';
@@ -184,19 +185,20 @@ const TransactionPage = () => {
     //       category: transaction.categories[0] || "",
     //     };
     //   };
-      
-      // Usage in your component
-    const getTransactionInfo = (transaction: Transaction) => {
+
+    // Usage in your component
+    const getTransactionInfo = (transaction: AddTransaction) => {
         console.log(transaction);
         //const sanitized = sanitizeTransaction(transaction);
-        let tempEditTransaction: any = {...transaction};
+        let tempEditTransaction: any = { ...transaction };
+        tempEditTransaction.amount = Math.abs(transaction.amount);
         tempEditTransaction.category = transaction.categories[0] || "";
         delete tempEditTransaction.categories;
         tempEditTransaction.userId = userId || "";
         setEditTransaction(tempEditTransaction);
         console.log("Selected Transaction: ", tempEditTransaction);
     };
-   
+
 
     const handleCancel = () => {
         setShowAddTransaction(false);
@@ -248,32 +250,24 @@ const TransactionPage = () => {
         }
     };
 
-    const handleEditTransaction = async () => {   
-        if(userId){ 
-            console.log(userId)
-        setEditTransaction(prev => ({
-            ...prev,
-            userId: userId // Use storedUserId directly
-        }));
-    }
-        console.log("right before sent: ", editTransaction.userId);
-
+    const handleEditTransaction = async () => {
         if (selectedTransaction !== null) {
+            console.log("handleEditTransaction: ", editTransaction);
             const result = await updateTransaction(selectedTransaction, editTransaction);
 
             if (result.success) {
-                console.log("Transaction updated:", result.data);
+                console.log("Transaction updated: ");
                 handleCancel();
                 loadTransactions(currentPage);
-                // Refresh transactions list or show success message
-            } else {
+            }
+            else {
                 console.error("Error:", result.message);
                 // Show error to user
                 setErrorTransaction(result.message || "Failed.");
             }
+
         }
     }
-
     // Generalized handler for TextFields
     const handleInputChange = <T extends Record<string, any>>(
         setter: React.Dispatch<React.SetStateAction<T>>
