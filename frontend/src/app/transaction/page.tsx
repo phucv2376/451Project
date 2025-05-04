@@ -188,15 +188,14 @@ const TransactionPage = () => {
 
     // Usage in your component
     const getTransactionInfo = (transaction: AddTransaction) => {
-        console.log(transaction);
         //const sanitized = sanitizeTransaction(transaction);
         let tempEditTransaction: any = { ...transaction };
         tempEditTransaction.amount = Math.abs(transaction.amount);
         tempEditTransaction.category = transaction.categories[0] || "";
+        tempEditTransaction.transactionType = transaction.amount > 0 ? "Income" : transaction.amount < 0 ? "Expense" : "";
         delete tempEditTransaction.categories;
         tempEditTransaction.userId = userId || "";
         setEditTransaction(tempEditTransaction);
-        console.log("Selected Transaction: ", tempEditTransaction);
     };
 
 

@@ -75,13 +75,12 @@ const AddEditTransactionComponent = (props: Props) => {
                         <FormControl fullWidth>
                             <InputLabel>Transaction Type</InputLabel>
                             <Select
-                                //value={transactionType}
                                 //onChange={handleTransactionType}
                                 onChange={handleSelectChange(props.setTransaction)}
                                 value={props.transaction.transactionType || ""}
                                 label="Transaction Type"
                                 name="transactionType"
-                                defaultValue={props.edit ? props.transaction.transactionType : ""}
+                                // defaultValue={props.edit ? props.transaction.transactionType : ""}
                             >
                                 {transactionTypes.map((type, index) => (
                                     <MenuItem key={type} value={type.toString()}>
@@ -99,7 +98,7 @@ const AddEditTransactionComponent = (props: Props) => {
                                 value={props.edit ? props.transaction.category : props.transaction.categories || []} // Ensure controlled component
                                 label="Category"
                                 name={props.edit ? "category" : "categories"}
-                                defaultValue={props.edit ? props.transaction.categories : ""}
+                                // defaultValue={props.edit ? props.transaction.categories : ""}
                             >
                                 {categories.map((cat, index) => (
                                     <MenuItem key={index} value={cat.category.toString()}>

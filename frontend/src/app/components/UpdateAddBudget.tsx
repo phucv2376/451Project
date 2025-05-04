@@ -62,7 +62,7 @@ const UpdateAddBudget = (props: Props) => {
                             name="amount"
                             placeholder="00.00"
                             onChange={props.handleInputChange}
-                            defaultValue={props.amountValue}
+                            value={props.amountValue}
                             InputProps={{
                                 startAdornment: <InputAdornment position="start">$</InputAdornment>,
                             }}
