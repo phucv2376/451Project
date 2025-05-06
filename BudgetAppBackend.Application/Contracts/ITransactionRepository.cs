@@ -34,5 +34,6 @@ namespace BudgetAppBackend.Application.Contracts
 
         //AI
         Task<IEnumerable<TransactionDto>> GetThreeMonthTransactionsByUserIdAsync(UserId userId); // complete 
+        Task<IEnumerable<TransactionDto>> GetAllUserTransactionsAsync(UserId userId, CancellationToken cancellationToken); // complete
     }
 }

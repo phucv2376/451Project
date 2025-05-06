@@ -53,7 +53,6 @@ internal class Program
         });
 
 
-
         builder.Services.AddHttpClient<IAIAnalysisService, OllamaAIService>();
         builder.Services.AddSingleton<IUrlGenerator, UrlGeneratorService>();
         builder.Services.RegisterInfrastructureServices(builder.Configuration);
@@ -64,7 +63,12 @@ internal class Program
             options.EnableDetailedErrors = true;
         });
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.AllowTrailingCommas = true;
+                options.JsonSerializerOptions.WriteIndented = true;
+            });
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>

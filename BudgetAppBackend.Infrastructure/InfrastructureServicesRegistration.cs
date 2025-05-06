@@ -70,6 +70,7 @@ namespace BudgetAppBackend.Infrastructure
             {
                 options.Endpoint = configuration.GetSection("OllamaSettings")["Endpoint"];
                 options.Model = configuration.GetSection("OllamaSettings")["Model"];
+                options.Model2 = configuration.GetSection("OllamaSettings")["Model2"];
             });
 
             // Configure PlaidOptions

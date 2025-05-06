@@ -437,5 +437,18 @@ namespace BudgetAppBackend.Infrastructure.Repositories
                  .Where(t => t.Amount < 0)
                  .Sum(t => Math.Abs(t.Amount));
         }
+
+        public async Task<IEnumerable<TransactionDto>> GetAllUserTransactionsAsync(UserId userId, CancellationToken cancellationToken)
+        {
+            return await _context.PlaidTransactions
+                .Where(t => t.UserId == userId)
+                .Select(t => new TransactionDto(
+                    t.Id.Id,
+                    t.Date,
+                    t.Amount,
+                    t.Name,
+                    t.Categories))
+                .ToListAsync(cancellationToken);
+        }
     }
 }

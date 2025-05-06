@@ -318,6 +318,19 @@ namespace BudgetAppBackend.Infrastructure.Repositories
             return amount;
         }
 
+        public async Task<IEnumerable<TransactionDto>> GetAllUserTransactionsAsync(UserId userId, CancellationToken cancellationToken)
+        {
+            var transactions = await _dbContext.Transactions
+                .Where(t => t.UserId == userId)
+                .Select(t => new TransactionDto(
+                    t.Id.Id,
+                    t.TransactionDate,
+                    t.Amount,
+                    t.Payee,
+                    t.Categories))
+                .ToListAsync(cancellationToken);
+            return transactions;
 
+        }
     }
 }

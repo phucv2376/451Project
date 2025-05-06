@@ -17,6 +17,7 @@ import { red } from '@mui/material/colors';
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import Link from 'next/link';
+import {  ChatWidget } from './AiAnalysis/ChatWidget';
 
 interface NavItem {
   label: string;
@@ -115,49 +116,57 @@ const NavLinks: FC<{ navItems: NavItem[], pathname: string }> = ({ navItems, pat
 );
 
 /**
+ * Chat Widget Component
+ */
+
+
+
+/**
  * User Section Component
  */
 const UserSection: FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const username = typeof window !== 'undefined' ? localStorage.getItem('user') || 'User' : 'User';
 
   return (
-    <div className="mt-auto space-y-4">
-      <div className="border-t border-gray-200 pt-4">
-        <Link href="/profile" passHref>
-          <button
-            className="w-full cursor-pointer flex items-center gap-2 px-3 py-4 rounded-lg transition-all duration-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900 active:bg-gray-200"
-          >
-            <SettingsIcon />
-            <span className="font-medium">Settings</span>
-          </button>
-        </Link>
-      </div>
+    <>
+      <div className="mt-auto space-y-4">
+        <div className="border-t border-gray-200 pt-4">
+          <Link href="/profile" passHref>
+            <button
+              className="w-full cursor-pointer flex items-center gap-2 px-3 py-4 rounded-lg transition-all duration-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900 active:bg-gray-200"
+            >
+              <SettingsIcon />
+              <span className="font-medium">Settings</span>
+            </button>
+          </Link>
+        </div>
 
-      <div className="flex items-center justify-between px-3 py-2">
-        <div className="flex items-center gap-3">
-          <Avatar
-            className="border-2 border-gray-100"
-            alt="User Avatar"
-            src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
-          />
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-900">{username}</span>
-            <span className="text-xs text-gray-500">View Profile</span>
+        <div className="flex items-center justify-between px-3 py-2">
+          <div className="flex items-center gap-3">
+            <Avatar
+              className="border-2 border-gray-100"
+              alt="User Avatar"
+              src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
+            />
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900">{username}</span>
+              <span className="text-xs text-gray-500">View Profile</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <LogoutIcon
+              sx={{
+                color: red[600],
+                '&:hover': { color: red[900] },
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onClick={onLogout}
+            />
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <LogoutIcon
-            sx={{
-              color: red[600],
-              '&:hover': { color: red[900] },
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onClick={onLogout}
-          />
-        </div>
       </div>
-    </div>
+    </>
   );
 };
 

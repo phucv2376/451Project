@@ -1,215 +1,131 @@
-﻿using BudgetAppBackend.Application.Configuration;
-using BudgetAppBackend.Application.Contracts;
-using BudgetAppBackend.Application.Models.Chat;
-using BudgetAppBackend.Application.Models;
+﻿using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+using BudgetAppBackend.Application.Configuration;
+using BudgetAppBackend.Application.DTOs.TransactionDTOs;
 using BudgetAppBackend.Application.Service;
-using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
+using BudgetAppBackend.Domain.BudgetAggregate;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Text.Json;
-using System.Text;
 
 public class OllamaAIChatService : IAIChatService
 {
     private readonly HttpClient _httpClient;
     private readonly OllamaSettings _ollamaSettings;
-    private readonly ITransactionRepository _transactionRepository;
-    private readonly IBudgetRepository _budgetRepository;
     private readonly ILogger<OllamaAIChatService> _logger;
 
     public OllamaAIChatService(
         HttpClient httpClient,
         IOptions<OllamaSettings> ollamaSettings,
-        ITransactionRepository transactionRepository,
-        IBudgetRepository budgetRepository,
         ILogger<OllamaAIChatService> logger)
     {
         _httpClient = httpClient;
         _ollamaSettings = ollamaSettings.Value;
-        _transactionRepository = transactionRepository;
-        _budgetRepository = budgetRepository;
         _logger = logger;
     }
 
-    public async Task<ChatResponse> SendMessage(ChatRequest request)
+    public async IAsyncEnumerable<string> StreamMessageAsync(string prompt, IEnumerable<TransactionDto> transactions, List<Budget> budgetDtos)
     {
-        try
+        var fullPrompt = BuildPrompt(prompt, transactions, budgetDtos);
+        _logger.LogInformation("Sending prompt to Ollama AI: {Prompt}", fullPrompt);
+
+        var ollamaEndpoint = _ollamaSettings.Endpoint;
+        float temperature = 0.0f;
+        int maxTokens = 10;
+
+        using var response = await _httpClient.SendAsync(
+        new HttpRequestMessage(HttpMethod.Post, $"{ollamaEndpoint}/api/generate")
         {
-            var userContext = await GetUserFinancialContext(request.UserId);
-            var promptBuilder = new StringBuilder();
-
-            // Build system prompt with user's financial context
-            promptBuilder.AppendLine("You are a financial AI assistant with access to the user's financial data. ");
-            promptBuilder.AppendLine("Use the following financial context to provide relevant and personalized responses:");
-            promptBuilder.AppendLine($"\nUser's Financial Context:");
-            promptBuilder.AppendLine($"- Total Transactions: {userContext.TransactionCount}");
-            promptBuilder.AppendLine($"- Total Spending: ${userContext.TotalSpending:F2}");
-            promptBuilder.AppendLine($"- Recent Spending: ${userContext.RecentSpending:F2}");
-
-            // Add current user message
-            promptBuilder.AppendLine($"\nUser: {request.Message}");
-
-            // Add response format instructions
-            promptBuilder.AppendLine("\nProvide a response that is:");
-            promptBuilder.AppendLine("1. Relevant to the user's financial context");
-            promptBuilder.AppendLine("2. Specific to their spending patterns and budgets");
-            promptBuilder.AppendLine("3. Actionable and practical");
-            promptBuilder.AppendLine("4. Professional yet conversational");
-
-            var prompt = promptBuilder.ToString();
-            var requestBody = new
-            {
-                model = _ollamaSettings.Model,
-                prompt = prompt,
-                max_tokens = 1000,
-                temperature = 0.7,
-                stream = false
-            };
-
-            var jsonContent = new StringContent(
-                JsonSerializer.Serialize(requestBody),
+            Content = new StringContent(
+                JsonSerializer.Serialize(new
+                {
+                    model = _ollamaSettings.Model,
+                    prompt = fullPrompt,
+                    stream = true,
+                    temperature,
+                    max_tokens = maxTokens
+                }),
                 Encoding.UTF8,
                 "application/json"
-            );
-
-            var response = await _httpClient.PostAsync($"{_ollamaSettings.Endpoint}/v1/completions", jsonContent);
-            response.EnsureSuccessStatusCode();
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var llmResponse = ParseLLMResponse(responseContent);
-
-            return new ChatResponse
-            {
-                Message = llmResponse,
-                ConversationId = Guid.Empty,
-                Timestamp = DateTime.UtcNow
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing chat message");
-            return new ChatResponse
-            {
-                Message = "I'm sorry, I'm having trouble processing your request. Please try again later.",
-                ConversationId = Guid.Empty,
-                Timestamp = DateTime.UtcNow
-            };
-        }
-    }
-
-    public async IAsyncEnumerable<string> StreamMessage(ChatRequest request)
-    {
-        var userContext = await GetUserFinancialContext(request.UserId);
-        var promptBuilder = new StringBuilder();
-
-        // Build system prompt with user's financial context
-        promptBuilder.AppendLine("You are a financial AI assistant with access to the user's financial data. ");
-        promptBuilder.AppendLine("Use the following financial context to provide relevant and personalized responses:");
-        promptBuilder.AppendLine($"\nUser's Financial Context:");
-        promptBuilder.AppendLine($"- Total Transactions: {userContext.TransactionCount}");
-        promptBuilder.AppendLine($"- Total Spending: ${userContext.TotalSpending:F2}");
-        promptBuilder.AppendLine($"- Recent Spending: ${userContext.RecentSpending:F2}");
-
-        // Add current user message
-        promptBuilder.AppendLine($"\nUser: {request.Message}");
-
-        // Add response format instructions
-        promptBuilder.AppendLine("\nProvide a response that is:");
-        promptBuilder.AppendLine("1. Relevant to the user's financial context");
-        promptBuilder.AppendLine("2. Specific to their spending patterns and budgets");
-        promptBuilder.AppendLine("3. Actionable and practical");
-        promptBuilder.AppendLine("4. Professional yet conversational");
-
-        var prompt = promptBuilder.ToString();
-        var requestBody = new
-        {
-            model = _ollamaSettings.Model,
-            prompt = prompt,
-            max_tokens = 1000,
-            temperature = 0.7,
-            stream = true
-        };
-
-        var jsonContent = new StringContent(
-            JsonSerializer.Serialize(requestBody),
-            Encoding.UTF8,
-            "application/json"
+            ),
+            Headers = { { "Accept", "text/event-stream" } }
+        },
+          HttpCompletionOption.ResponseHeadersRead
         );
 
-        HttpResponseMessage? response = null;
-        try
+        if (!response.IsSuccessStatusCode)
         {
-            response = await _httpClient.PostAsync($"{_ollamaSettings.Endpoint}/v1/completions", jsonContent);
-            response.EnsureSuccessStatusCode();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error making request to Ollama");
-           
+            _logger.LogError("Ollama API request failed with status: {StatusCode}", response.StatusCode);
+            yield return $"\n[Error: API request failed ({response.StatusCode})]";
             yield break;
         }
 
-        if (response == null)
+        var responseStream = await response.Content.ReadAsStreamAsync();
+        using var reader = new StreamReader(
+            responseStream,
+            Encoding.UTF8,
+            detectEncodingFromByteOrderMarks: false,
+            bufferSize: 1,
+            leaveOpen: true
+        );
+
+        var buffer = new char[1];
+        var jsonBuffer = new StringBuilder();
+
+        while (true)
         {
-            yield return "Failed to get response from the AI service.";
-            yield break;
-        }
+            var bytesRead = await reader.ReadAsync(buffer, 0, 1);
+            if (bytesRead == 0) break;
 
-        using var stream = await response.Content.ReadAsStreamAsync();
-        using var reader = new StreamReader(stream);
+            jsonBuffer.Append(buffer[0]);
 
-        while (!reader.EndOfStream)
-        {
-            var line = await reader.ReadLineAsync();
-            if (string.IsNullOrWhiteSpace(line)) continue;
-
-            if (line.StartsWith("data: "))
+            if (buffer[0] == '\n')
             {
-                var jsonStr = line.Substring(6);
-                if (jsonStr == "[DONE]")
-                {
-                    break;
-                }
+                var line = jsonBuffer.ToString();
+                jsonBuffer.Clear();
 
-                string? text = null;
-                try
-                {
-                    using var document = JsonDocument.Parse(jsonStr);
-                    var root = document.RootElement;
-                    text = root.GetProperty("choices")[0].GetProperty("text").GetString();
-                }
-                catch (JsonException ex)
-                {
-                    _logger.LogWarning(ex, "Failed to parse streaming response line");
-                    continue;
-                }
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
-                if (!string.IsNullOrEmpty(text))
+                using var jsonDoc = JsonDocument.Parse(line);
+                if (jsonDoc.RootElement.TryGetProperty("response", out var responseProperty) &&
+                    responseProperty.GetString() is { } chunk &&
+                    !string.IsNullOrEmpty(chunk))
                 {
-                    yield return text;
+                    yield return chunk;
                 }
             }
         }
     }
 
-    private async Task<UserFinancialContext> GetUserFinancialContext(UserId userId)
+    private string BuildPrompt(string prompt, IEnumerable<TransactionDto> transactions, List<Budget> budgets)
     {
-        var transactions = await _transactionRepository.GetThreeMonthTransactionsByUserIdAsync(userId);
+        var builder = new StringBuilder();
+        builder.AppendLine("Analyze these financial details and answer the question:");
 
-        return new UserFinancialContext
+        builder.AppendLine("\n[Transactions]");
+        foreach (var t in transactions)
         {
-            TransactionCount = transactions.Count(),
-            TotalSpending = transactions.Sum(t => Math.Abs(t.Amount)),
-            RecentSpending = transactions
-                .Where(t => t.TransactionDate >= DateTime.UtcNow.AddDays(-30))
-                .Sum(t => Math.Abs(t.Amount))
-        };
+            builder.AppendLine($"- {t.TransactionDate:yyyy-MM-dd}: {t.Payee} " +
+                             $"{t.Amount:C} ({t.Categories})");
+        }
+
+        builder.AppendLine("\n[Budgets]");
+        foreach (var b in budgets)
+        {
+            builder.AppendLine($"- {b.Category}: " +
+                             $"Spent {b.SpendAmount:C} of {b.TotalAmount:C} " +
+                             $"({b.TotalAmount - b.SpendAmount:C} remaining)");
+        }
+
+        builder.AppendLine($"\n[Question]\n{prompt}");
+        builder.AppendLine("\n[Instructions]\nProvide a detailed analysis with specific recommendations.");
+
+        return builder.ToString();
     }
 
-    private string ParseLLMResponse(string responseContent)
+    // Add this nested class for response parsing
+    private class OllamaResponse
     {
-        using var document = JsonDocument.Parse(responseContent);
-        var root = document.RootElement;
-        return root.GetProperty("choices")[0].GetProperty("text").GetString() ?? string.Empty;
+        public string Response { get; set; } = string.Empty;
     }
 }
