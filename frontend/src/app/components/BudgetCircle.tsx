@@ -2,16 +2,22 @@ import React from 'react';
 import { CircularProgress, Box, Typography } from '@mui/material';
 
 type Props = {
-    progressValue: number; // Progress value (0-100)
-    color: string; // Color of the progress bar
     label: string
+    budgetAmount: number; // Total budget amount
+    budgetSpent: number; // Amount spent
+    color: string; // Color of the progress bar
 };
 
 const BudgetCircle = (props: Props) => {
+    const calculateProgress = () => {
+        if (props.budgetAmount === 0) return 0; // Avoid division by zero
+        const res = Math.round(props.budgetSpent / props.budgetAmount * 100)
+        return res;
+    };
+
     return (
-        <div> 
+        <div className="flex flex-col items-center justify-center w-full h-full p-3">
             <Box position="relative" display="inline-flex">
-                {/* Gray Background (Remaining Progress) */}
                 <CircularProgress
                     variant="determinate"
                     value={100} // Full circle
@@ -25,9 +31,9 @@ const BudgetCircle = (props: Props) => {
                 {/* Main Progress Bar */}
                 <CircularProgress
                     variant="determinate"
-                    value={props.progressValue} // Set the progress value
-                    size={90} // Size of the progress bar
-                    thickness={6} // Thickness of the progress bar
+                    value={Math.min(100, calculateProgress())} //avoid exceeding 100%
+                    size={90}
+                    thickness={7}
                     sx={{
                         color: props.color, // Customize the color using the prop
                     }}
@@ -43,12 +49,21 @@ const BudgetCircle = (props: Props) => {
                     alignItems="center"
                     justifyContent="center"
                 >
-                    <Typography variant="caption" component="div" color="black" className="font-bold">
-                        {`${props.progressValue}%`}
+                    <Typography
+                        variant="caption"
+                        component="div"
+                        sx={{
+                            color: 'black',
+                            fontWeight: 'bold',
+                            fontSize: '1rem', // equivalent to text-lg
+                        }}
+                    >
+                        {`${calculateProgress()}%`}
                     </Typography>
+
                 </Box>
             </Box>
-            <p className="text-sm">{props.label}</p>
+            <p className="text-sm text-center text-nowrap">{props.label}</p>
         </div>
     );
 };

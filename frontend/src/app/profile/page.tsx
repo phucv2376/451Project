@@ -1,115 +1,141 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Profile } from '../models/profile';
+import NavBar from '../components/NavBar';
+import { TextField, InputAdornment, IconButton } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import { PasswordReset } from '../models/auth';
+import { resetUserPassword } from '../services/authService';
+import BankIntegration from '../components/PlaidIntegration/BankIntegration';
+import { usePlaid } from '../hooks/usePlaid';
+import PlaidLinkWrapper from '../components/PlaidIntegration/PlaidLinkWrapper';
+import PlaidDisconnect from '../components/PlaidIntegration/PlaidDisconnect';
 
 const ProfilePage = () => {
 
-  const [mode, setMode] = useState('view'); // Default mode is 'view'
 
-  const [isMounted, setIsMounted] = useState<boolean>(false);
-      
-      useEffect(() => {
-              setIsMounted(true);
-              return () => setIsMounted(false);
-          }, []);
-      
-          if (!isMounted){
-              return null;
-           }
-  
+  const [profile, setProfile] = useState<Profile>(
+    {
+      id: "0",
+      name: "John Doe",
+      email: ""
+    }
+  );
 
-  // Sample profile data
-  const profileData = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    bio: "Software Engineer with a passion for building scalable applications.",
-  };
+  const { plaidAccessToken, exchangePublicToken, disconnectBank } = usePlaid();
+  const isBankConnected = useMemo(() => !!plaidAccessToken, [plaidAccessToken]);
+
+  console.log(isBankConnected)
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [passwordReset, setPasswordReset] = useState<PasswordReset>({
+    email: profile.email,
+    newPassword: "************",
+    confirmNewPassword: ""
+  });
+  const [response, setResponse] = useState<{ success: boolean; message?: string } | undefined>(undefined);
+
+  useEffect(() => {
+    const userID: string = localStorage.getItem('userId') || "0";
+    const name: string = localStorage.getItem('user') || "John Doe";
+    const email: string = localStorage.getItem('email') || "";
+
+    setProfile({
+      id: userID,
+      name: name,
+      email: email
+    });
+    setPasswordReset({
+      email: email,
+      newPassword: "************",
+      confirmNewPassword: ""
+    });
+  }, []);
 
   const handleEditClick = () => {
-    setMode('edit');
+    if (isEditing) {
+      handleSaveClick();
+    } else {
+      setPasswordReset({
+        ...passwordReset,
+        newPassword: "",
+        confirmNewPassword: ""
+      });
+    }
+    setIsEditing(!isEditing);
   };
 
-  const handleCancelClick = () => {
-    setMode('view');
+  const handleSaveClick = async () => {
+    const res = await resetUserPassword(localStorage.getItem('accessToken') || "", passwordReset);
+    setResponse(res);
+    setPasswordReset({
+      email: profile.email,
+      newPassword: "*********",
+      confirmNewPassword: "**********"
+    });
   };
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    // Handle save logic here (e.g., API call to update profile)
-    setMode('view');
-  };
+  const handlePasswordChange = (value: string): void => {
+    setPasswordReset({
+      ...passwordReset,
+      newPassword: value,
+      confirmNewPassword: value
+    });
+  }
+
+  interface Response {
+    success: boolean;
+    message?: string;
+  }
+
+    const handlePlaidSuccess = useCallback(async (publicToken: string) => {
+      try {
+          await exchangePublicToken(publicToken);
+          // await updateTransactions();
+          // setContentKey((prevKey) => prevKey + 1);
+      } catch (error) {
+          console.error("Error exchanging public token:", error);
+      }
+  }, [exchangePublicToken]);
 
   return (
-    <div className="p-4 sm:p-6 md:p-8">
-      <h1 className="text-2xl font-bold mb-4">
-        {mode === 'view' ? 'View Profile' : 'Edit Profile'}
-      </h1>
-
-      {mode === 'view' ? (
-        // View Mode (Read-Only)
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <p className="mt-1 text-lg sm:text-xl">{profileData.name}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <p className="mt-1 text-lg sm:text-xl">{profileData.email}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Bio</label>
-            <p className="mt-1 text-lg sm:text-xl">{profileData.bio}</p>
-          </div>
-          <button
-            onClick={handleEditClick}
-            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Edit Profile
-          </button>
-        </div>
-      ) : (
-        // Edit Mode (Editable Form)
-        <form className="space-y-4" onSubmit={handleSave}>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <input
-              type="text"
-              defaultValue={profileData.name}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              defaultValue={profileData.email}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Bio</label>
-            <textarea
-              defaultValue={profileData.bio}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              rows={4}
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-            <button
-              type="submit"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Save Changes
-            </button>
-            <button
-              type="button"
-              onClick={handleCancelClick}
-              className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+    <div className="flex bg-[#F1F5F9] min-h-screen w-full">
+      <NavBar />
+      <div className="w-full lg:ml-[5%] lg:w-3/4 p-4 pt-[5%] flex flex-col gap-4">
+        <TextField
+          id="name"
+          label="Name"
+          value={profile.name}
+          disabled
+        />
+        <TextField
+          id="email"
+          label="Email"
+          value={profile.email}
+          disabled
+        />
+        <TextField
+          id="password"
+          label="Password"
+          type="password"
+          value={passwordReset.newPassword}
+          onChange={(e) => handlePasswordChange(e.target.value)}
+          disabled={!isEditing}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position='end'>
+                <IconButton
+                  onClick={handleEditClick}
+                  edge='end'
+                >
+                  {isEditing ? <SaveIcon /> : <EditIcon />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }} />
+          {!isBankConnected ? <PlaidLinkWrapper onSuccess={handlePlaidSuccess} /> : <PlaidDisconnect onDisconnect={disconnectBank}/>}
+        <p style={{ color: response?.success ? "green" : "red" }}>{response?.message}</p>
+      </div>
     </div>
   );
 };

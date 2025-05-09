@@ -33,6 +33,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null); // State to hold the user's access token
   const router = useRouter(); // Use Next.js router for navigation after authentication actions
 
+  // On mount, try to load the token from localStorage
+  useEffect(() => {
+      const storedToken = localStorage.getItem("accessToken");
+      if (storedToken) {
+        setAccessToken(storedToken);
+      }
+  }, []);
+
   const registerNewUserAccount = async (userRegister: UserRegister) => {
     try {
         const result = await registerNewUser(userRegister); // Call the registerUser function from the authService
@@ -88,6 +96,9 @@ const login = async (userLogin: UserLogin) => {
     if (result.success) {
       const token = result.data.token; // Extract the token from the result
       setAccessToken(token); // Store the token in state for subsequent authenticated requests
+      localStorage.setItem("accessToken", token); // Store the token in local storage for persistence
+      localStorage.setItem("user", result.data.name); // Store the user data in local storage
+      localStorage.setItem("userId", result.data.userId); // Store the user email in local storage
       router.push('/dashboard'); // Redirect to the dashboard page after successful login
       return { success: true, message: result.data.message}; // Return success and message
     } else {
@@ -101,7 +112,7 @@ const login = async (userLogin: UserLogin) => {
 // Function to reset the user's password by calling the resetPassword service
 const ResetPassword = async (passwordReset: PasswordReset) => {
   try {
-    const result = await resetUserPassword(passwordReset); // Call the resetPassword function from the authService
+    const result = await resetUserPassword(localStorage.getItem('accessToken') || "", passwordReset); // Call the resetPassword function from the authService
 
     if (result.success) {
       router.push('/auth/login'); // Redirect to login page after successful password reset
@@ -120,6 +131,11 @@ const ResetPassword = async (passwordReset: PasswordReset) => {
   // Function to log out the current user and clear the access token from state
   const logout = () => {
     setAccessToken(null); // Clear the access token from the state
+    localStorage.removeItem("accessToken"); // Remove the access token from local storage
+    localStorage.removeItem("plaid_access_token"); // Remove the plaid access token from local storage
+    localStorage.removeItem("email"); // Remove the email data from local storage
+    localStorage.removeItem("user"); // Remove the user data from local storage
+    localStorage.removeItem("userId"); // Remove the user email from local storage
     router.push('/auth/login'); // Redirect to the login page
   };
 
@@ -129,6 +145,7 @@ const ResetPassword = async (passwordReset: PasswordReset) => {
       const result = await refreshUserToken(); // Call the refreshTokenAPI function from the authService
       if (result.success) {
         setAccessToken(result.data.token); // Update the access token if the refresh is successful
+        localStorage.setItem("accessToken", result.data.token); // Store the new token in local storage
       } else {
         logout(); // Log out the user if the refresh token request fails
       }
@@ -141,7 +158,7 @@ const ResetPassword = async (passwordReset: PasswordReset) => {
   useEffect(() => {
     const interval = setInterval(async () => {
       await refreshUserAuthToken(); // Refresh the token periodically
-    }, 1000 * 60 * 5); // 5-minute interval
+    }, 1000 * 60 * 20); // 20-minute interval
 
     return () => clearInterval(interval); // Cleanup the interval when the component unmounts
   }, []);
@@ -155,6 +172,7 @@ const DeleteAccount = async () => {
   const result = await deleteUserAccount(accessToken); // Pass the access token to the deleteUserAccount service
   if (result.success) {
     setAccessToken(null); // Clear the access token if the account is deleted
+    localStorage.removeItem("accessToken"); // Remove the access token from local storage
     router.push('/auth/login'); // Redirect to the login page after account deletion
   } else {
     throw new Error(result.message); // Throw an error if account deletion fails

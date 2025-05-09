@@ -1,275 +1,137 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { usePlaid } from "../hooks/usePlaid";
+import NavBar from "../components/NavBar";
+import { Transaction } from "../models/Transaction";
+import {
+  getRecentTransactions,
+  getMonthlyIncome,
+  getMonthlyExpenses,
+} from "../services/transactionService";
+import BalanceSummary from "../components/BalanceSummary";
+import SpendingBreakdown from "../components/SpendingBreakdown";
+import CashflowSummary from "../components/CashflowSummary";
+import RecentTransactionTable from "../components/RecentTransactionTable";
+import BudgetOverview from "../components/BudgetOverview";
 import { useRouter } from "next/navigation";
-import { red } from '@mui/material/colors';
-import BudgetCircle from "../components/BudgetCircle";
-import { Box, LinearProgress, Typography, Stack } from '@mui/material';
-import TransactionTable from "../components/TransactionTable";
-
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import Avatar from '@mui/material/Avatar';
-import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
-import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
-import SwapHorizOutlinedIcon from '@mui/icons-material/SwapHorizOutlined';
-import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
-import MoneyBox from "../components/MoneyBox";
-import NavBarItems from "../components/NavBarItems";
-import { useAuth } from "../contexts/AuthContext";
-import { categories } from "../models/TransactionCategory";
-import React from "react";
 
 const Dashboard = () => {
-    const { accessToken, logout } = useAuth();
+  const { plaidAccessToken, exchangePublicToken, disconnectBank } = usePlaid();
 
-    const handleLogout = () => {
-        logout();
-    };
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [monthlyIncome, setMonthlyIncome] = useState<number>(0);
+  const [monthlyExpenses, setMonthlyExpenses] = useState<number>(0);
+  const [loadingState, setLoadingState] = useState({
+    transactions: true,
+    financials: true,
+  });
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (!accessToken) {
-            //logout();
-        }
-    }, []);
+  const [name, setName] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
+  const [contentKey, setContentKey] = useState<number>(0);
 
-    const router = useRouter();
+  // Memoized variable for checking bank connection
+  const isBankConnected = useMemo(() => !!plaidAccessToken, [plaidAccessToken]);
 
-    const handleSettings = () => {
+  const router = useRouter();
 
+  // Fetch Transactions and Financial Data
+  const updateTransactions = async () => {
+    const storedUserId = localStorage.getItem("userId");
+    const accessToken = localStorage.getItem("accessToken");
+
+    if (!storedUserId || !accessToken) {
+      setError("Authentication required");
+      setLoadingState({ transactions: false, financials: false });
+      return;
     }
 
-    const expenses = [
-        { 
-            category: 'Transportation', 
-            percentage: 8, 
-            color: 'red' 
-        },
-        {
-            category: 'Food & Dining',
-            percentage: 92,
-            color: 'blue'
-        },
-    ];
+    setUserId(storedUserId);
 
-    const transactionList = [
-        {
-            id: '0',
-            date: new Date(),
-            amount: 323.20,
-            description: 'Groceries',
-            category: categories[0]
-        },
-        {
-            id: '1',
-            date: new Date(),
-            amount: 12.40,
-            description: 'Uber',
-            category: categories[1]
-        },
-        {
-            id: '3',
-            date: new Date(),
-            amount: 2576.00,
-            description: 'Tuition',
-            category: categories[3]
-        },
-        {
-            id: '2',
-            date: new Date(),
-            amount: 23.57,  
-            description: 'Movie',
-            category: categories[2]
-        },
-        {
-            id: '5',
-            date: new Date(),
-            amount: 292.30,
-            description: 'Job',
-            category: categories[5]
-        }
-        
-    ]
+    try {
+      setLoadingState({ transactions: true, financials: true });
+      const [transactionsResult, incomeResult, expensesResult] =
+        await Promise.all([
+          getRecentTransactions(storedUserId, accessToken),
+          getMonthlyIncome(storedUserId, accessToken),
+          getMonthlyExpenses(storedUserId, accessToken),
+        ]);
 
-    return (
-        <div className="flex bg-[#F1F5F9] min-h-screen w-full">
-            {/*Nav bar*/}
-            <div className="bg-white h-full w-1/6 p-6 flex flex-col shadow-right shadow-sm border border-gray-200 fixed">
-                <h1 className="text-xl mb-5">Our App Name</h1>
-                <div>
-                    <NavBarItems
-                        label="Dashboard"
-                        alt="Dashboard"
-                        Icon={GridViewOutlinedIcon}
-                    />
-                    <NavBarItems
-                        label="Transactions"
-                        alt="Transactions"
-                        Icon={SwapHorizOutlinedIcon}
-                    />
-                    <NavBarItems
-                        label="Goals"
-                        alt="Goals"
-                        Icon={EmojiEventsOutlinedIcon}
-                    />
-                    <NavBarItems
-                        label="Analytics"
-                        alt="Analytics"
-                        Icon={InsightsOutlinedIcon}
-                    />
-                </div>
+      setTransactions(
+        transactionsResult.success ? transactionsResult.data || [] : []
+      );
+      setMonthlyIncome(incomeResult.success ? incomeResult.data || 0 : 0);
+      setMonthlyExpenses(expensesResult.success ? expensesResult.data || 0 : 0);
+      setError(
+        transactionsResult.success
+          ? null
+          : transactionsResult.message || "No transactions found"
+      );
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch data");
+      setTransactions([]);
+    } finally {
+      setLoadingState({ transactions: false, financials: false });
+    }
+  };
 
-                <div className="mt-auto">
-                    <div className="border-t border-gray-200"></div>
-                    <NavBarItems
-                        label="Settings"
-                        onClick={handleSettings}
-                        alt="Settings"
-                        Icon={SettingsOutlinedIcon}
-                    />
-                    <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center">
-                            <Avatar />
-                            <h2 className="ml-3">Profile</h2>
-                        </div>
-                        <LogoutOutlinedIcon
-                            sx={{
-                                color: red[600],
-                                '&:hover': { color: red[900] },
-                            }}
-                            className="cursor-pointer"
-                            onClick={handleLogout}
-                        />
-                    </div>
-                </div>
+  // Load user data and transactions on mount
+  useEffect(() => {
+    setName(localStorage.getItem("user") || "User");
+    updateTransactions();
+  }, []);
 
-            </div>
+  // Handle Plaid success (smooth refresh without reloading the page)
+  const handlePlaidSuccess = useCallback(
+    async (publicToken: string) => {
+      try {
+        await exchangePublicToken(publicToken);
+        await updateTransactions();
+        setContentKey((prevKey) => prevKey + 1);
+        console.log("test");
+      } catch (error) {
+        console.error("Error exchanging public token:", error);
+      }
+    },
+    [exchangePublicToken]
+  );
 
-            {/*Main Page*/}
-            <div className="ml-[20%] mr-5 mt-5 w-3/4 h-full">
-                <p className="text-3xl mb-10">Hello, Name!</p>
-                <div className="flex flex-row gap-10 mt-5 justify-center">
-                    <div className="flex-1 bg-white rounded-lg flex flex-col items-start justify-start p-5 border border-gray-200">
-                        <p className="text-md font-bold">Balance</p>
-                        <div className="flex items-center gap-2 mt-4">
-                            <h2 className="text-4xl font-bold">$1,234.56</h2>
-                            <TrendingUpIcon
-                                sx={{
-                                    color: '#4caf50', // Green color
-                                }}
-                            />
-                        </div>
+  return (
+    <div className="flex bg-[#F1F5F9] min-h-screen w-full">
+      <NavBar />
+      <div className="w-full lg:ml-[5%] lg:w-3/4 p-4" key={contentKey}>
+        <p className="text-3xl mb-6">Hello, {name}!</p>
 
-                    </div>
-                    <MoneyBox
-                        text="Cash In"
-                        money="+$196"
-                    />
-                    <MoneyBox
-                        text="Cash Out"
-                        money="-$280"
-                    />
-                </div>
-
-                <div className="flex flex-row gap-5 mt-7">
-                    {/*Table*/}
-                    <div className="flex-[2]">
-                        <div className="h-full">
-                            {/* White Container with Rounded Edges */}
-                            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-                                {/* Table Title */}
-                                <h2 className="text-md font-bold mb-6">Recent Transaction History</h2>
-
-                                {/* Table */}
-                                <div className="overflow-x-auto">
-                                    <TransactionTable
-                                        transactions={transactionList}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/*Goals*/}
-                    <div className="flex-[1] bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-                        <h2 className="font-bold text-md justify-start mb-5">Budget</h2>
-                        <div className="flex justify-center">
-                            <div className="grid grid-cols-2 gap-10 ">
-                                <BudgetCircle
-                                    progressValue={10}
-                                    color="#3f51b5"
-                                    label="Transportation"
-                                />
-                                <BudgetCircle
-                                    progressValue={94}
-                                    color="#cf6087"
-                                    label="Education"
-                                />
-                                <BudgetCircle
-                                    progressValue={51}
-                                    color="#1d8e1e"
-                                    label="Personal Care"
-                                />
-                                <BudgetCircle
-                                    progressValue={72}
-                                    color="#df98d3"
-                                    label="Food & Dining"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/*Expenses Table*/}
-                <div className="bg-white rounded-lg border border-gray-200 p-5 mt-5 mb-7 shadow-sm">
-                    <h2 className="font-bold text-md justify-start mb-5">Spending Breakdown</h2>
-                    <Box sx={{ width: '100%' }}>
-                        {/* Combined Progress Bar */}
-                        <Box sx={{ width: '100%', height: '20px', borderRadius: '5px', overflow: 'hidden', position: 'relative' }}>
-                            {/* Background Bar */}
-                            <LinearProgress
-                                variant="determinate"
-                                value={100} // Full width background
-                                sx={{
-                                    height: '100%',
-                                    backgroundColor: '#e0e0e0', // Light gray background for the full bar
-                                    position: 'absolute',
-                                    width: '100%',
-                                }}
-                            />
-                            {/* Segmented Bar */}
-                            <Box sx={{ display: 'flex', height: '100%', position: 'absolute', width: '100%' }}>
-                                {expenses.map((expense, index) => (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            width: `${expense.percentage}%`,
-                                            backgroundColor: expense.color,
-                                            height: '100%',
-                                            borderRadius: index === 0 ? '5px 0 0 5px' :
-                                                index === expenses.length - 1 ? '0 5px 5px 0' : '0',
-                                        }}
-                                    />
-                                ))}
-                            </Box>
-                        </Box>
-
-                        {/* Labels */}
-                        <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
-                            {expenses.map((expense, index) => (
-                                <Typography key={index} variant="body2" sx={{ color: expense.color }}>
-                                    {expense.category} ({expense.percentage}%)
-                                </Typography>
-                            ))}
-                        </Stack>
-                    </Box>
-
-                </div>
-
-            </div>
+        {/* Bank Integration & Financial Summary */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          <BalanceSummary
+            onDisconnect={disconnectBank}
+            isConnected={isBankConnected}
+            onPlaidSuccess={handlePlaidSuccess}
+          />
+          <CashflowSummary
+            monthlyIncome={monthlyIncome}
+            monthlyExpenses={monthlyExpenses}
+            isLoading={loadingState.financials}
+          />
         </div>
-    );
-}
+
+        {/* Recent Transactions & Budget Overview */}
+        <div className="flex m-h-[24rem] flex-col lg:flex-row gap-4 mt-6">
+          <RecentTransactionTable
+            transactions={transactions}
+            error={error}
+            isLoading={loadingState.transactions}
+          />
+          <BudgetOverview />
+        </div>
+        <SpendingBreakdown />
+      </div>
+    </div>
+  );
+};
 
 export default Dashboard;

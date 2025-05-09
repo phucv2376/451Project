@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import InputField from '../../components/InputField';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import { useAuth } from './../../contexts/AuthContext'; // Import authentication context
@@ -20,14 +20,14 @@ const ForgotPassword = () => {
     const [isLoading, setIsLoading] = useState(false); // Loading state for submit button
     const [isMounted, setIsMounted] = useState(false);
 
-        useEffect(() => {
-            setIsMounted(true);
-            return () => setIsMounted(false);
-        }, []);
+    useEffect(() => {
+        setIsMounted(true);
+        return () => setIsMounted(false);
+    }, []);
     
-        if (!isMounted){
-            return null;
-        }
+    if (!isMounted) {
+        return null;
+    }
 
     // Function to handle form submission
     const handleSubmit = async () => {
@@ -60,7 +60,7 @@ const ForgotPassword = () => {
                 setMessage(result.message); // Display error message from backend
             }
         } catch (error) {
-            setMessage("An error occurred. Please try again later.");
+            setMessage(`An error occurred. Please try again later${error}.`);
         } finally {
             setIsLoading(false); // Reset loading state
         }
@@ -142,7 +142,3 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
-function useEffect(arg0: () => () => any, arg1: never[]) {
-    throw new Error('Function not implemented.');
-}
-

@@ -154,13 +154,15 @@ export const refreshUserToken = async () => {
 /**
  * Resets the user's password.
  * @param passwordReset - The new password details.
+ * @params token - The user's authentication token.
  * @returns A success response or an error message.
  */
-export const resetUserPassword = async (passwordReset: PasswordReset) => {
+export const resetUserPassword = async (token: string, passwordReset: PasswordReset) => {
     try {
         const response = await fetch(`${API_BASE_URL}/Auth/reset-password`, {
             method: "POST",
             headers: {
+                "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(passwordReset),

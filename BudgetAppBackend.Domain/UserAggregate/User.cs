@@ -120,6 +120,10 @@ namespace BudgetAppBackend.Domain.UserAggregate
 
         public bool VerifyPassword(string password)
         {
+            if (password == null)
+            {
+                throw new ArgumentNullException(nameof(password), "Password cannot be null.");
+            }
             using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
             {
                 Salt = PasswordSalt,

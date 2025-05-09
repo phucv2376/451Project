@@ -164,6 +164,7 @@ namespace BudgetAppBackend.API.Tests
         [Fact]
         public async Task ResetPassword_WhenCalled_ReturnsOkObjectResult()
         {
+
             // Arrange
             var resetPasswordDto = new ResetPasswordDto 
             { 
@@ -171,8 +172,10 @@ namespace BudgetAppBackend.API.Tests
                 NewPassword = "Password1234", 
                 ConfirmNewPassword= "Password1234" 
             };
+
+            var authResult = new AuthResult { Success = true, Message = "d53a5f64-91be-4b2e-a937-bc93ef45d8a1" };
             _mockSender.Setup(s => s.Send(It.IsAny<ResetPasswordCommand>(), It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(Unit.Value);
+                       .ReturnsAsync(authResult);
 
             // Act
             var result = await _controller.ResetPassword(resetPasswordDto, CancellationToken.None);

@@ -1,4 +1,7 @@
-﻿using BudgetAppBackend.Domain.Commons;
+﻿using BudgetAppBackend.Domain.BudgetAggregate.ValueObjects;
+using BudgetAppBackend.Domain.Commons;
+using BudgetAppBackend.Domain.PlaidTransactionAggregate.ValueObjects;
+using BudgetAppBackend.Domain.TransactionAggregate.ValueObjects;
 using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -53,6 +56,18 @@ namespace BudgetAppBackend.Infrastructure.Outbox
                 {
 
                     aggregateGuid = userId.Id;
+                }
+                else if (aggregateIdValue is BudgetId budgetId)
+                {
+                    aggregateGuid = budgetId.Id;
+                }
+                else if (aggregateIdValue is TransactionId transactionId)
+                {
+                    aggregateGuid = transactionId.Id;
+                }
+                else if (aggregateIdValue is PlaidTranId plaidTranId)
+                {
+                    aggregateGuid = plaidTranId.Id;
                 }
                 else if (aggregateIdValue is Guid guidId)
                 {

@@ -1,5 +1,6 @@
 ﻿using BudgetAppBackend.Application.Contracts;
 using BudgetAppBackend.Domain.UserAggregate;
+using BudgetAppBackend.Domain.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace BudgetAppBackend.Infrastructure.Repositories
@@ -35,6 +36,11 @@ namespace BudgetAppBackend.Infrastructure.Repositories
         {
             _context.Users.Remove(user.Result);
             return _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<User?> GetUserByIdAsync(UserId userId, CancellationToken cancellationToken)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
         }
     }
 }

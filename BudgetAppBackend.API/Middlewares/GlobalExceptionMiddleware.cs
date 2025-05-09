@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using BudgetAppBackend.Domain.Exceptions.BudgetExceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Net;
@@ -89,6 +90,69 @@ namespace BudgetAppBackend.API.Middlewares
                     problemDetails.Status = response.StatusCode;
                     problemDetails.Title = "Request Canceled";
                     problemDetails.Detail = "The request was canceled by the client or server.";
+                    problemDetails.Extensions["success"] = false;
+                    break;
+
+                // ---------------------------------------
+                // Domain-Specific Budget Exceptions
+                // ---------------------------------------
+                case BudgetNotFoundException budgetNotFoundEx:
+                    _logger.LogWarning("Budget not found at {Path}: {Message}",
+                    context.Request.Path, budgetNotFoundEx.Message);
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    problemDetails.Status = response.StatusCode;
+                    problemDetails.Title = "Budget Not Found";
+                    problemDetails.Detail = budgetNotFoundEx.Message;
+                    problemDetails.Extensions["success"] = false;
+                    break;
+
+                case BudgetAlreadyExistsException budgetExistsEx:
+                    _logger.LogWarning("Budget already exists at {Path}: {Message}",
+                    context.Request.Path, budgetExistsEx.Message);
+                    response.StatusCode = (int)HttpStatusCode.Conflict;
+                    problemDetails.Status = response.StatusCode;
+                    problemDetails.Title = "Budget Already Exists";
+                    problemDetails.Detail = budgetExistsEx.Message;
+                    problemDetails.Extensions["success"] = false;
+                    break;
+
+                case BudgetInvalidTitleException invalidTitleEx:
+                    _logger.LogWarning("Invalid budget title at {Path}: {Message}",
+                    context.Request.Path, invalidTitleEx.Message);
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    problemDetails.Status = response.StatusCode;
+                    problemDetails.Title = "Invalid Budget Title";
+                    problemDetails.Detail = invalidTitleEx.Message;
+                    problemDetails.Extensions["success"] = false;
+                    break;
+
+                case BudgetInvalidAmountException invalidAmountEx:
+                    _logger.LogWarning("Invalid budget amount at {Path}: {Message}",
+                    context.Request.Path, invalidAmountEx.Message);
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    problemDetails.Status = response.StatusCode;
+                    problemDetails.Title = "Invalid Budget Amount";
+                    problemDetails.Detail = invalidAmountEx.Message;
+                    problemDetails.Extensions["success"] = false;
+                    break;
+
+                case BudgetRollbackException rollbackEx:
+                    _logger.LogWarning("Budget rollback error at {Path}: {Message}",
+                    context.Request.Path, rollbackEx.Message);
+                    response.StatusCode = (int)HttpStatusCode.Conflict;
+                    problemDetails.Status = response.StatusCode;
+                    problemDetails.Title = "Budget Rollback Error";
+                    problemDetails.Detail = rollbackEx.Message;
+                    problemDetails.Extensions["success"] = false;
+                    break;
+
+                case BudgetDecreaseAmountException decreaseEx:
+                    _logger.LogWarning("Budget decrease error at {Path}: {Message}",
+                        context.Request.Path, decreaseEx.Message);
+                    response.StatusCode = (int)HttpStatusCode.Conflict;
+                    problemDetails.Status = response.StatusCode;
+                    problemDetails.Title = "Budget Decrease Error";
+                    problemDetails.Detail = decreaseEx.Message;
                     problemDetails.Extensions["success"] = false;
                     break;
 

@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using BudgetAppBackend.Application.Models;
+using BudgetAppBackend.Application.Configuration;
 using BudgetAppBackend.Application.Service;
 using BudgetAppBackend.Domain.UserAggregate;
 using Microsoft.Extensions.Options;
@@ -30,7 +30,7 @@ namespace BudgetAppBackend.Infrastructure.Services
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email)
             };
 
